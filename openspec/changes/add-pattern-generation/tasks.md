@@ -3,7 +3,7 @@
 ## 1. Seeded random numbers (core)
 
 - [x] 1.1 Write `tests/unit/core/random.test.js`: two generators with the same seed give the same 1000 values; every value is in [0, 1); seeds 1 and 2 give different first values; a non-integer seed throws a `RangeError` naming the value. Verify it fails
-- [ ] 1.2 Implement `createSeededRandom(seed)` in `src/core/random.js` (mulberry32, source cited, plain-text header comment). Verify `node --test tests/unit/core/random.test.js` passes
+- [x] 1.2 Implement `createSeededRandom(seed)` in `src/core/random.js` (mulberry32, source cited, plain-text header comment). Verify `node --test tests/unit/core/random.test.js` passes
 
 ## 2. Stitch grid size and resize (core)
 
