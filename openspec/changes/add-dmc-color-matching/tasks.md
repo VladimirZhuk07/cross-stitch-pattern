@@ -23,7 +23,7 @@
 ## 3. Palette import script (`scripts/import-dmc-palette.js`)
 
 - [x] 3.1 Write failing tests in `tests/integration/import-dmc-palette.test.js` for `convertSourceEntries` with inline fixtures: `Blanc` → `BLANC`, `Ecru` → `ECRU`, `B5200` and `3865` unchanged, hex upper-cased (`#ffffff` → `#FFFFFF`), `rgb` dropped, order kept; errors naming the entry for `rgb` `[0,0,1]` vs `#000000` on `310`, duplicate `Blanc`/`BLANC`, hex `#00000`, empty name; and for `readSourceColors` (takes the parsed source file): returns `colors`, fails if `license` is not `CC-BY-4.0`, if `count` differs from the number of colors, or if `colors` is missing; verify they fail with `npm run test:integration`
-- [ ] 3.2 Implement `convertSourceEntries` and `readSourceColors` (pure, exported); verify the 3.1 tests pass
+- [x] 3.2 Implement `convertSourceEntries` and `readSourceColors` (pure, exported); verify the 3.1 tests pass
 - [ ] 3.3 Write failing tests for `renderPaletteModule`: output starts with a header comment that contains the repo URL, file path, a given 40-character SHA, a given SHA-256, `CC-BY-4.0`, the transformation list and the regenerate command; importing the output through a `data:text/javascript` URL yields `DMC_COLORS` deep-equal to the input and frozen (array and entries); a name containing `'` and `"` survives; verify they fail
 - [ ] 3.4 Implement `renderPaletteModule` and the CLI entry (`node scripts/import-dmc-palette.js <source.json> <commit-sha>`: reads the file, hashes it, converts, writes `src/data/dmc.js`, prints every code changed by upper-casing; writes nothing on error); verify the 3.3 tests pass and running with a missing file exits non-zero without creating `src/data/dmc.js`
 
