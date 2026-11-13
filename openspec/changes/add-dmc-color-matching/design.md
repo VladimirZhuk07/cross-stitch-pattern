@@ -68,7 +68,7 @@ every field of a DMC color, so a match result's `color` can be used wherever a D
 | `srgbToLinear` | `srgbToLinear(channel)` → number | 0–255 → 0–1; out of range → `RangeError`. #4 builds a 256-entry lookup table from it. |
 | `linearToSrgb` | `linearToSrgb(value)` → number | 0–1 → unrounded 0–255; clamps; `NaN` → `RangeError`. |
 | `rgbToLab` | `rgbToLab(rgb)` → Lab color | sRGB → linear → XYZ → Lab. |
-| `linearRgbToLab` | `linearRgbToLab(linearRgb)` → Lab color | For #4's area-averaged cells, which are already linear. |
+| `linearRgbToLab` | `linearRgbToLab(linearRgb)` → Lab color | For #4's area-averaged cells, which are already linear. Clamps channels to 0–1 (float drift of averages); non-finite → `RangeError`. |
 | `deltaE2000` | `deltaE2000(lab1, lab2)` → number | CIEDE2000, kL = kC = kH = 1. |
 
 `src/core/dmc-match.js`:
@@ -76,8 +76,8 @@ every field of a DMC color, so a match result's `color` can be used wherever a D
 | Function | Signature | Purpose |
 |---|---|---|
 | `prepareLabPalette` | `prepareLabPalette(colors)` → prepared palette | Validates (non-empty, unique codes, valid hex), computes Lab once, returns a frozen array. |
-| `nearestDmcColor` | `nearestDmcColor(lab, palette)` → match result | Smallest ΔE00; ties → lowest index. |
-| `nearestDmcColors` | `nearestDmcColors(labs, palette)` → array of match results | Same, for #4's list of cluster centres. |
+| `nearestDmcColor` | `nearestDmcColor(lab, palette)` → match result | Smallest ΔE00; ties → lowest index. Palette that is not a non-empty array → `TypeError`. |
+| `nearestDmcColors` | `nearestDmcColors(labs, palette)` → array of match results | Same, for #4's list of cluster centres. `labs` not an array → `TypeError`. |
 
 Input is validated at these public boundaries only; internal helpers (`linearRgbToXyz`,
 `xyzToLab`, `assertLab`) are not exported.
@@ -90,7 +90,8 @@ Input is validated at these public boundaries only; internal helpers (`linearRgb
   matrix was rejected: it leaves white about 0.002 off neutral.
 - CIE exact constants ε = 216/24389, κ = 24389/27 instead of the rounded 0.008856 / 903.3, which
   make the Lab `f()` function slightly discontinuous.
-- The Lab reference values in tests come from one cited calculator that uses these same constants;
+- The Lab reference values in tests come from the chroma.js test suite (`test/io/rgb2lab.test.js`,
+  pinned commit, cited in the test file), which uses these same constants and publishes 2 decimals;
   the tolerance is 0.01 per component so the test does not depend on the last digit of the source.
 
 ### Color distance: CIEDE2000, brute force, no pre-filter
@@ -121,7 +122,8 @@ re-runnable by a reviewer. It is not a build step: it runs once by hand and its 
 committed; the app never runs it.
 
 - Usage: `node scripts/import-dmc-palette.js <path-to-dmc-floss.json> <commit-sha>` writes
-  `src/data/dmc.js`.
+  `src/data/dmc.js` (creating `src/data/` if needed). `renderPaletteModule` rejects a commit SHA that
+  is not 40 hex characters and a source hash that is not 64.
 - The script does no network I/O. The developer first resolves the commit with
   `git ls-remote https://github.com/makebead/craft-color-codes HEAD` and downloads
   `https://raw.githubusercontent.com/makebead/craft-color-codes/<sha>/data/json/dmc-floss.json`
