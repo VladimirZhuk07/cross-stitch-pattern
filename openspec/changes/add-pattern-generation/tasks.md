@@ -15,7 +15,7 @@
 ## 3. k-means in CIELAB (core)
 
 - [x] 3.1 Write `tests/unit/core/kmeans.test.js`: 4 points at two Lab colors with `maxClusters` 24 → exactly 2 centres equal to those colors, assignments grouping them; `maxClusters` 1 → one centre at the mean; 0 points → `{ centres: [], assignments: [] }`; 200 synthetic points with `maxClusters` 8 → at most 8 centres, every assignment a valid index, each centre the mean of its points (1e-9); the same call twice → deep-equal; a different seed may differ but stays valid; `maxClusters` 0 or 1.5 → `RangeError`; points length not a multiple of 3 → `RangeError`; input not modified. Verify it fails
-- [ ] 3.2 Implement `KMEANS_SEED`, `MAX_KMEANS_ITERATIONS`, `kMeansLab` in `src/core/kmeans.js` per design D4 (k-means++ init with early stop at ΣD² = 0, Lloyd with lowest-index ties, empty cluster keeps its centre). Verify the k-means tests pass
+- [x] 3.2 Implement `KMEANS_SEED`, `MAX_KMEANS_ITERATIONS`, `kMeansLab` in `src/core/kmeans.js` per design D4 (k-means++ init with early stop at ΣD² = 0, Lloyd with lowest-index ties, empty cluster keeps its centre). Verify the k-means tests pass
 
 ## 4. Settings defaults and texts (core)
 
