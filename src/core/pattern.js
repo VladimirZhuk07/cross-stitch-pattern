@@ -49,14 +49,7 @@ export function buildPattern(input) {
 // Turns the used input colors into numbered legend entries. Also returns, for every input
 // color index, the index of its legend entry (EMPTY_CELL for unused colors).
 function buildLegend(colors, stitchCounts) {
-  const groups = [];
-  for (let i = 0; i < colors.length; i++) {
-    if (stitchCounts[i] === 0) {
-      continue;
-    }
-    const { code, name, hex } = colors[i];
-    groups.push({ code, name, hex: hex.toUpperCase(), stitchCount: stitchCounts[i], colorIndexes: [i] });
-  }
+  const groups = groupUsedColorsByCode(colors, stitchCounts);
   groups.sort(compareLegendGroups);
 
   const legendIndexOfColor = new Int32Array(colors.length).fill(EMPTY_CELL);
@@ -69,6 +62,44 @@ function buildLegend(colors, stitchCounts) {
     }
   }
   return { entries, legendIndexOfColor };
+}
+
+// Several k-means clusters can land on the same DMC color; the chart must list it once.
+// Returns one group per used DMC code with the summed stitch count and the input indexes.
+function groupUsedColorsByCode(colors, stitchCounts) {
+  const groupByCode = new Map();
+  for (let i = 0; i < colors.length; i++) {
+    if (stitchCounts[i] === 0) {
+      continue;
+    }
+    const { code, name, hex } = colors[i];
+    const group = groupByCode.get(code);
+    if (group === undefined) {
+      groupByCode.set(code, { code, name, hex: hex.toUpperCase(), stitchCount: stitchCounts[i], colorIndexes: [i] });
+      continue;
+    }
+    group.stitchCount += stitchCounts[i];
+    group.colorIndexes.push(i);
+  }
+  return [...groupByCode.values()];
+}
+
+// The same DMC code must always mean the same color; differing data points to a bug upstream.
+function checkNoConflictingCodes(colors) {
+  const firstByCode = new Map();
+  for (const color of colors) {
+    const first = firstByCode.get(color.code);
+    if (first === undefined) {
+      firstByCode.set(color.code, color);
+      continue;
+    }
+    if (first.name !== color.name || first.hex.toUpperCase() !== color.hex.toUpperCase()) {
+      throw new Error(
+        `DMC ${color.code} appears twice with different data: ` +
+        `"${first.name}" ${first.hex} vs "${color.name}" ${color.hex}`,
+      );
+    }
+  }
 }
 
 // Most stitches first; equal counts by DMC code, so the numbering is deterministic.
@@ -92,6 +123,7 @@ function checkColors(colors) {
   for (let i = 0; i < colors.length; i++) {
     checkColor(colors[i], i);
   }
+  checkNoConflictingCodes(colors);
 }
 
 function checkColor(color, index) {
