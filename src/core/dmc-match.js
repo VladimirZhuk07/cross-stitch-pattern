@@ -54,3 +54,17 @@ export function nearestDmcColor(lab, palette) {
   }
   return { color: palette[bestIndex], index: bestIndex, deltaE: bestDeltaE };
 }
+
+// Matches a list of Lab colors (e.g. k-means cluster centres) against a prepared palette.
+// Returns an array of match results, one per input, in input order; [] for an empty list.
+// Throws TypeError as nearestDmcColor does, or if labs is not an array.
+export function nearestDmcColors(labs, palette) {
+  if (!Array.isArray(labs)) {
+    throw new TypeError(`labs must be an array of Lab colors, got ${JSON.stringify(labs)}`);
+  }
+  const matches = [];
+  for (const lab of labs) {
+    matches.push(nearestDmcColor(lab, palette));
+  }
+  return matches;
+}

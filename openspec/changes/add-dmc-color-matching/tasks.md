@@ -18,7 +18,7 @@
 - [x] 2.3 Write failing tests for `nearestDmcColor`: palette K `#000000` / W `#FFFFFF` → sRGB `(30,30,30)` gives `K` with ΔE00 6.7765 (±1e-3) and `(200,200,200)` gives `W` with 12.1161 (±1e-3); result has `color`, `index`, `deltaE`; tie palette X/Y `#808080` gives `X`, index 0, on 100 repeated calls; Lab input not mutated; `TypeError` for non-finite Lab; verify they fail
 - [x] 2.4 Implement `nearestDmcColor` (linear scan, strict `<` so the lowest index wins ties); verify the 2.3 tests pass
 - [x] 2.5 Write failing tests for `nearestDmcColors`: 3 inputs give 3 results in input order, each deep-equal to `nearestDmcColor` of that input; empty list → `[]`; verify they fail
-- [ ] 2.6 Implement `nearestDmcColors`; verify all `tests/unit/core/dmc-match.test.js` tests pass
+- [x] 2.6 Implement `nearestDmcColors`; verify all `tests/unit/core/dmc-match.test.js` tests pass
 
 ## 3. Palette import script (`scripts/import-dmc-palette.js`)
 
