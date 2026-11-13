@@ -37,6 +37,6 @@
 
 - [x] 5.1 Run `npm run test:unit`; all tests pass (show output)
 - [x] 5.2 Run `npm run test:integration`; it passes (this change adds no integration tests, expect 0 failures)
-- [ ] 5.3 Run `openspec validate add-pattern-model --strict`; it reports the change is valid
+- [x] 5.3 Run `openspec validate add-pattern-model --strict`; it reports the change is valid
 
 No browser smoke check: this change touches no UI or io code.
