@@ -35,7 +35,7 @@
 
 ## 5. Integration of palette and matching
 
-- [ ] 5.1 Write `tests/integration/dmc-palette-matching.test.js` using the real `DMC_COLORS`: prepared palette has 489 colors in palette order and `'310'` has Lab `(0, 0, 0)` ±0.01; Lab of `#000000` matches `'310'` with ΔE00 < 1e-9; every one of the 489 hex values matches an entry with the same hex, ΔE00 < 1e-9, at its own index or an earlier one with identical hex; 30 Lab inputs (fixed list in the test) give 30 results equal to single matches; `src/core/color.js` and `src/core/dmc-match.js` contain no `window`, `document`, `self`, `fetch`, `localStorage`, or `setTimeout` and import only relative core paths; verify it passes with `npm run test:integration`
+- [x] 5.1 Write `tests/integration/dmc-palette-matching.test.js` using the real `DMC_COLORS`: prepared palette has 489 colors in palette order and `'310'` has Lab `(0, 0, 0)` ±0.01; Lab of `#000000` matches `'310'` with ΔE00 < 1e-9; every one of the 489 hex values matches an entry with the same hex, ΔE00 < 1e-9, at its own index or an earlier one with identical hex; 30 Lab inputs (fixed list in the test) give 30 results equal to single matches; `src/core/color.js` and `src/core/dmc-match.js` contain no `window`, `document`, `self`, `fetch`, `localStorage`, or `setTimeout` and import only relative core paths; verify it passes with `npm run test:integration`
 
 ## 6. Verification
 
