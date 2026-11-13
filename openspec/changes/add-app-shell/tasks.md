@@ -47,8 +47,8 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Run `npm run test:unit` and confirm all unit tests pass
-- [ ] 7.2 Run `npm run test:integration` and confirm all integration tests pass
+- [x] 7.1 Run `npm run test:unit` and confirm all unit tests pass
+- [x] 7.2 Run `npm run test:integration` and confirm all integration tests pass
 - [ ] 7.3 Manual browser smoke check with `node scripts/serve.js --base /cross-stitch-pattern/`, open `http://127.0.0.1:8080/cross-stitch-pattern/`:
   - start: frame shows `Choose an image or drop it here`; `+`, `−`, `Fit` disabled; `DMC colors` and `Chart` disabled, `Original` selected
   - pick a ~1200×800 JPG: status `<name> — 1200 × 800 px`, image fitted and centered
