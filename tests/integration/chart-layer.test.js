@@ -138,3 +138,94 @@ describe('chart layer: availability', () => {
     assert.equal(layer.isAvailable({ pattern: threeByTwoPattern() }), true);
   });
 });
+
+function isVertical(segment) {
+  return segment.x1 === segment.x2;
+}
+
+function segmentsOf(recording, strokeStyle) {
+  return recording.strokes.filter((stroke) => stroke.strokeStyle === strokeStyle).flatMap((stroke) => stroke.segments);
+}
+
+function hasTriangleWithTip(recording, x, y) {
+  return recording.fills.some((fill) => fill.fillStyle === '#000000'
+    && fill.polygons.some((polygon) => polygon.length === 3 && polygon.some((point) => point.x === x && point.y === y)));
+}
+
+describe('chart layer: grid lines', () => {
+  const content = { x: 0, y: 0, width: 230, height: 120 };
+
+  it('draws bold black lines every 10 stitches and around a 23 × 12 grid, 2 px wide', () => {
+    const recording = render(solidPattern(23, 12), content);
+    const bold = segmentsOf(recording, '#000000');
+    assert.deepEqual(bold.filter(isVertical).map((segment) => segment.x1), [0, 100, 200, 230]);
+    assert.deepEqual(bold.filter((segment) => !isVertical(segment)).map((segment) => segment.y1), [0, 100, 120]);
+    assert.ok(recording.strokes.filter((stroke) => stroke.strokeStyle === '#000000').every((stroke) => stroke.lineWidth === 2));
+  });
+
+  it('draws thin grey lines between the other cells, 1 px wide and centred on device pixels', () => {
+    const recording = render(solidPattern(23, 12), content);
+    const thin = segmentsOf(recording, '#A0A0A0');
+    assert.equal(thin.filter(isVertical).length, 20);
+    assert.equal(thin.filter((segment) => !isVertical(segment)).length, 10);
+    assert.equal(thin.filter(isVertical)[0].x1, 10.5);
+    assert.ok(recording.strokes.filter((stroke) => stroke.strokeStyle === '#A0A0A0').every((stroke) => stroke.lineWidth === 1));
+  });
+
+  it('draws no thin lines in 3 px cells', () => {
+    const recording = render(solidPattern(23, 12), { x: 0, y: 0, width: 69, height: 36 });
+    assert.equal(segmentsOf(recording, '#A0A0A0').length, 0);
+    assert.equal(segmentsOf(recording, '#000000').filter(isVertical).length, 4);
+  });
+
+  it('uses 2 and 4 device px lines at pixel ratio 2', () => {
+    const recording = render(solidPattern(23, 12), content, { width: 400, height: 300 }, 2);
+    const widths = recording.strokes.map((stroke) => `${stroke.strokeStyle} ${stroke.lineWidth}`).sort();
+    assert.deepEqual(widths, ['#000000 2', '#A0A0A0 1']);
+  });
+});
+
+describe('chart layer: rulers and centre marker', () => {
+  const content = { x: 24, y: 100, width: 1000, height: 670 };
+  const frameSize = { width: 1048, height: 870 };
+
+  it('labels every 10th column in the top ruler, centred on the bold lines', () => {
+    const recording = render(solidPattern(100, 67), content, frameSize);
+    const top = recording.texts.filter((text) => text.y > 76 && text.y < 100);
+    assert.deepEqual(top.map((text) => text.text), ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']);
+    assert.deepEqual(top.map((text) => text.x), [124, 224, 324, 424, 524, 624, 724, 824, 924, 1024]);
+    assert.ok(top.every((text) => text.fontSize === 10 && text.textAlign === 'center'));
+  });
+
+  it('labels every 10th row in the left ruler, centred on the bold lines', () => {
+    const recording = render(solidPattern(100, 67), content, frameSize);
+    const left = recording.texts.filter((text) => text.x > 0 && text.x < 24);
+    assert.deepEqual(left.map((text) => text.text), ['10', '20', '30', '40', '50', '60']);
+    assert.deepEqual(left.map((text) => text.y), [200, 300, 400, 500, 600, 700]);
+  });
+
+  it('labels neither line 0 nor the far border 67', () => {
+    const recording = render(solidPattern(100, 67), content, frameSize);
+    const labels = recording.texts.map((text) => text.text);
+    assert.ok(!labels.includes('0') && !labels.includes('67'));
+  });
+
+  it('marks the centre column and row with triangles pointing at the grid', () => {
+    const recording = render(solidPattern(100, 67), content, frameSize);
+    assert.ok(hasTriangleWithTip(recording, 524, 100), 'top triangle tip at (524, 100)');
+    assert.ok(hasTriangleWithTip(recording, 24, 435), 'left triangle tip at (24, 435)');
+  });
+
+  it('points the triangles at the middle of a 1 × 1 grid', () => {
+    const recording = render(solidPattern(1, 1), { x: 24, y: 100, width: 20, height: 20 }, frameSize);
+    assert.ok(hasTriangleWithTip(recording, 34, 100), 'top triangle at x 34');
+    assert.ok(hasTriangleWithTip(recording, 24, 110), 'left triangle at y 110');
+  });
+
+  it('sticks the rulers to the frame edges with a blank corner square when zoomed in', () => {
+    const recording = render(solidPattern(100, 100), { x: -300, y: -120, width: 3000, height: 3000 });
+    const corner = recording.fills.flatMap((fill) => fill.rects)
+      .filter((rect) => rect.x === 0 && rect.y === 0 && rect.width === 24 && rect.height === 24);
+    assert.equal(corner.length, 1);
+  });
+});
