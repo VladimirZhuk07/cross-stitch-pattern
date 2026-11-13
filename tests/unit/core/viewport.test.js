@@ -1,7 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { assertClose, assertCloseFields } from '../../helpers/assert-close.js';
-import { fitViewport, zoomLimits, zoomAt, wheelZoomFactor } from '../../../src/core/viewport.js';
+import {
+  fitViewport,
+  zoomLimits,
+  zoomAt,
+  wheelZoomFactor,
+  panBy,
+  recenterOnResize,
+  contentRect,
+  canvasBufferSize,
+} from '../../../src/core/viewport.js';
 
 const TOLERANCE = 1e-9;
 const FRAME = { width: 1000, height: 800 };
@@ -118,5 +127,65 @@ describe('wheelZoomFactor', () => {
 
   it('does not zoom without scrolling', () => {
     assert.equal(wheelZoomFactor(0), 1);
+  });
+});
+
+describe('panBy', () => {
+  it('moves the image by the drag distance and keeps the scale', () => {
+    const viewport = panBy({ scale: 0.484, offsetX: 16, offsetY: 158 }, 30, -20);
+    assertCloseFields(viewport, { scale: 0.484, offsetX: 46, offsetY: 138 }, ['scale', 'offsetX', 'offsetY'], TOLERANCE);
+  });
+});
+
+describe('recenterOnResize', () => {
+  it('keeps the point at the frame center centered when the frame gets narrower', () => {
+    const viewport = recenterOnResize(
+      { scale: 0.484, offsetX: 16, offsetY: 158 },
+      { width: 1000, height: 800 },
+      { width: 800, height: 800 },
+    );
+    assertCloseFields(viewport, { scale: 0.484, offsetX: -84, offsetY: 158 }, ['scale', 'offsetX', 'offsetY'], TOLERANCE);
+  });
+});
+
+describe('contentRect', () => {
+  it('maps the image rectangle to screen coordinates', () => {
+    const rect = contentRect({ scale: 0.5, offsetX: 10, offsetY: 20 }, { width: 2048, height: 1365 });
+    assertCloseFields(rect, { x: 10, y: 20, width: 1024, height: 682.5 }, ['x', 'y', 'width', 'height'], TOLERANCE);
+  });
+
+  it('lets a 100 × 67 grid cover the rectangle exactly', () => {
+    const rect = contentRect({ scale: 0.5, offsetX: 10, offsetY: 20 }, { width: 2048, height: 1365 });
+    const columns = 100;
+    const rows = 67;
+    const firstCell = {
+      left: rect.x,
+      right: rect.x + rect.width / columns,
+      top: rect.y,
+      bottom: rect.y + rect.height / rows,
+    };
+    assertCloseFields(firstCell, { left: 10, right: 20.24, top: 20 }, ['left', 'right', 'top'], TOLERANCE);
+    assertCloseFields(firstCell, { bottom: 30.19 }, ['bottom'], 0.005);
+  });
+});
+
+describe('canvasBufferSize', () => {
+  it('multiplies the CSS size by the device pixel ratio', () => {
+    assert.deepEqual(canvasBufferSize({ width: 800, height: 600 }, 2), { width: 1600, height: 1200 });
+  });
+
+  it('rounds to whole device pixels for a fractional ratio', () => {
+    assert.deepEqual(canvasBufferSize({ width: 801, height: 601 }, 1.25), { width: 1001, height: 751 });
+  });
+
+  it('returns 0 × 0 for a frame without size', () => {
+    assert.deepEqual(canvasBufferSize({ width: 0, height: 0 }, 2), { width: 0, height: 0 });
+  });
+
+  it('rejects a pixel ratio of 0', () => {
+    assert.throws(() => canvasBufferSize({ width: 800, height: 600 }, 0), {
+      name: 'RangeError',
+      message: 'pixelRatio must be a positive number, got 0',
+    });
   });
 });
