@@ -13,7 +13,7 @@
 
 ## 2. Matching (`src/core/dmc-match.js`)
 
-- [ ] 2.1 Write failing tests in `tests/unit/core/dmc-match.test.js` for `prepareLabPalette`: a 2-color test palette keeps order and gets Lab values equal to `rgbToLab(hexToRgb(hex))`; result is frozen; input array and entries are not mutated; empty palette → `RangeError`; two entries coded `'A'` → `Error` containing `A`; hex `'#12345'` → `TypeError`; verify they fail
+- [x] 2.1 Write failing tests in `tests/unit/core/dmc-match.test.js` for `prepareLabPalette`: a 2-color test palette keeps order and gets Lab values equal to `rgbToLab(hexToRgb(hex))`; result is frozen; input array and entries are not mutated; empty palette → `RangeError`; two entries coded `'A'` → `Error` containing `A`; hex `'#12345'` → `TypeError`; verify they fail
 - [ ] 2.2 Implement `prepareLabPalette`; verify the 2.1 tests pass
 - [ ] 2.3 Write failing tests for `nearestDmcColor`: palette K `#000000` / W `#FFFFFF` → sRGB `(30,30,30)` gives `K` with ΔE00 6.7765 (±1e-3) and `(200,200,200)` gives `W` with 12.1161 (±1e-3); result has `color`, `index`, `deltaE`; tie palette X/Y `#808080` gives `X`, index 0, on 100 repeated calls; Lab input not mutated; `TypeError` for non-finite Lab; verify they fail
 - [ ] 2.4 Implement `nearestDmcColor` (linear scan, strict `<` so the lowest index wins ties); verify the 2.3 tests pass
