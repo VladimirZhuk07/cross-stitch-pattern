@@ -61,4 +61,4 @@
   - pick `notes.txt`: the spec error text appears and the previous image stays at its zoom
   - pick a large photo then quickly a small PNG: the small PNG is shown
   - DevTools Network: only the app's own files load (no favicon, no external requests); Console: no errors
-- [ ] 7.4 Run `openspec validate add-app-shell --strict` and confirm it passes
+- [x] 7.4 Run `openspec validate add-app-shell --strict` and confirm it passes
