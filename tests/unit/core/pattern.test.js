@@ -86,3 +86,54 @@ describe('buildPattern: size validation', () => {
     );
   });
 });
+
+describe('buildPattern: color and cell validation', () => {
+  it('rejects a cell index beyond the colors list', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 2, height: 1, cells: [0, 2], colors: [BLACK, RED] }),
+      RangeError, 'cell 1', 'index 2',
+    );
+  });
+
+  it('rejects a cell value below the empty marker', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [-2], colors: [BLACK] }),
+      RangeError, 'index -2',
+    );
+  });
+
+  it('rejects a fractional cell value', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [0.5], colors: [BLACK] }),
+      RangeError, 'index 0.5',
+    );
+  });
+
+  it('rejects a missing colors list', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [-1] }),
+      TypeError, 'colors',
+    );
+  });
+
+  it('rejects an empty DMC code', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [0], colors: [{ code: '', name: 'Black', hex: '#000000' }] }),
+      TypeError, 'code',
+    );
+  });
+
+  it('rejects a name that is not a string', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [0], colors: [{ code: '310', name: 42, hex: '#000000' }] }),
+      TypeError, 'name', '310',
+    );
+  });
+
+  it('rejects a hex without the leading #', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: 1, cells: [0], colors: [{ code: '310', name: 'Black', hex: '000000' }] }),
+      TypeError, '310', '000000',
+    );
+  });
+});
