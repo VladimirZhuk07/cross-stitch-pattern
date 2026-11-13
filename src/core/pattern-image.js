@@ -46,3 +46,14 @@ export function patternToStitchImage(pattern) {
   }
   return { width, height, data };
 }
+
+// True when one stitch of `pattern` ({ width, height } in stitches) would be smaller than one
+// device pixel in either direction when the pattern fills `content` ({ width, height } in
+// CSS px) on a screen with `pixelRatio` device px per CSS px.
+// The DMC colors layer draws hard block edges (no smoothing) unless this is true: below one
+// device pixel per stitch, nearest-neighbor scaling would drop whole stitches arbitrarily,
+// so smoothed downscaling is the better picture there.
+export function isStitchSmallerThanDevicePixel(pattern, content, pixelRatio) {
+  return content.width * pixelRatio < pattern.width
+    || content.height * pixelRatio < pattern.height;
+}
