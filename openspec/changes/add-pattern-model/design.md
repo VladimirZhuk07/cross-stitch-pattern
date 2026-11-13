@@ -89,10 +89,11 @@ created fresh by `buildPattern` so it owns its buffer; transferring it never shi
 memory. `Int8Array` would suffice for 99 colors but leaves no headroom if the limit changes.
 
 ### Build algorithm
-1. Validate width, height, cell count, colors (all entries, used or not).
+1. Validate width, height, cell count, colors (all entries, used or not), and reject a DMC
+   code that appears with two different names or hex values (also among unused entries).
 2. One pass over cells: validate each value and count stitches per input color index
    (`Int32Array` of length `colors.length`).
-3. Group used input colors by code; reject a code whose name or hex differ; sum counts.
+3. Group used input colors by code and sum their counts.
 4. Reject more than `MAX_PATTERN_COLORS` groups.
 5. Sort groups by `stitchCount` descending, then `compareDmcCodes`; assign numbers 1..N.
 6. Build a remap table input index → legend index and fill a new `Int16Array`.
