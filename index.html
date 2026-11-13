@@ -20,7 +20,38 @@
   </header>
 
   <main class="app-main">
-    <!-- Settings form: added here by add-pattern-generation. -->
+    <form class="settings" data-role="settings" novalidate>
+      <fieldset class="settings__group">
+        <legend class="settings__legend">Pattern settings</legend>
+
+        <div class="settings__field">
+          <label class="settings__label" for="setting-target-width">Width (stitches)</label>
+          <input class="settings__input" id="setting-target-width" type="number" min="10" max="500" step="1" value="100"
+                 inputmode="numeric" data-setting="targetWidth" aria-describedby="setting-target-width-error">
+          <span class="settings__error" id="setting-target-width-error" data-error-for="targetWidth" hidden></span>
+        </div>
+
+        <div class="settings__field">
+          <label class="settings__label" for="setting-max-colors">Max colors</label>
+          <input class="settings__input" id="setting-max-colors" type="number" min="1" max="99" step="1" value="24"
+                 inputmode="numeric" data-setting="maxColors" aria-describedby="setting-max-colors-error">
+          <span class="settings__error" id="setting-max-colors-error" data-error-for="maxColors" hidden></span>
+        </div>
+
+        <div class="settings__field">
+          <label class="settings__label" for="setting-fabric-count">Fabric (Aida count)</label>
+          <select class="settings__input" id="setting-fabric-count" data-setting="fabricCount">
+            <option value="11">11 ct</option>
+            <option value="14" selected>14 ct</option>
+            <option value="16">16 ct</option>
+            <option value="18">18 ct</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <output class="settings__size" data-role="pattern-size">Load an image to see the pattern size.</output>
+      <output class="settings__status" data-role="generation-status" aria-live="polite"></output>
+    </form>
 
     <section class="workspace" data-role="workspace" aria-label="Pattern view">
       <div class="toolbar">
