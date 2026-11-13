@@ -98,6 +98,57 @@ export function wheelZoomFactor(deltaPixels) {
   return ZOOM_STEP ** (-deltaPixels / WHEEL_PIXELS_PER_STEP);
 }
 
+/**
+ * Returns the viewport moved by (dx, dy) CSS px, e.g. the distance of a pointer drag.
+ * Positive dx moves the image to the right. The scale is unchanged.
+ */
+export function panBy(viewport, dx, dy) {
+  return { scale: viewport.scale, offsetX: viewport.offsetX + dx, offsetY: viewport.offsetY + dy };
+}
+
+/**
+ * Returns the viewport adjusted for a frame size change so that the world point that was at
+ * the old frame's center is at the new frame's center. The scale is unchanged.
+ * oldFrame, newFrame  { width, height } in CSS px
+ */
+export function recenterOnResize(viewport, oldFrame, newFrame) {
+  return panBy(
+    viewport,
+    (newFrame.width - oldFrame.width) / 2,
+    (newFrame.height - oldFrame.height) / 2,
+  );
+}
+
+/**
+ * Returns the screen rectangle { x, y, width, height } in CSS px covered by the content.
+ * Every view layer paints into this same rectangle, which keeps the layers aligned;
+ * a W × H stitch grid divides it into W columns and H rows.
+ * content  { width, height } of the image in image px
+ */
+export function contentRect(viewport, content) {
+  return {
+    x: viewport.offsetX,
+    y: viewport.offsetY,
+    width: content.width * viewport.scale,
+    height: content.height * viewport.scale,
+  };
+}
+
+/**
+ * Returns the canvas drawing-buffer size { width, height } in device px for a frame of the
+ * given CSS size: CSS size × pixelRatio, rounded to whole pixels (0 stays 0).
+ * frame       { width, height } in CSS px (≥ 0)
+ * pixelRatio  device px per CSS px (window.devicePixelRatio, > 0)
+ * Throws RangeError if pixelRatio is not a positive number.
+ */
+export function canvasBufferSize(frame, pixelRatio) {
+  assertPositiveNumber('pixelRatio', pixelRatio);
+  return {
+    width: Math.round(frame.width * pixelRatio),
+    height: Math.round(frame.height * pixelRatio),
+  };
+}
+
 function fitScale(content, frame) {
   const availableWidth = Math.max(MIN_AVAILABLE, frame.width - 2 * FIT_MARGIN);
   const availableHeight = Math.max(MIN_AVAILABLE, frame.height - 2 * FIT_MARGIN);
