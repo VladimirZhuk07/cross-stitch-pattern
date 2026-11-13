@@ -7,7 +7,7 @@
 
 ## 2. Building a pattern
 
-- [ ] 2.1 Write failing tests for size and cell-count validation (width 0, height 1.5, negative and non-number sizes, 5 cells for 3 × 2) with `assert.throws` checking `RangeError` and the values in the message; verify they fail
+- [x] 2.1 Write failing tests for size and cell-count validation (width 0, height 1.5, negative and non-number sizes, 5 cells for 3 × 2) with `assert.throws` checking `RangeError` and the values in the message; verify they fail
 - [ ] 2.2 Implement `buildPattern` input checks for width, height and cell count; verify 2.1 passes
 - [ ] 2.3 Write failing tests for color and cell validation: cell index 2 with 2 colors (message has position `1` and value `2`), cell `-2`, cell `0.5`, empty code, non-string name, hex `000000` (`TypeError` with `310` and `000000`); verify they fail
 - [ ] 2.4 Implement color and cell-value validation; verify 2.3 passes

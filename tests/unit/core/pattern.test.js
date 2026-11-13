@@ -1,6 +1,22 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { compareDmcCodes } from '../../../src/core/pattern.js';
+import { buildPattern, compareDmcCodes } from '../../../src/core/pattern.js';
+
+// Hex values are test fixtures, not palette data.
+const BLACK = { code: '310', name: 'Black', hex: '#000000' };
+const RED = { code: '321', name: 'Red', hex: '#C72B3B' };
+const WHITE = { code: 'BLANC', name: 'White', hex: '#FFFFFF' };
+
+// Asserts that fn throws an error of the given type whose message contains every fragment.
+function assertThrowsWith(fn, errorType, ...fragments) {
+  assert.throws(fn, (error) => {
+    assert.ok(error instanceof errorType, `expected ${errorType.name}, got ${error}`);
+    for (const fragment of fragments) {
+      assert.ok(error.message.includes(fragment), `expected "${fragment}" in "${error.message}"`);
+    }
+    return true;
+  });
+}
 
 describe('compareDmcCodes', () => {
   it('orders numeric codes by value, not as text', () => {
@@ -31,5 +47,42 @@ describe('compareDmcCodes', () => {
   it('sorts a mixed list of codes', () => {
     const codes = ['ECRU', '3865', 'B5200', '310', 'BLANC'];
     assert.deepEqual([...codes].sort(compareDmcCodes), ['310', '3865', 'B5200', 'BLANC', 'ECRU']);
+  });
+});
+
+describe('buildPattern: size validation', () => {
+  it('rejects width 0', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 0, height: 2, cells: [], colors: [BLACK] }),
+      RangeError, 'width', 'got 0',
+    );
+  });
+
+  it('rejects a fractional height', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 2, height: 1.5, cells: [0, 0, 0], colors: [BLACK] }),
+      RangeError, 'height', '1.5',
+    );
+  });
+
+  it('rejects a negative width', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: -3, height: 1, cells: [], colors: [BLACK] }),
+      RangeError, 'width', '-3',
+    );
+  });
+
+  it('rejects a height that is not a number', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 1, height: '2', cells: [0, 0], colors: [BLACK] }),
+      RangeError, 'height',
+    );
+  });
+
+  it('rejects 5 cells for a 3 x 2 grid', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 3, height: 2, cells: [0, 0, 0, 0, 0], colors: [BLACK] }),
+      RangeError, '6', 'got 5',
+    );
   });
 });
