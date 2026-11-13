@@ -42,7 +42,7 @@
 
 ## 8. Settings form and generation (ui)
 
-- [ ] 8.1 Add `settings: { ...DEFAULT_SETTINGS }` and `generation: { kind: 'idle', text: '' }` to `createInitialState` in `src/ui/app-state.js`, with their plain-words description in the header comment (design D11). Verify `npm test` passes and `node -e "import('./src/ui/app-state.js').then(m => console.log(m.createInitialState()))"` prints both fields
+- [x] 8.1 Add `settings: { ...DEFAULT_SETTINGS }` and `generation: { kind: 'idle', text: '' }` to `createInitialState` in `src/ui/app-state.js`, with their plain-words description in the header comment (design D11). Verify `npm test` passes and `node -e "import('./src/ui/app-state.js').then(m => console.log(m.createInitialState()))"` prints both fields
 - [ ] 8.2 Change `src/ui/status.js` so the workspace's `aria-busy` is true while `status.kind === 'loading'` or `generation.kind === 'running'`, re-rendering on either change (design D11). Verify `npm run test:integration` passes; the attribute is checked in 9.3
 - [ ] 8.3 Write `tests/integration/settings-markup.test.js` reading `index.html`: the settings marker is gone; a form `data-role="settings"` with a legend `Pattern settings`; `data-setting="targetWidth"` (number, min 10, max 500, value 100), `maxColors` (min 1, max 99, value 24), `fabricCount` (options 11, 14, 16, 18, 14 selected), each with a `<label>`; outputs `pattern-size` and `generation-status` (`aria-live="polite"`); the Legend marker is still present. Verify it fails
 - [ ] 8.4 Replace the settings marker in `index.html` with the form (design D10) and add the `/* Settings form */` block after `.toolbar` in `styles/main.css` (design D12). Verify the markup test and `served-site.test.js` pass
