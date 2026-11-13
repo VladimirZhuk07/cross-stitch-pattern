@@ -37,7 +37,7 @@
 ## 7. Browser I/O (io)
 
 - [x] 7.1 Write `tests/integration/pattern-worker-client.test.js` with a fake worker that answers via the real handler after `structuredClone(…, { transfer })`: `generate` resolves with the pattern; two concurrent requests get distinct ids and resolve with their own patterns; the image pixel buffer is in the posted transfer list (detached afterwards); an error response rejects with its message; an `error` event rejects all pending requests with `The pattern worker stopped`. Verify it fails
-- [ ] 7.2 Implement `createPatternWorkerClient(worker)` in `src/io/pattern-worker-client.js` per design D8. Verify the client test passes
+- [x] 7.2 Implement `createPatternWorkerClient(worker)` in `src/io/pattern-worker-client.js` per design D8. Verify the client test passes
 - [ ] 7.3 Implement `readImagePixels(image)` in `src/io/image-pixels.js` per design D1 (`OffscreenCanvas`, `willReadFrequently`, returns a pixel image). Verify it imports nothing outside `core/` and `npm run test:integration` passes; real pixels are checked in 9.3
 
 ## 8. Settings form and generation (ui)
