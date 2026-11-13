@@ -225,3 +225,33 @@ describe('buildPattern: legend and cells', () => {
     assert.equal(pattern.legend[0].hex, '#C72B3B');
   });
 });
+
+describe('buildPattern: colors with the same DMC code', () => {
+  it('merges two clusters that land on DMC 310', () => {
+    const pattern = buildPattern({ width: 2, height: 2, colors: [BLACK, RED, { ...BLACK }], cells: [0, 1, 2, 2] });
+    assert.deepEqual(pattern.legend.map((entry) => [entry.number, entry.code, entry.stitchCount]), [
+      [1, '310', 3],
+      [2, '321', 1],
+    ]);
+    assert.deepEqual(Array.from(pattern.cells), [0, 1, 0, 0]);
+  });
+
+  it('merges duplicates whose hex differs only in letter case', () => {
+    const pattern = buildPattern({ width: 2, height: 1, colors: [RED, { ...RED, hex: '#c72b3b' }], cells: [0, 1] });
+    assert.deepEqual(pattern.legend, [{ number: 1, code: '321', name: 'Red', hex: '#C72B3B', stitchCount: 2 }]);
+  });
+
+  it('rejects one code with two different hex values', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 2, height: 1, colors: [BLACK, { ...BLACK, hex: '#111111' }], cells: [0, 1] }),
+      Error, '310', '#000000', '#111111',
+    );
+  });
+
+  it('rejects one code with two different names', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 2, height: 1, colors: [BLACK, { ...BLACK, name: 'Noir' }], cells: [0, 1] }),
+      Error, '310', 'Black', 'Noir',
+    );
+  });
+});
