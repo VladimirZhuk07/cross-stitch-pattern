@@ -1,7 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { convertSourceEntries, readSourceColors } from '../../scripts/import-dmc-palette.js';
+import {
+  convertSourceEntries,
+  readSourceColors,
+  renderPaletteModule,
+} from '../../scripts/import-dmc-palette.js';
 
 // Inline fixtures in the shape of makebead/craft-color-codes data/json/dmc-floss.json entries.
 // Values are made up for the test; they are not real DMC data.
@@ -91,5 +95,63 @@ describe('readSourceColors', () => {
 
   it('fails when colors is not an array', () => {
     assert.throws(() => readSourceColors({ license: 'CC-BY-4.0', count: 0 }), /colors/);
+  });
+});
+
+describe('renderPaletteModule', () => {
+  const provenance = {
+    commitSha: '0123456789abcdef0123456789abcdef01234567',
+    sourceSha256: 'a'.repeat(64),
+  };
+  const colors = [
+    { code: '310', name: 'Black', hex: '#000000' },
+    { code: 'BLANC', name: `It's a "test" name`, hex: '#FCFBF8' },
+  ];
+
+  async function importModule(text) {
+    return import(`data:text/javascript,${encodeURIComponent(text)}`);
+  }
+
+  it('starts with a header comment recording source, commit, hash, license, and transformations', () => {
+    const text = renderPaletteModule(colors, provenance);
+    assert.ok(text.startsWith('// '), 'starts with a line comment');
+    const header = text.slice(0, text.indexOf('\nconst '));
+    for (const expected of [
+      'https://github.com/makebead/craft-color-codes',
+      'data/json/dmc-floss.json',
+      provenance.commitSha,
+      provenance.sourceSha256,
+      'CC-BY-4.0',
+      'MakeBead',
+      'codes upper-cased',
+      'hex upper-cased',
+      'rgb field dropped',
+      'node scripts/import-dmc-palette.js',
+    ]) {
+      assert.ok(header.includes(expected), `header should contain ${expected}`);
+    }
+  });
+
+  it('produces a module whose DMC_COLORS equals the input colors', async () => {
+    const { DMC_COLORS } = await importModule(renderPaletteModule(colors, provenance));
+    assert.deepEqual(DMC_COLORS, colors);
+  });
+
+  it('freezes the array and every entry', async () => {
+    const { DMC_COLORS } = await importModule(renderPaletteModule(colors, provenance));
+    assert.ok(Object.isFrozen(DMC_COLORS));
+    assert.ok(DMC_COLORS.every((color) => Object.isFrozen(color)));
+  });
+
+  it('gives identical text for identical input', () => {
+    assert.equal(renderPaletteModule(colors, provenance), renderPaletteModule(colors, provenance));
+  });
+
+  it('rejects a commit SHA that is not 40 hex characters', () => {
+    assert.throws(() => renderPaletteModule(colors, { ...provenance, commitSha: 'main' }), /main/);
+  });
+
+  it('rejects a source hash that is not 64 hex characters', () => {
+    assert.throws(() => renderPaletteModule(colors, { ...provenance, sourceSha256: 'abc' }), /abc/);
   });
 });
