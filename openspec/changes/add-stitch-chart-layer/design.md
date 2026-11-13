@@ -148,7 +148,7 @@ a glyph atlas (numbers 1..N pre-rendered at the current font size and pixel rati
 
 ### D7. Legend panel
 `index.html` replaces the marker with `<section class="legend" data-role="legend"
-aria-labelledby="legend-title" hidden>`: an `h2` "Legend", a `<table>` (columns No., Color,
+aria-labelledby="legend-title" hidden>`: an `h2` "Legend", a `<table data-role="legend-table">` (hidden with the empty text; columns No., Color,
 DMC, Name, Stitches; `th scope="col"`), an empty `tbody data-role="legend-rows"`, a
 `<p data-role="legend-empty" hidden>This pattern has no stitches.</p>` and a
 `<template data-role="legend-row-template">` whose cells carry `data-field="number|swatch|
