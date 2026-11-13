@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPattern, compareDmcCodes, legendEntryAt } from '../../../src/core/pattern.js';
+import { DEFAULT_FABRIC_COUNT, FABRIC_COUNTS, buildPattern, compareDmcCodes, finishedSize, legendEntryAt } from '../../../src/core/pattern.js';
 
 // Hex values are test fixtures, not palette data.
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -345,4 +345,48 @@ describe('legendEntryAt', () => {
   it('rejects a fractional coordinate', () => {
     assertThrowsWith(() => legendEntryAt(buildGridExample(), 0.5, 0), RangeError, '0.5');
   });
+});
+
+function assertClose(actual, expected) {
+  assert.ok(Math.abs(actual - expected) < 1e-9, `expected ${expected}, got ${actual}`);
+}
+
+function assertSize(size, expected) {
+  assert.deepEqual(Object.keys(size).sort(), Object.keys(expected).sort());
+  for (const key of Object.keys(expected)) {
+    assertClose(size[key], expected[key]);
+  }
+}
+
+describe('finishedSize', () => {
+  it('measures 140 x 98 stitches on 14 ct Aida', () => {
+    assertSize(finishedSize({ width: 140, height: 98 }, 14), { widthInches: 10, heightInches: 7, widthCm: 25.4, heightCm: 17.78 });
+  });
+
+  it('defaults to 14 ct', () => {
+    const size = finishedSize({ width: 28, height: 14 });
+    assert.equal(DEFAULT_FABRIC_COUNT, 14);
+    assertClose(size.widthInches, 2);
+    assertClose(size.heightInches, 1);
+  });
+
+  it('measures 110 x 55 stitches on 11 ct fabric', () => {
+    assertSize(finishedSize({ width: 110, height: 55 }, 11), { widthInches: 10, heightInches: 5, widthCm: 25.4, heightCm: 12.7 });
+  });
+
+  it('accepts a Pattern as the size', () => {
+    const size = finishedSize(buildGridExample(), 14);
+    assertClose(size.widthInches, 3 / 14);
+    assertClose(size.heightInches, 2 / 14);
+  });
+
+  it('offers 11, 14, 16 and 18 ct as fabric choices', () => {
+    assert.deepEqual([...FABRIC_COUNTS], [11, 14, 16, 18]);
+  });
+
+  for (const badCount of [0, -14, Number.NaN, Number.POSITIVE_INFINITY]) {
+    it(`rejects fabric count ${badCount}`, () => {
+      assertThrowsWith(() => finishedSize({ width: 10, height: 10 }, badCount), RangeError, String(badCount));
+    });
+  }
 });
