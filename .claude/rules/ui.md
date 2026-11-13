@@ -35,15 +35,16 @@ paths:
 - Account for `devicePixelRatio` so the grid stays crisp.
 - Grid conventions: thin line every stitch, bold line every 10 stitches, row/column numbers
   every 10. Show a center marker.
-- Two views: color blocks, and symbols (black-and-white printable). Symbols must remain
-  legible without color.
+- Three switchable layers in one shared frame: the original image, the image in DMC colors
+  as color blocks, and the number chart (every cell white with its legend number 1..N in
+  black; printable in black and white). Numbers must remain legible without color.
 
 ## Accessibility
 
 - Every input has a visible `<label>`. Group related settings in `fieldset` + `legend`.
 - Everything works with the keyboard; focus is always visible (`:focus-visible`).
-- Color is never the only carrier of information — the legend always shows DMC code, name,
-  and symbol next to the swatch.
+- Color is never the only carrier of information — the legend always shows the number,
+  DMC code, name, swatch and stitch count.
 - Long operations show progress/busy state (`aria-busy`, a status `output` with `aria-live="polite"`).
 
 ## CSS
@@ -54,4 +55,4 @@ paths:
 - No inline styles except values computed at runtime (e.g. a swatch background color via
   `element.style.setProperty('--swatch', hex)`).
 - Layout with flexbox/grid. Mobile-friendly, but desktop is the primary target.
-- `@media print` stylesheet: hide controls, print the symbol chart and legend on clean pages.
+- `@media print` stylesheet: hide controls, print the number chart and legend on clean pages.
