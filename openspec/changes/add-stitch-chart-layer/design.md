@@ -104,8 +104,12 @@ right-aligned 2 px before the triangle area, vertically centred on their line; l
 (`String` of the largest labelled row) measures wider than 16 px, both rulers use
 `rulerFontSize` (≥ 7 px). The label step uses `ctx.measureText` of the largest label value
 (both axes) and is shared by both rulers so the counts line up. Background `#F6F4F0`
-(the page background), text `#1F1F1F`, triangle `#000000`; a blank square covers the corner
-when both rulers are drawn at the same place. Rulers span only the visible extent of the grid.
+(the page background), text `#1F1F1F`, triangle `#000000`; a blank 24 × 24 square is always drawn
+where the rulers meet (`rulerPlacement` left, top): it joins them at fit and hides labels that
+would collide when both stick to the frame edges. Rulers span only the visible extent of the
+grid. Constants: `RULER_PADDING = 1`, `RULER_MARKER_GAP = 2`, `RULER_LABEL_ROOM` derived from
+them. The integration test renders into `tests/helpers/recording-context.js`, a fake 2D
+context that records texts, fills and strokes.
 
 ### D3. Numbers: one size per frame, threshold 14 px
 `fontSize = 0.6 × cellSize`: two digits at ~0.55 em each take ~66 % of the cell width, digit
