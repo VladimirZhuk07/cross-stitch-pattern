@@ -36,7 +36,7 @@
 
 ## 6. Viewer and layers (ui)
 
-- [ ] 6.1 Write `tests/integration/view-layers.test.js`: the three factories return layers with ids `original`, `dmc`, `chart` and `render` functions; `original.isAvailable` is true without a pattern; `dmc` and `chart` are false with `pattern: null` and true with `pattern: {}`; the radio values in `index.html` are exactly `original, dmc, chart` in that order. Verify it fails
+- [x] 6.1 Write `tests/integration/view-layers.test.js`: the three factories return layers with ids `original`, `dmc`, `chart` and `render` functions; `original.isAvailable` is true without a pattern; `dmc` and `chart` are false with `pattern: null` and true with `pattern: {}`; the radio values in `index.html` are exactly `original, dmc, chart` in that order. Verify it fails
 - [ ] 6.2 Create `src/ui/layers/original-layer.js` (draws the bitmap into `frame.content`, smoothing off when `scale ≥ 1`). Verify the original-layer part of 6.1 passes
 - [ ] 6.3 Create the stubs `src/ui/layers/dmc-layer.js` and `src/ui/layers/chart-layer.js` (`isAvailable: state.pattern !== null`, centered "not available yet" note). Verify `npm run test:integration` passes
 - [ ] 6.4 Implement `src/ui/viewer.js` (`setupViewer(root, store, layers)`, header comment with the view-layer contract from design D4): `ResizeObserver` → `frame` and `recenterOnResize`; fit when `viewport` is null; rAF-coalesced repaint of the active layer only; DPR buffer check per paint (D9); empty-state text toggle; skip painting for a 0-size frame. Verify `npm run test:integration` passes; fit and resize are checked in 7.3
