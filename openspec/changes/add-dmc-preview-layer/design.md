@@ -37,7 +37,7 @@ See proposal.md (Why) for the motivation and `specs/dmc-preview/spec.md` for the
 | `src/core/pattern-image.js` | core | pure; imports only `./color.js` and `./pattern.js` (`EMPTY_CELL`) |
 | `src/ui/layers/dmc-layer.js` | ui | replaces the stub; same export `createDmcLayer`, id `'dmc'` |
 | `tests/unit/core/pattern-image.test.js` | test | mirrors the core module |
-| `tests/integration/dmc-preview-layer.test.js` | test | pattern → layer → canvas calls, with a stub `OffscreenCanvas` |
+| `tests/integration/dmc-preview-layer.test.js` | test | pattern → layer → canvas calls, with stub `OffscreenCanvas`/`ImageData` |
 
 `core/` stays pure: no DOM, `OffscreenCanvas`, `ImageData` or timers; input and output are
 plain data and typed arrays. Only `dmc-layer.js` touches canvas APIs.
@@ -107,8 +107,8 @@ The preview shows the finished look; lines would tint every stitch, especially s
 The Chart layer (#6) owns grid lines and numbers per ui.md.
 
 ### D7. Integration test without a browser
-The test replaces `globalThis.OffscreenCanvas` with a small recording stub (restored in
-`after()`) and passes a fake 2D context that records `drawImage` arguments and the smoothing
+The test replaces `globalThis.OffscreenCanvas` and `globalThis.ImageData` (neither exists in
+Node) with small recording stubs (restored in `after()`) and passes a fake 2D context that records `drawImage` arguments and the smoothing
 flag. That checks the real layer module against real `buildPattern` output: content
 rectangle, smoothing boundary, cache reuse and rebuild, fully empty pattern, no other
 drawing calls. Real pixels are checked in the browser smoke step.
