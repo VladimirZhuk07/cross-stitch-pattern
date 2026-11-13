@@ -3,7 +3,7 @@
 ## 1. DMC code order
 
 - [x] 1.1 Write failing tests in `tests/unit/core/pattern.test.js` for `compareDmcCodes`: `'310' < '3865'`, `'3865' < 'B5200'`, `'B5200' < 'BLANC' < 'ECRU'`, `'01' < '1'`, equal codes return 0, sorting `['ECRU','3865','B5200','310','BLANC']` gives `['310','3865','B5200','BLANC','ECRU']`; verify `npm run test:unit` fails because the module is missing
-- [ ] 1.2 Create `src/core/pattern.js` with the exported constants (`EMPTY_CELL`, `MAX_PATTERN_COLORS`, `DEFAULT_FABRIC_COUNT`, `FABRIC_COUNTS`) and `compareDmcCodes` with its plain-text comment; verify the 1.1 tests pass
+- [x] 1.2 Create `src/core/pattern.js` with the exported constants (`EMPTY_CELL`, `MAX_PATTERN_COLORS`, `DEFAULT_FABRIC_COUNT`, `FABRIC_COUNTS`) and `compareDmcCodes` with its plain-text comment; verify the 1.1 tests pass
 
 ## 2. Building a pattern
 
