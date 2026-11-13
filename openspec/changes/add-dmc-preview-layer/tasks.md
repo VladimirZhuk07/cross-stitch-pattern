@@ -26,4 +26,4 @@
   - zoom out to the minimum on a wide pattern: the picture is smoothed rather than missing stitches
   - set browser zoom to 200 %: block edges stay sharp
   - DevTools Console: no errors; Network: no external requests
-- [ ] 3.4 Run `openspec validate add-dmc-preview-layer --strict` and confirm it passes
+- [x] 3.4 Run `openspec validate add-dmc-preview-layer --strict` and confirm it passes
