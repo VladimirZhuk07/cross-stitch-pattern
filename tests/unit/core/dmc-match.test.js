@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { hexToRgb, rgbToLab } from '../../../src/core/color.js';
-import { nearestDmcColor, prepareLabPalette } from '../../../src/core/dmc-match.js';
+import { nearestDmcColor, nearestDmcColors, prepareLabPalette } from '../../../src/core/dmc-match.js';
 import { assertClose } from '../../helpers/assert-close.js';
 
 // Small hand-written test palettes. Codes are deliberately not real DMC codes.
@@ -118,5 +118,31 @@ describe('nearestDmcColor', () => {
   it('rejects a Lab color with a missing component', () => {
     const palette = prepareLabPalette(blackWhitePalette());
     assert.throws(() => nearestDmcColor({ L: 50, a: 0 }, palette), TypeError);
+  });
+});
+
+describe('nearestDmcColors', () => {
+  it('returns one result per input, in input order, equal to single matches', () => {
+    const palette = prepareLabPalette([
+      { code: 'K', name: 'Test black', hex: '#000000' },
+      { code: 'G', name: 'Test grey', hex: '#808080' },
+      { code: 'W', name: 'Test white', hex: '#FFFFFF' },
+    ]);
+    const labs = [
+      rgbToLab({ r: 250, g: 250, b: 250 }),
+      rgbToLab({ r: 5, g: 5, b: 5 }),
+      rgbToLab({ r: 120, g: 130, b: 125 }),
+    ];
+    const matches = nearestDmcColors(labs, palette);
+    assert.equal(matches.length, 3);
+    assert.deepEqual(matches.map((match) => match.color.code), ['W', 'K', 'G']);
+    for (let i = 0; i < labs.length; i += 1) {
+      assert.deepEqual(matches[i], nearestDmcColor(labs[i], palette));
+    }
+  });
+
+  it('returns an empty list for an empty list', () => {
+    const palette = prepareLabPalette(blackWhitePalette());
+    assert.deepEqual(nearestDmcColors([], palette), []);
   });
 });
