@@ -17,6 +17,7 @@ import { setupZoomControls } from './ui/zoom-controls.js';
 import { createOriginalLayer } from './ui/layers/original-layer.js';
 import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
+import { setupLegend } from './ui/legend.js';
 
 const store = createStore(createInitialState());
 
@@ -38,3 +39,6 @@ setupViewer(document, store, layers);
 setupViewerInput(document, store);
 setupZoomControls(document, store);
 setupLayerSwitcher(document, store, layers);
+
+// The legend next to the frame.
+setupLegend(document, store);

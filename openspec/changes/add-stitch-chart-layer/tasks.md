@@ -37,7 +37,7 @@
 - [x] 6.2 Replace the legend marker in `index.html` with the markup of design D7 (swatch `aria-hidden="true"`); verify 6.1 passes
 - [x] 6.3 Create `src/ui/legend.js` with `setupLegend(root, store)`: re-render only when `state.pattern` identity changes, hide while `pattern` is null, show the empty text for a legend without entries, clone template rows from `legendRows`, `textContent` only, `--swatch` via `style.setProperty`, `replaceChildren`; verify by reading that no `innerHTML` is used and nothing runs at import time
 - [x] 6.4 Add a `/* Legend */` block at the end of `styles/main.css`: `.legend` panel (`flex: 0 0 20rem`, own scroll), `.legend[hidden] { display: none; }`, table with right-aligned tabular stitch counts, `.legend__swatch` using `var(--swatch)` with a 1 px `var(--color-border)` border, `.legend__number` styled like a chart cell (white, bordered, black), wrap below the frame under 60rem; only existing tokens, no IDs; verify by reading
-- [ ] 6.5 In `src/main.js`, add `import { setupLegend } from './ui/legend.js';` and a final group `// The legend next to the frame.` + `setupLegend(document, store);`; change the `styles/print.css` header comment to say printing comes with a later print/export change; verify `npm run test:integration` passes (the served-site test now crawls `legend.js`)
+- [x] 6.5 In `src/main.js`, add `import { setupLegend } from './ui/legend.js';` and a final group `// The legend next to the frame.` + `setupLegend(document, store);`; change the `styles/print.css` header comment to say printing comes with a later print/export change; verify `npm run test:integration` passes (the served-site test now crawls `legend.js`)
 
 ## 7. Verification
 

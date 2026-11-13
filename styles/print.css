@@ -1,5 +1,5 @@
 /* Print styles (linked with media="print"). Minimal for now: hide the controls.
-   Printing the chart and legend on clean pages comes with add-stitch-chart-layer. */
+   Printing the chart and legend on clean pages comes with a later print/export change. */
 
 .file-picker,
 .toolbar,
