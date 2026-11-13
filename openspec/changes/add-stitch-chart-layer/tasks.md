@@ -22,7 +22,7 @@
 ## 4. Legend rows (core)
 
 - [x] 4.1 Write failing tests in `tests/unit/core/legend-rows.test.js` for `legendRows`: the 3 × 2 pattern → `[{ number: '1', code: '310', name: 'Black', hex: '#000000', stitchCount: '3' }, { number: '2', code: '321', name: 'Red', hex: '#C72B3B', stitchCount: '2' }]`; a 12345-stitch entry → `'12,345'`; a 1 234 567-stitch entry → `'1,234,567'`; an all-empty 2 × 2 pattern → `[]`; a name `<b>Red</b>` is returned unchanged; the pattern is not modified; verify `npm run test:unit` fails
-- [ ] 4.2 Create `src/core/legend-rows.js` (LegendRow described in plain words, `Intl.NumberFormat('en-US')`); verify 4.1 passes
+- [x] 4.2 Create `src/core/legend-rows.js` (LegendRow described in plain words, `Intl.NumberFormat('en-US')`); verify 4.1 passes
 
 ## 5. Chart layer (ui)
 
