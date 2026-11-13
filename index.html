@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cross-Stitch Pattern Maker</title>
+  <!-- An empty icon stops the browser from requesting /favicon.ico (absolute path, breaks on a sub-path). -->
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/main.css">
+  <link rel="stylesheet" href="./styles/print.css" media="print">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-header__title">Cross-Stitch Pattern Maker</h1>
+    <label class="file-picker">
+      <span class="file-picker__label">Choose image</span>
+      <input class="file-picker__input" type="file" accept="image/*" data-role="file-input">
+    </label>
+  </header>
+
+  <main class="app-main">
+    <!-- Settings form: added here by add-pattern-generation. -->
+
+    <section class="workspace" aria-label="Pattern view">
+      <div class="toolbar">
+        <fieldset class="layer-switcher" data-role="layer-switcher">
+          <legend class="layer-switcher__legend">View</legend>
+          <label class="layer-switcher__option">
+            <input class="layer-switcher__input" type="radio" name="layer" value="original" checked>
+            <span class="layer-switcher__text">Original</span>
+          </label>
+          <label class="layer-switcher__option">
+            <input class="layer-switcher__input" type="radio" name="layer" value="dmc" disabled>
+            <span class="layer-switcher__text">DMC colors</span>
+          </label>
+          <label class="layer-switcher__option">
+            <input class="layer-switcher__input" type="radio" name="layer" value="chart" disabled>
+            <span class="layer-switcher__text">Chart</span>
+          </label>
+        </fieldset>
+
+        <div class="zoom-controls" role="group" aria-label="Zoom">
+          <button class="zoom-controls__button" type="button" data-action="zoom-out" aria-label="Zoom out" disabled>−</button>
+          <output class="zoom-controls__level" data-role="zoom-level">—</output>
+          <button class="zoom-controls__button" type="button" data-action="zoom-in" aria-label="Zoom in" disabled>+</button>
+          <button class="zoom-controls__button" type="button" data-action="zoom-fit" disabled>Fit</button>
+        </div>
+      </div>
+
+      <div class="viewer" data-role="viewer" tabindex="0" role="application"
+           aria-label="Image view. Drag or use the arrow keys to pan, the mouse wheel or + and − to zoom, 0 to fit.">
+        <canvas class="viewer__canvas" data-role="viewer-canvas" aria-hidden="true"></canvas>
+        <p class="viewer__empty" data-role="viewer-empty">Choose an image or drop it here</p>
+      </div>
+
+      <output class="status" data-role="status" aria-live="polite"></output>
+    </section>
+
+    <!-- Legend: added here by add-stitch-chart-layer. -->
+  </main>
+</body>
+</html>

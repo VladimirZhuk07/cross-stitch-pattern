@@ -1,0 +1,228 @@
+/* Screen styles. Design tokens first, then layout, then components. */
+
+:root {
+  --color-bg: #F6F4F0;
+  --color-surface: #FFFFFF;
+  --color-text: #1F1F1F;
+  --color-muted: #5C5C5C;
+  --color-border: #C9C4BB;
+  --color-accent: #2B5FAA;
+  --color-focus: #2B5FAA;
+  --color-error: #B3261E;
+  --color-frame: #E4E1DB;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+
+  --radius: 6px;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: 1.4;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Header */
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.file-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.file-picker__label {
+  font-weight: 600;
+}
+
+/* Main layout */
+
+.app-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--space-2);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Layer switcher: a row of radio buttons */
+
+.layer-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.layer-switcher__legend {
+  float: left;
+  margin-right: var(--space-2);
+  padding: 0;
+  font-weight: 600;
+}
+
+.layer-switcher__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.layer-switcher__option:has(.layer-switcher__input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.layer-switcher__option:has(.layer-switcher__input:disabled) {
+  color: var(--color-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Zoom controls */
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.zoom-controls__button {
+  min-width: 2.25rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.zoom-controls__button:disabled {
+  color: var(--color-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.zoom-controls__level {
+  min-width: 4.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Viewer: the one shared frame */
+
+.viewer {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-frame);
+  cursor: grab;
+  touch-action: none; /* pointer events handle panning, the browser must not scroll */
+}
+
+.viewer--panning {
+  cursor: grabbing;
+}
+
+.viewer--drop-target {
+  outline: 3px dashed var(--color-accent);
+  outline-offset: -6px;
+}
+
+.viewer__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.viewer__empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 1.125rem;
+  pointer-events: none;
+}
+
+/* Status line */
+
+.status {
+  display: block;
+  min-height: 1.4em;
+  color: var(--color-muted);
+}
+
+.status--error {
+  color: var(--color-error);
+  font-weight: 600;
+}
