@@ -131,3 +131,107 @@ function labF(ratio) {
   }
   return (LAB_KAPPA * ratio + 16) / 116;
 }
+
+// CIEDE2000 constants, Sharma, Wu & Dalal 2005. Weighting factors kL = kC = kH = 1.
+const POW25_7 = 25 ** 7;
+const DEGREES_PER_RADIAN = 180 / Math.PI;
+
+// Returns the CIEDE2000 color difference ΔE00 between two Lab colors { L, a, b }
+// (kL = kC = kH = 1). Always >= 0; 0 for identical colors; symmetric.
+// Throws TypeError if either color is missing a component or has a non-finite one.
+export function deltaE2000(lab1, lab2) {
+  assertLab(lab1, 'first Lab color');
+  assertLab(lab2, 'second Lab color');
+
+  // Sharma et al. 2005, eq. 2–7: chroma correction G and modified a', C', h'.
+  const meanChroma = (Math.hypot(lab1.a, lab1.b) + Math.hypot(lab2.a, lab2.b)) / 2;
+  const g = 0.5 * (1 - Math.sqrt(meanChroma ** 7 / (meanChroma ** 7 + POW25_7)));
+  const a1 = (1 + g) * lab1.a;
+  const a2 = (1 + g) * lab2.a;
+  const chroma1 = Math.hypot(a1, lab1.b);
+  const chroma2 = Math.hypot(a2, lab2.b);
+  const hue1 = hueAngleDegrees(lab1.b, a1);
+  const hue2 = hueAngleDegrees(lab2.b, a2);
+
+  // Eq. 8–12: differences in lightness, chroma, and hue.
+  const deltaL = lab2.L - lab1.L;
+  const deltaC = chroma2 - chroma1;
+  const deltaHue = hueDifferenceDegrees(hue1, hue2, chroma1 * chroma2);
+  const deltaH = 2 * Math.sqrt(chroma1 * chroma2) * Math.sin(toRadians(deltaHue / 2));
+
+  // Eq. 13–21: weighting functions and rotation term.
+  const meanL = (lab1.L + lab2.L) / 2;
+  const meanC = (chroma1 + chroma2) / 2;
+  const meanHue = meanHueDegrees(hue1, hue2, chroma1 * chroma2);
+  const t = 1
+    - 0.17 * Math.cos(toRadians(meanHue - 30))
+    + 0.24 * Math.cos(toRadians(2 * meanHue))
+    + 0.32 * Math.cos(toRadians(3 * meanHue + 6))
+    - 0.20 * Math.cos(toRadians(4 * meanHue - 63));
+  const deltaTheta = 30 * Math.exp(-(((meanHue - 275) / 25) ** 2));
+  const rotationC = 2 * Math.sqrt(meanC ** 7 / (meanC ** 7 + POW25_7));
+  const lightnessOffset = (meanL - 50) ** 2;
+  const weightL = 1 + (0.015 * lightnessOffset) / Math.sqrt(20 + lightnessOffset);
+  const weightC = 1 + 0.045 * meanC;
+  const weightH = 1 + 0.015 * meanC * t;
+  const rotationT = -Math.sin(toRadians(2 * deltaTheta)) * rotationC;
+
+  const termL = deltaL / weightL;
+  const termC = deltaC / weightC;
+  const termH = deltaH / weightH;
+  return Math.sqrt(termL ** 2 + termC ** 2 + termH ** 2 + rotationT * termC * termH);
+}
+
+function assertLab(lab, label) {
+  const isValid = lab !== null
+    && typeof lab === 'object'
+    && Number.isFinite(lab.L)
+    && Number.isFinite(lab.a)
+    && Number.isFinite(lab.b);
+  if (!isValid) {
+    throw new TypeError(`${label} must be { L, a, b } with finite numbers, got ${JSON.stringify(lab)}`);
+  }
+}
+
+function toRadians(degrees) {
+  return degrees / DEGREES_PER_RADIAN;
+}
+
+// Eq. 7: hue angle in degrees 0–360; defined as 0 when a' = b = 0.
+function hueAngleDegrees(b, aPrime) {
+  if (b === 0 && aPrime === 0) {
+    return 0;
+  }
+  const degrees = Math.atan2(b, aPrime) * DEGREES_PER_RADIAN;
+  return degrees < 0 ? degrees + 360 : degrees;
+}
+
+// Eq. 10: hue difference in degrees, taking the short way round; 0 if either chroma is 0.
+function hueDifferenceDegrees(hue1, hue2, chromaProduct) {
+  if (chromaProduct === 0) {
+    return 0;
+  }
+  const difference = hue2 - hue1;
+  if (difference > 180) {
+    return difference - 360;
+  }
+  if (difference < -180) {
+    return difference + 360;
+  }
+  return difference;
+}
+
+// Eq. 14: mean hue in degrees; the plain sum if either chroma is 0.
+function meanHueDegrees(hue1, hue2, chromaProduct) {
+  const sum = hue1 + hue2;
+  if (chromaProduct === 0) {
+    return sum;
+  }
+  if (Math.abs(hue1 - hue2) <= 180) {
+    return sum / 2;
+  }
+  if (sum < 360) {
+    return (sum + 360) / 2;
+  }
+  return (sum - 360) / 2;
+}
