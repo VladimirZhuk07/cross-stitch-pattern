@@ -10,7 +10,7 @@
 // This module does not import the palette data: callers pass it in, typically
 // prepareLabPalette(DMC_COLORS) once per run.
 
-import { hexToRgb, rgbToLab } from './color.js';
+import { deltaE2000, hexToRgb, rgbToLab } from './color.js';
 
 // Precomputes the Lab value of every color in a palette of DMC colors { code, name, hex }.
 // Returns a prepared palette (frozen, same order). Does not modify the input.
@@ -31,4 +31,26 @@ export function prepareLabPalette(colors) {
     prepared.push(Object.freeze({ code, name, hex, lab }));
   }
   return Object.freeze(prepared);
+}
+
+// Finds the prepared-palette color closest to a Lab color { L, a, b } by CIEDE2000.
+// Returns a match result { color, index, deltaE }. On an exact tie the lowest palette index
+// wins, so results are deterministic. Does not modify its inputs.
+// Throws TypeError if lab is missing a component or has a non-finite one, or if palette is not
+// a non-empty prepared palette.
+export function nearestDmcColor(lab, palette) {
+  if (!Array.isArray(palette) || palette.length === 0) {
+    throw new TypeError('palette must be a non-empty prepared palette (see prepareLabPalette)');
+  }
+  let bestIndex = 0;
+  let bestDeltaE = deltaE2000(lab, palette[0].lab);
+  for (let index = 1; index < palette.length; index += 1) {
+    const deltaE = deltaE2000(lab, palette[index].lab);
+    // Strictly smaller only: an equal distance keeps the earlier (lower-index) color.
+    if (deltaE < bestDeltaE) {
+      bestIndex = index;
+      bestDeltaE = deltaE;
+    }
+  }
+  return { color: palette[bestIndex], index: bestIndex, deltaE: bestDeltaE };
 }
