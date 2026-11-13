@@ -7,6 +7,9 @@ import { createStore } from './ui/store.js';
 import { createInitialState } from './ui/app-state.js';
 import { setupStatus } from './ui/status.js';
 import { setupImageInput } from './ui/image-input.js';
+import { setupSettingsForm } from './ui/settings-form.js';
+import { setupPatternGeneration } from './ui/pattern-generation.js';
+import { createPatternWorkerClient } from './io/pattern-worker-client.js';
 import { setupLayerSwitcher } from './ui/layer-switcher.js';
 import { setupViewer } from './ui/viewer.js';
 import { setupViewerInput } from './ui/viewer-input.js';
@@ -24,6 +27,11 @@ const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer()];
 // Image input and status line.
 setupStatus(document, store);
 setupImageInput(document, store);
+
+// Pattern settings and generation (the worker runs the pipeline off the main thread).
+const patternWorker = new Worker(new URL('./workers/pattern.worker.js', import.meta.url), { type: 'module' });
+setupSettingsForm(document, store);
+setupPatternGeneration(store, createPatternWorkerClient(patternWorker));
 
 // The shared view frame and its controls.
 setupViewer(document, store, layers);
