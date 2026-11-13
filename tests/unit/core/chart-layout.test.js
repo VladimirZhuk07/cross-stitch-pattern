@@ -6,6 +6,9 @@ import {
   cellCenter,
   visibleCellRange,
   numberFontSize,
+  gridLines,
+  chartLineWidths,
+  snapLine,
 } from '../../../src/core/chart-layout.js';
 
 const TOLERANCE = 1e-9;
@@ -134,5 +137,106 @@ describe('numberFontSize', () => {
 
   it('rejects NaN', () => {
     assert.throws(() => numberFontSize(NaN), { name: 'RangeError', message: /NaN/ });
+  });
+});
+
+function boldIndexes(lines) {
+  return lines.filter((line) => line.isBold).map((line) => line.index);
+}
+
+function thinIndexes(lines) {
+  return lines.filter((line) => !line.isBold).map((line) => line.index);
+}
+
+describe('gridLines', () => {
+  it('makes every 10th vertical line of a 23-wide grid bold, and the border', () => {
+    const lines = gridLines(0, 23, 23, 10);
+    assert.deepEqual(boldIndexes(lines), [0, 10, 20, 23]);
+    assert.equal(thinIndexes(lines).length, 20);
+  });
+
+  it('makes horizontal lines 0, 10 and 12 of a 12-high grid bold', () => {
+    const lines = gridLines(0, 12, 12, 10);
+    assert.deepEqual(boldIndexes(lines), [0, 10, 12]);
+    assert.equal(thinIndexes(lines).length, 10);
+  });
+
+  it('keeps only bold lines in 3 px cells', () => {
+    assert.deepEqual(gridLines(0, 23, 23, 3), [
+      { index: 0, isBold: true },
+      { index: 10, isBold: true },
+      { index: 20, isBold: true },
+      { index: 23, isBold: true },
+    ]);
+  });
+
+  it('keeps thin lines in cells of exactly 4 px', () => {
+    assert.equal(thinIndexes(gridLines(0, 23, 23, 4)).length, 20);
+  });
+
+  it('returns the lines of a visible range in order', () => {
+    assert.deepEqual(gridLines(8, 12, 100, 10), [
+      { index: 8, isBold: false },
+      { index: 9, isBold: false },
+      { index: 10, isBold: true },
+      { index: 11, isBold: false },
+      { index: 12, isBold: false },
+    ]);
+  });
+
+  it('rejects a line count of 0', () => {
+    assert.throws(() => gridLines(0, 0, 0, 10), { name: 'RangeError', message: /count.*0/ });
+  });
+});
+
+describe('chartLineWidths', () => {
+  it('is 1 and 2 device px at pixel ratio 1', () => {
+    assert.deepEqual(chartLineWidths(1), { thin: 1, bold: 2 });
+  });
+
+  it('is 1 and 2 device px at pixel ratio 1.25', () => {
+    assert.deepEqual(chartLineWidths(1.25), { thin: 1, bold: 2 });
+  });
+
+  it('is 2 and 4 device px at pixel ratio 2', () => {
+    assert.deepEqual(chartLineWidths(2), { thin: 2, bold: 4 });
+  });
+
+  it('is 3 and 6 device px at pixel ratio 3', () => {
+    assert.deepEqual(chartLineWidths(3), { thin: 3, bold: 6 });
+  });
+
+  it('never gets thinner than 1 device px', () => {
+    assert.deepEqual(chartLineWidths(0.4), { thin: 1, bold: 2 });
+  });
+
+  it('rejects pixel ratio 0', () => {
+    assert.throws(() => chartLineWidths(0), { name: 'RangeError', message: /pixelRatio.*0/ });
+  });
+});
+
+describe('snapLine', () => {
+  it('centres a 1 px line on the device pixel containing x 10.3 at ratio 1', () => {
+    assertClose(snapLine(10.3, 1, 1), 10.5, TOLERANCE, 'centre');
+  });
+
+  it('centres a 2 px line on the nearest device pixel edge at ratio 1', () => {
+    assertClose(snapLine(10.3, 2, 1), 10, TOLERANCE, 'centre');
+  });
+
+  it('covers device pixels 20 and 21 with a 2 device px line at ratio 2', () => {
+    assertClose(snapLine(10.3, 2, 2), 10.5, TOLERANCE, 'centre');
+  });
+
+  it('covers device pixel 12 with a 1 device px line at ratio 1.25', () => {
+    assertClose(snapLine(10.3, 1, 1.25), 10, TOLERANCE, 'centre');
+  });
+
+  it('covers device pixel 20 with a 1 device px line at ratio 2', () => {
+    assertClose(snapLine(10.3, 1, 2), 10.25, TOLERANCE, 'centre');
+  });
+
+  it('rejects pixel ratio 0', () => {
+    assert.throws(() => snapLine(10, 1, 0), { name: 'RangeError', message: /pixelRatio.*0/ });
   });
 });
