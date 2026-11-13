@@ -30,7 +30,7 @@
 ## 4. DMC palette data (`src/data/dmc.js`)
 
 - [x] 4.1 Write failing tests in `tests/unit/data/dmc.test.js`: 489 entries, 489 distinct string codes, every hex matches `/^#[0-9A-F]{6}$/`, exactly one `'310'` with `'#000000'`, `'BLANC'`, `'ECRU'`, `'B5200'`, `'3865'` present, no lower-case letter in any code, only keys `code`/`name`/`hex`, non-empty names, strict-mode assignment and `push` throw `TypeError`, file header contains the provenance items from the spec; verify they fail with `npm run test:unit`
-- [ ] 4.2 Resolve the commit with `git ls-remote https://github.com/makebead/craft-color-codes HEAD`, download `https://raw.githubusercontent.com/makebead/craft-color-codes/<sha>/data/json/dmc-floss.json` into a new empty temp directory outside the repo, run the import script on it, and report the changed-code list; STOP and ask the user if the script fails or the count is not 489; verify the 4.1 tests pass
+- [x] 4.2 Resolve the commit with `git ls-remote https://github.com/makebead/craft-color-codes HEAD`, download `https://raw.githubusercontent.com/makebead/craft-color-codes/<sha>/data/json/dmc-floss.json` into a new empty temp directory outside the repo, run the import script on it, and report the changed-code list; STOP and ask the user if the script fails or the count is not 489; verify the 4.1 tests pass
 - [ ] 4.3 Re-run the import script on the same downloaded file and verify `git diff --exit-code src/data/dmc.js` reports no change and the file's SHA-256 matches the header
 
 ## 5. Integration of palette and matching
