@@ -3,7 +3,7 @@
 ## 1. Dev server and page skeleton
 
 - [x] 1.1 Write `tests/integration/serve.test.js` (server on port 0 over a temporary fixture site, closed in `after()`): `/` → 200 `text/html`; missing file → 404; `/%2e%2e/outside.txt` and `/.git/HEAD` → 404; HEAD → 200 without body; POST → 405; with `basePath: '/repo/'`, `/repo/` → `index.html` and `/index.html` → 404. Verify it fails because `scripts/serve.js` does not exist
-- [ ] 1.2 Implement `scripts/serve.js` per design D10 (`startServer` export + CLI with `--port`, `--base`, `PORT`; prints the URL with `process.stdout.write`). Verify `npm run test:integration` passes and `node scripts/serve.js` serves on 8080
+- [x] 1.2 Implement `scripts/serve.js` per design D10 (`startServer` export + CLI with `--port`, `--base`, `PORT`; prints the URL with `process.stdout.write`). Verify `npm run test:integration` passes and `node scripts/serve.js` serves on 8080
 - [ ] 1.3 Write `tests/helpers/site-references.js` (extract HTML, JS, CSS references) and `tests/integration/served-site.test.js` (crawl from `/cross-stitch-pattern/` per D10). Verify it fails because `index.html` is missing
 - [ ] 1.4 Create `index.html` (static markup: header with labelled file chooser, layer-switcher fieldset with three radios `original`/`dmc`/`chart` with `dmc` and `chart` disabled, zoom buttons and zoom `<output>`, focusable viewer with canvas and empty-state text, status `<output aria-live="polite">`, D11 comment anchors, `<link rel="icon" href="data:,">`), `styles/main.css` (tokens on `:root`, layout, `:focus-visible`, drop-target and error styles), `styles/print.css` (hides controls), and an empty `src/main.js` module. Verify `npm run test:integration` passes
 
