@@ -41,6 +41,6 @@
 
 - [x] 6.1 Run `npm run test:unit` and verify all unit tests pass
 - [x] 6.2 Run `npm run test:integration` and verify all integration tests pass
-- [ ] 6.3 Run `openspec validate add-dmc-color-matching --strict` and verify it passes
+- [x] 6.3 Run `openspec validate add-dmc-color-matching --strict` and verify it passes
 
 No browser smoke check: this change adds no UI or io code.
