@@ -12,7 +12,7 @@ pattern-generation and renderer changes a fixed API.
 - Add `src/data/dmc.js`: the DMC floss palette (489 entries) imported once at development time
   from makebead/craft-color-codes (`data/json/dmc-floss.json`, CC-BY-4.0), pinned to one commit
   SHA, with source, commit, license, and the exact transformation recorded in a header comment.
-  Codes are strings and normalised to upper case (`Blanc` → `BLANC`, `Ecru` → `ECRU`);
+  Codes are strings normalised to upper case (`Blanc` → `BLANC`), hex is `#RRGGBB`;
   names and colors are never invented or edited.
 - Add `scripts/import-dmc-palette.js`: a zero-dependency Node script that converts the
   downloaded source file into `src/data/dmc.js`, so the import is reproducible. It is a
@@ -22,8 +22,8 @@ pattern-generation and renderer changes a fixed API.
 - Add `src/core/dmc-match.js`: precompute the palette's Lab values once, find the nearest DMC
   color for a Lab color by ΔE00 with deterministic tie-breaking, and match a list of colors
   in one call.
-- Add color and palette typedefs (`Rgb`, `LinearRgb`, `Lab`, `DmcColor`, `LabPaletteColor`,
-  `DmcMatch`) to a clearly separated section of `src/core/types.js`.
+- Describe the shared data shapes (sRGB, linear RGB, Lab, DMC color, prepared palette, match
+  result) in plain-text comments next to the functions that create them.
 
 No user-visible behavior changes: nothing in this change is wired into the UI.
 
@@ -50,7 +50,6 @@ No user-visible behavior changes: nothing in this change is wired into the UI.
 ## Impact
 
 - New files: `src/data/dmc.js`, `src/core/color.js`, `src/core/dmc-match.js`,
-  `src/core/types.js` (shared with `add-pattern-model`; merged by hand on rebase),
   `scripts/import-dmc-palette.js`, unit and integration tests.
 - No dependencies, no build step, no runtime network access. The palette is downloaded once by
   a developer during apply; the app ships only the generated `src/data/dmc.js`.

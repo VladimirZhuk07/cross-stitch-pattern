@@ -4,7 +4,8 @@
 
 Greenfield: there is no `src/` yet. See `proposal.md` for motivation and `specs/dmc-color-matching/spec.md`
 for the required behavior. Two sibling changes run in parallel: `add-app-shell` (UI) and
-`add-pattern-model`, which also creates `src/core/types.js`. The consumers of this change are
+`add-pattern-model`. Types are not annotated anywhere in the project (no `@ts-check`,
+no typedefs); exported functions get plain-text comments and correctness comes from tests. The consumers of this change are
 `add-pattern-generation` (#4: resize in linear RGB, k-means in Lab, map ~30 cluster centres to DMC)
 and the layer-2 renderer (#5: draw cells in their DMC color).
 
@@ -28,8 +29,7 @@ and the layer-2 renderer (#5: draw cells in their DMC color).
 
 | File | Layer | Imports | Notes |
 |---|---|---|---|
-| `src/data/dmc.js` | data | nothing at runtime | Generated, committed. JSDoc imports `DmcColor` from `../core/types.js` (type only). Exceeds the ~300-line guideline; accepted for a generated data table. |
-| `src/core/types.js` | core | nothing | Typedefs only, plus `export {}`. |
+| `src/data/dmc.js` | data | nothing at runtime | Generated, committed; header describes the DMC color shape and provenance. Exceeds the ~300-line guideline; accepted for a generated data table. |
 | `src/core/color.js` | core | nothing | Conversions and ΔE00. |
 | `src/core/dmc-match.js` | core | `./color.js` | Prepared palette and nearest-color search. |
 | `scripts/import-dmc-palette.js` | dev tooling (Node) | `node:fs`, `node:crypto`, `node:url` | Never imported by the app. |
@@ -40,23 +40,23 @@ matcher testable with 2–3 color palettes, leaves room for future custom palett
 at import time. #4's core module will call `prepareLabPalette(DMC_COLORS)` once per generation run
 (489 conversions, well under 1 ms) or once per worker.
 
-### Typedefs (`src/core/types.js`, own section)
+### Data shapes (described in plain words, no type annotations)
 
-```js
-// ===== Color and DMC palette (add-dmc-color-matching) =====
-/** sRGB color, integer channels 0–255. @typedef {{ r: number, g: number, b: number }} Rgb */
-/** Linear-light RGB, channels 0–1. @typedef {{ r: number, g: number, b: number }} LinearRgb */
-/** CIELAB, D65 white; L 0–100. @typedef {{ L: number, a: number, b: number }} Lab */
-/** One DMC floss. @typedef {{ code: string, name: string, hex: string }} DmcColor */
-/** A palette color with its precomputed Lab. @typedef {{ code: string, name: string, hex: string, lab: Lab }} LabPaletteColor */
-/** Prepared palette, palette order kept. @typedef {readonly LabPaletteColor[]} LabPalette */
-/** Result of a match. @typedef {{ color: LabPaletteColor, index: number, deltaE: number }} DmcMatch */
-// ===== end color and DMC palette =====
-```
+Each shape is described once, in a comment next to the function that creates it; the spec is the
+authoritative description.
 
-The section markers make the hand merge with `add-pattern-model` (Pattern, LegendEntry) trivial.
-`Lab` uses `L` (capital) because that is the standard CIELAB notation. `LabPaletteColor` is a
-structural superset of `DmcColor`, so a match result can be used wherever a `DmcColor` is expected.
+| Shape | Fields | Created by (comment lives there) |
+|---|---|---|
+| sRGB color | `{ r, g, b }`, integers 0–255 | `hexToRgb` in `color.js` |
+| Linear RGB color | `{ r, g, b }`, linear-light 0–1 | `color.js` module comment (built by #4 from `srgbToLinear`) |
+| Lab color | `{ L, a, b }`, CIELAB with D65 white, L 0–100 | `rgbToLab` / `linearRgbToLab` in `color.js` |
+| DMC color | `{ code, name, hex }`, all strings; code upper case, hex `#RRGGBB` upper case | header of `src/data/dmc.js` |
+| Prepared palette | frozen array, palette order, of frozen `{ code, name, hex, lab }` | `prepareLabPalette` in `dmc-match.js` |
+| Match result | `{ color, index, deltaE }`: prepared-palette color, its index, the ΔE00 | `nearestDmcColor` in `dmc-match.js` |
+
+`Lab` uses `L` (capital) because that is the standard CIELAB notation. A prepared-palette color has
+every field of a DMC color, so a match result's `color` can be used wherever a DMC color is expected
+(e.g. building a legend in `add-pattern-model`, whose legend also uses upper-case hex).
 
 ### Public API
 
@@ -64,20 +64,20 @@ structural superset of `DmcColor`, so a match result can be used wherever a `Dmc
 
 | Function | Signature | Purpose |
 |---|---|---|
-| `hexToRgb` | `(hex: string) => Rgb` | `#rrggbb`, either case; else `TypeError`. Used by #5. |
-| `srgbToLinear` | `(channel: number) => number` | 0–255 → 0–1; out of range → `RangeError`. #4 builds a 256-entry lookup table from it. |
-| `linearToSrgb` | `(value: number) => number` | 0–1 → unrounded 0–255; clamps; `NaN` → `RangeError`. |
-| `rgbToLab` | `(rgb: Rgb) => Lab` | sRGB → linear → XYZ → Lab. |
-| `linearRgbToLab` | `(rgb: LinearRgb) => Lab` | For #4's area-averaged cells, which are already linear. |
-| `deltaE2000` | `(lab1: Lab, lab2: Lab) => number` | CIEDE2000, kL = kC = kH = 1. |
+| `hexToRgb` | `hexToRgb(hex)` → sRGB color | `#RRGGBB`, digits in either case; else `TypeError`. Used by #5. |
+| `srgbToLinear` | `srgbToLinear(channel)` → number | 0–255 → 0–1; out of range → `RangeError`. #4 builds a 256-entry lookup table from it. |
+| `linearToSrgb` | `linearToSrgb(value)` → number | 0–1 → unrounded 0–255; clamps; `NaN` → `RangeError`. |
+| `rgbToLab` | `rgbToLab(rgb)` → Lab color | sRGB → linear → XYZ → Lab. |
+| `linearRgbToLab` | `linearRgbToLab(linearRgb)` → Lab color | For #4's area-averaged cells, which are already linear. |
+| `deltaE2000` | `deltaE2000(lab1, lab2)` → number | CIEDE2000, kL = kC = kH = 1. |
 
 `src/core/dmc-match.js`:
 
 | Function | Signature | Purpose |
 |---|---|---|
-| `prepareLabPalette` | `(colors: readonly DmcColor[]) => LabPalette` | Validates (non-empty, unique codes, valid hex), computes Lab once, returns a frozen array. |
-| `nearestDmcColor` | `(lab: Lab, palette: LabPalette) => DmcMatch` | Smallest ΔE00; ties → lowest index. |
-| `nearestDmcColors` | `(labs: readonly Lab[], palette: LabPalette) => DmcMatch[]` | Same, for #4's list of cluster centres. |
+| `prepareLabPalette` | `prepareLabPalette(colors)` → prepared palette | Validates (non-empty, unique codes, valid hex), computes Lab once, returns a frozen array. |
+| `nearestDmcColor` | `nearestDmcColor(lab, palette)` → match result | Smallest ΔE00; ties → lowest index. |
+| `nearestDmcColors` | `nearestDmcColors(labs, palette)` → array of match results | Same, for #4's list of cluster centres. |
 
 Input is validated at these public boundaries only; internal helpers (`linearRgbToXyz`,
 `xyzToLab`, `assertLab`) are not exported.
@@ -126,16 +126,17 @@ committed; the app never runs it.
   `git ls-remote https://github.com/makebead/craft-color-codes HEAD` and downloads
   `https://raw.githubusercontent.com/makebead/craft-color-codes/<sha>/data/json/dmc-floss.json`
   into a new empty temp directory outside the repo. Tests therefore never touch the network.
-- Exported pure functions: `convertSourceEntries(entries) => DmcColor[]` (validate, upper-case
-  code, lower-case hex, drop `rgb`, check `rgb` agrees with hex) and
-  `renderPaletteModule(colors, provenance) => string`. The CLI part runs only when the file is
+- Exported pure functions: `convertSourceEntries(entries)` → DMC colors (validate, upper-case
+  code, upper-case hex, drop `rgb`, check `rgb` agrees with hex) and
+  `renderPaletteModule(colors, provenance)` → module source text. The CLI part runs only when the file is
   executed directly.
 - Header records: source repo URL, file path, commit SHA, SHA-256 of the source file, license
   CC-BY-4.0 with link and author attribution, upstream sources declared by the dataset, the list
   of transformations, and the regenerate command.
 - Output: `export const DMC_COLORS = Object.freeze(ENTRIES.map((entry) => Object.freeze(entry)))`
   with one entry per line; strings are written with `JSON.stringify` so names with quotes stay valid.
-- Hex is lower-cased so the palette has one canonical form (string equality works in tests,
+- Hex is upper-cased (user decision, matching `add-pattern-model`'s legend) so the palette has
+  one canonical form (string equality works in tests,
   legends, and JSON export). This changes notation, not value.
 
 ### Tests
@@ -158,8 +159,6 @@ committed; the app never runs it.
   source can be swapped in a later change.
 - [CC-BY-4.0 requires attribution] → Header in the shipped data file. An in-app credit is left to
   a later UI change.
-- [`src/core/types.js` conflicts with `add-pattern-model`] → Separate marked section; merge by hand
-  on rebase.
 - [Object-per-call API allocates in #4's per-cell loop] → Acceptable for ~40 000 cells; #4 may add
   a typed-array variant if profiling shows a need.
 

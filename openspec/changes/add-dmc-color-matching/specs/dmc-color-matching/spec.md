@@ -21,7 +21,7 @@ source data.
 - **WHEN** the palette data file is read as text
 - **THEN** its header contains `https://github.com/makebead/craft-color-codes`,
   `data/json/dmc-floss.json`, a 40-character hexadecimal commit SHA, and `CC-BY-4.0`
-- **AND** it lists the transformations: codes upper-cased, hex lower-cased, `rgb` field dropped
+- **AND** it lists the transformations: codes upper-cased, hex upper-cased, `rgb` field dropped
 
 #### Scenario: Import is reproducible
 
@@ -32,7 +32,7 @@ source data.
 
 Every palette entry SHALL be an object with exactly three string properties: `code`
 (non-empty), `name` (non-empty, taken unchanged from the source), and `hex` (`#` followed by
-six lower-case hexadecimal digits, numerically equal to the source color). Entries SHALL keep
+six upper-case hexadecimal digits, numerically equal to the source color). Entries SHALL keep
 the source order. The palette and its entries SHALL be read-only.
 
 #### Scenario: Black floss 310
@@ -43,7 +43,7 @@ the source order. The palette and its entries SHALL be read-only.
 
 #### Scenario: Every hex value is well-formed
 
-- **WHEN** every entry's `hex` is tested against `/^#[0-9a-f]{6}$/`
+- **WHEN** every entry's `hex` is tested against `/^#[0-9A-F]{6}$/`
 - **THEN** all 489 entries match
 
 #### Scenario: Count and uniqueness
@@ -53,7 +53,7 @@ the source order. The palette and its entries SHALL be read-only.
 
 #### Scenario: Palette cannot be modified
 
-- **WHEN** code running in strict mode assigns `hex = '#ffffff'` to the entry for `'310'`,
+- **WHEN** code running in strict mode assigns `hex = '#FFFFFF'` to the entry for `'310'`,
   or pushes a new entry onto the palette
 - **THEN** a `TypeError` is thrown and the palette is unchanged
 
@@ -97,8 +97,8 @@ duplicates another entry's code after normalisation.
 
 ### Requirement: Hex colors parse to sRGB
 
-A hex color string `#rrggbb` (hex digits in either case) SHALL parse to an sRGB color with
-integer channels 0–255. Any other input SHALL be rejected with a `TypeError` whose message
+A hex color string `#RRGGBB` (hex digits in either case) SHALL parse to an sRGB color: an
+object `{ r, g, b }` with integer channels 0–255. Any other input SHALL be rejected with a `TypeError` whose message
 contains the received value.
 
 #### Scenario: Valid hex
@@ -137,8 +137,8 @@ clamped to 0–1; a non-finite linear input SHALL throw a `RangeError`.
 
 ### Requirement: Colors convert to CIELAB under D65
 
-An sRGB color (channels 0–255) and a linear RGB color (channels 0–1) SHALL convert to CIELAB via
-CIE XYZ with the D65 reference white, so that a color reaches the same Lab value through either
+An sRGB color and a linear RGB color (`{ r, g, b }`, channels 0–1) SHALL convert to a Lab color
+`{ L, a, b }` (L 0–100) via CIE XYZ with the D65 reference white, so that a color reaches the same Lab value through either
 path. Invalid channels SHALL throw a `RangeError` as for the channel conversions.
 
 #### Scenario: Published reference values
@@ -185,8 +185,8 @@ with a missing or non-finite component SHALL throw a `TypeError`.
 
 ### Requirement: Palette Lab values are prepared once
 
-Matching SHALL work on a prepared palette that holds each palette color's Lab value, computed
-once when the palette is prepared and reused by every later match. Preparing SHALL reject an
+Matching SHALL work on a prepared palette: a read-only list, in palette order, of the entries'
+`code`, `name`, `hex` plus their `lab`, computed once at preparation and reused by every match. Preparing SHALL reject an
 empty palette with a `RangeError`, duplicate codes with an `Error` naming the code, and an
 invalid hex with a `TypeError`.
 
@@ -205,8 +205,8 @@ invalid hex with a `TypeError`.
 
 ### Requirement: Nearest DMC color by CIEDE2000
 
-For a Lab color, matching SHALL return the prepared-palette color with the smallest ΔE00 to it,
-together with that color's palette index and the ΔE00 value. The final choice SHALL never be
+For a Lab color, matching SHALL return `{ color, index, deltaE }`: the prepared-palette color with
+the smallest ΔE00 to it, its palette index, and that ΔE00. The final choice SHALL never be
 made by RGB distance. A Lab input with a missing or non-finite component SHALL throw a
 `TypeError`. Inputs SHALL NOT be modified.
 
@@ -224,7 +224,7 @@ made by RGB distance. A Lab input with a missing or non-finite component SHALL t
 #### Scenario: Small test palette
 
 - **WHEN** a palette of `{ code: 'K', name: 'Test black', hex: '#000000' }` and
-  `{ code: 'W', name: 'Test white', hex: '#ffffff' }` is prepared and the Lab of sRGB `(30,30,30)` and `(200,200,200)` is matched
+  `{ code: 'W', name: 'Test white', hex: '#FFFFFF' }` is prepared and the Lab of sRGB `(30,30,30)` and `(200,200,200)` is matched
 - **THEN** the results are `K` (ΔE00 6.7765 within 1e-3) and `W` (ΔE00 12.1161 within 1e-3)
 
 ### Requirement: Ties are broken deterministically
