@@ -6,16 +6,18 @@ import { loadImageFile, ImageDecodeError } from '../io/image-loader.js';
 const SUPPORTED_FORMATS_TEXT = 'Try a JPG, PNG, WebP, GIF, BMP or AVIF file.';
 
 /**
- * Connects the file chooser [data-role="file-input"] to image loading.
+ * Connects the file chooser [data-role="file-input"] and drops onto the viewer
+ * [data-role="viewer"] to image loading. When several files are dropped, the first is used.
  * On success the image replaces the previous one; the pattern is cleared, the Original layer
  * is selected and the viewport is reset so the viewer fits the new image.
  * On failure the previous image stays and the status shows an error.
+ * Drops outside the viewer are blocked so the browser does not navigate away to the file.
  * root   element (or document) containing the file chooser and the viewer
  * store  the app store from ./store.js
- * Returns loadFile(file), which the drag-and-drop handler also uses.
  */
 export function setupImageInput(root, store) {
   const fileInput = root.querySelector('[data-role="file-input"]');
+  const viewer = root.querySelector('[data-role="viewer"]');
   let latestLoadId = 0;
 
   async function loadFile(file) {
@@ -68,7 +70,56 @@ export function setupImageInput(root, store) {
     }
   });
 
-  return loadFile;
+  setupDropTarget(viewer, loadFile);
+}
+
+/** Makes viewer accept dropped files and blocks file drops everywhere else on the page. */
+function setupDropTarget(viewer, loadFile) {
+  const page = viewer.ownerDocument;
+
+  function acceptDrag(event) {
+    if (!isFileDrag(event)) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+    viewer.classList.add('viewer--drop-target');
+  }
+
+  viewer.addEventListener('dragenter', acceptDrag);
+  viewer.addEventListener('dragover', acceptDrag);
+  viewer.addEventListener('dragleave', (event) => {
+    if (!viewer.contains(event.relatedTarget)) {
+      viewer.classList.remove('viewer--drop-target');
+    }
+  });
+  viewer.addEventListener('drop', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    viewer.classList.remove('viewer--drop-target');
+    const file = event.dataTransfer?.files[0];
+    if (file !== undefined) {
+      loadFile(file);
+    }
+  });
+
+  // Without this, dropping a file next to the frame would open it in the tab.
+  page.addEventListener('dragover', (event) => {
+    if (isFileDrag(event)) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'none';
+    }
+  });
+  page.addEventListener('drop', (event) => {
+    if (isFileDrag(event)) {
+      event.preventDefault();
+    }
+  });
+}
+
+function isFileDrag(event) {
+  return event.dataTransfer?.types.includes('Files') ?? false;
 }
 
 /** Status text for a loaded image, e.g. "big.jpg — 2048 × 1365 px (downscaled from 6000 × 4000 px)". */
