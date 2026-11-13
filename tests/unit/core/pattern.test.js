@@ -285,3 +285,36 @@ describe('buildPattern: color limit', () => {
     assert.deepEqual(pattern.legend.map((entry) => [entry.code, entry.stitchCount]), [['310', 60], ['321', 60]]);
   });
 });
+
+describe('buildPattern: determinism and plain data', () => {
+  it('returns equal patterns for equal input', () => {
+    assert.deepEqual(buildGridExample(), buildGridExample());
+  });
+
+  it('does not depend on the order of the input colors', () => {
+    const first = buildPattern({ width: 3, height: 1, colors: [RED, BLACK], cells: [0, 1, 1] });
+    const second = buildPattern({ width: 3, height: 1, colors: [BLACK, RED], cells: [1, 0, 0] });
+    assert.deepEqual(first, second);
+    assert.deepEqual(first.legend.map((entry) => [entry.code, entry.stitchCount]), [['310', 2], ['321', 1]]);
+    assert.deepEqual(Array.from(first.cells), [1, 0, 0]);
+  });
+
+  it('does not modify its input', () => {
+    const cells = [0, 1, 1];
+    const colors = [{ ...RED, hex: '#c72b3b' }, { ...BLACK }];
+    const colorsBefore = structuredClone(colors);
+    buildPattern({ width: 3, height: 1, colors, cells });
+    assert.deepEqual(cells, [0, 1, 1]);
+    assert.deepEqual(colors, colorsBefore);
+  });
+
+  it('survives structured cloning with the cell buffer transferred', () => {
+    const pattern = buildGridExample();
+    const copyBefore = structuredClone(pattern);
+    assert.equal(pattern.cells.byteOffset, 0);
+    assert.equal(pattern.cells.buffer.byteLength, 12);
+    const clone = structuredClone(pattern, { transfer: [pattern.cells.buffer] });
+    assert.deepEqual(clone, copyBefore);
+    assert.equal(pattern.cells.length, 0, 'the transferred original is detached');
+  });
+});
