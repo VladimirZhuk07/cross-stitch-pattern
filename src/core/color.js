@@ -4,6 +4,8 @@
 // - sRGB color: { r, g, b }, integer channels 0–255 (what hexToRgb returns).
 // - Linear RGB color: { r, g, b }, linear-light channels 0–1, as produced by srgbToLinear.
 //   Area averaging of pixels happens in this space.
+// - Lab color: { L, a, b }, CIELAB relative to the D65 white; L 0–100, a and b roughly −128..128
+//   (what rgbToLab and linearRgbToLab return).
 
 const HEX_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -59,4 +61,73 @@ export function hexToRgb(hex) {
     g: Number.parseInt(hex.slice(3, 5), 16),
     b: Number.parseInt(hex.slice(5, 7), 16),
   };
+}
+
+// sRGB (D65) to CIE XYZ matrix, Bruce Lindbloom, "RGB/XYZ Matrices"
+// (http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html). Its rows sum to the D65
+// white below, so sRGB white maps to Lab (100, 0, 0).
+const SRGB_TO_XYZ = [
+  [0.4124564, 0.3575761, 0.1804375],
+  [0.2126729, 0.7151522, 0.0721750],
+  [0.0193339, 0.1191920, 0.9503041],
+];
+const D65_WHITE = { x: 0.95047, y: 1.0, z: 1.08883 };
+
+// Exact CIE constants (CIE 15:2004 note) instead of the rounded 0.008856 / 903.3, which make
+// the Lab f() function slightly discontinuous.
+const LAB_EPSILON = 216 / 24389;
+const LAB_KAPPA = 24389 / 27;
+
+// Converts an sRGB color { r, g, b } (channels 0–255) to a Lab color { L, a, b } under D65.
+// Throws RangeError if a channel is not a finite number in 0–255. Does not modify the input.
+export function rgbToLab(rgb) {
+  return linearRgbToLabUnchecked(
+    srgbToLinear(rgb.r),
+    srgbToLinear(rgb.g),
+    srgbToLinear(rgb.b),
+  );
+}
+
+// Converts a linear RGB color { r, g, b } (channels 0–1) to a Lab color { L, a, b } under D65.
+// Channels a few ulps outside 0–1 (rounding drift of averages) are clamped.
+// Throws RangeError if a channel is not a finite number. Does not modify the input.
+export function linearRgbToLab(linearRgb) {
+  return linearRgbToLabUnchecked(
+    clampLinearChannel(linearRgb.r),
+    clampLinearChannel(linearRgb.g),
+    clampLinearChannel(linearRgb.b),
+  );
+}
+
+function clampLinearChannel(value) {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(`linear channel must be a finite number, got ${value}`);
+  }
+  return Math.min(1, Math.max(0, value));
+}
+
+function linearRgbToLabUnchecked(r, g, b) {
+  const x = SRGB_TO_XYZ[0][0] * r + SRGB_TO_XYZ[0][1] * g + SRGB_TO_XYZ[0][2] * b;
+  const y = SRGB_TO_XYZ[1][0] * r + SRGB_TO_XYZ[1][1] * g + SRGB_TO_XYZ[1][2] * b;
+  const z = SRGB_TO_XYZ[2][0] * r + SRGB_TO_XYZ[2][1] * g + SRGB_TO_XYZ[2][2] * b;
+  return xyzToLab(x, y, z);
+}
+
+// CIE XYZ -> CIELAB relative to the D65 white (CIE 15:2004, section 8.2.1).
+function xyzToLab(x, y, z) {
+  const fx = labF(x / D65_WHITE.x);
+  const fy = labF(y / D65_WHITE.y);
+  const fz = labF(z / D65_WHITE.z);
+  return {
+    L: 116 * fy - 16,
+    a: 500 * (fx - fy),
+    b: 200 * (fy - fz),
+  };
+}
+
+function labF(ratio) {
+  if (ratio > LAB_EPSILON) {
+    return Math.cbrt(ratio);
+  }
+  return (LAB_KAPPA * ratio + 16) / 116;
 }

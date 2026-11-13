@@ -7,7 +7,7 @@
 - [x] 1.3 Write failing tests for `srgbToLinear` / `linearToSrgb`: channels 0, 10, 128, 255 → 0, 0.0030353, 0.2158605, 1 (±1e-6); round trip of all 0..255 within 1e-6; linear 1.0000001 → 255 and -0.0000001 → 0; `RangeError` for sRGB 256, -1, `NaN` and linear `NaN`; verify they fail
 - [x] 1.4 Implement `srgbToLinear` and `linearToSrgb` (IEC 61966-2-1, cite in a comment); verify the 1.3 tests pass
 - [x] 1.5 Write failing tests for `rgbToLab` and `linearRgbToLab`: white, black, red, green, blue, grey 128 against reference values taken from one cited source that uses D65 and the design's constants (cite it in the test file; ±0.01); linear grey 0.2158605 equals Lab of sRGB grey 128 (±1e-4); `RangeError` for `(300, 0, 0)`; verify they fail
-- [ ] 1.6 Implement `rgbToLab` and `linearRgbToLab` with internal `linearRgbToXyz` / `xyzToLab` (Lindbloom matrix, D65 white, ε = 216/24389, κ = 24389/27); verify the 1.5 tests pass
+- [x] 1.6 Implement `rgbToLab` and `linearRgbToLab` with internal `linearRgbToXyz` / `xyzToLab` (Lindbloom matrix, D65 white, ε = 216/24389, κ = 24389/27); verify the 1.5 tests pass
 - [ ] 1.7 Write failing tests for `deltaE2000`: all 34 pairs of Sharma, Wu & Dalal (2005) copied from the published dataset (download `ciede2000testdata.txt` from the authors' page at development time; cite the paper and URL in the test file, do not type values from memory) within 1e-4; identity = 0; symmetry for `(50, 2.5, 0)` / `(73, 25, -18)` = 27.1492; `TypeError` for `{ L: NaN, a: 0, b: 0 }` and `{ L: 50, a: 0 }`; verify they fail
 - [ ] 1.8 Implement `deltaE2000` (Sharma et al. 2005, eq. 1–21, cited) with input validation; verify all `tests/unit/core/color.test.js` tests pass
 
