@@ -255,3 +255,33 @@ describe('buildPattern: colors with the same DMC code', () => {
     );
   });
 });
+
+// Synthetic codes '1'..'count' for limit tests; they are not real palette entries.
+function syntheticColors(count) {
+  return Array.from({ length: count }, (_, i) => ({ code: String(i + 1), name: `Synthetic ${i + 1}`, hex: '#808080' }));
+}
+
+function indexes(count) {
+  return Array.from({ length: count }, (_, i) => i);
+}
+
+describe('buildPattern: color limit', () => {
+  it('accepts 99 colors', () => {
+    const pattern = buildPattern({ width: 99, height: 1, colors: syntheticColors(99), cells: indexes(99) });
+    assert.equal(pattern.legend.length, 99);
+    assert.deepEqual(pattern.legend.map((entry) => entry.number), indexes(99).map((i) => i + 1));
+  });
+
+  it('rejects 100 colors', () => {
+    assertThrowsWith(
+      () => buildPattern({ width: 100, height: 1, colors: syntheticColors(100), cells: indexes(100) }),
+      RangeError, '100', '99',
+    );
+  });
+
+  it('counts the limit after merging duplicate codes', () => {
+    const colors = Array.from({ length: 120 }, (_, i) => (i % 2 === 0 ? { ...BLACK } : { ...RED }));
+    const pattern = buildPattern({ width: 120, height: 1, colors, cells: indexes(120) });
+    assert.deepEqual(pattern.legend.map((entry) => [entry.code, entry.stitchCount]), [['310', 60], ['321', 60]]);
+  });
+});
