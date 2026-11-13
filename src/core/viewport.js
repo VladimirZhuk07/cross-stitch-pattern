@@ -16,8 +16,11 @@
 //   ZoomLimits  { minScale, maxScale }
 //   Sizes, points and rectangles are in CSS px unless a function says otherwise.
 
-/** Empty space kept around the image when it is fitted to the frame, in CSS px per side. */
-export const FIT_MARGIN = 16;
+/**
+ * Empty space kept around the image when it is fitted to the frame, in CSS px per side.
+ * 24 px leaves room for the Chart layer's rulers (./chart-layout.js) beside the fitted grid.
+ */
+export const FIT_MARGIN = 24;
 
 /** Highest zoom in CSS px per image px (6400 %), unless fitting itself needs more. */
 export const MAX_SCALE = 64;

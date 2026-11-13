@@ -3,7 +3,7 @@
 ## 1. Fit margin 24 px
 
 - [x] 1.1 In `tests/unit/core/viewport.test.js`, update the five fit-dependent tests to a 24 px margin: wide image → scale 0.476, offset (24, 162); small image → scale 9.52, offset (24, 162); tall 500 × 1000 image → scale 0.752, offset (312, 24); `zoomLimits` for 2000 × 1000 → minScale 0.238; the "fit needs more than 64" test uses frame 1048 × 800 (available 1000 × 752 → fit 100, limits 50 / 100); rename "16 px" in test names and comments; verify `node --test tests/unit/core/viewport.test.js` fails
-- [ ] 1.2 Set `FIT_MARGIN = 24` in `src/core/viewport.js` (update its comment); verify `node --test tests/unit/core/viewport.test.js` passes
+- [x] 1.2 Set `FIT_MARGIN = 24` in `src/core/viewport.js` (update its comment); verify `node --test tests/unit/core/viewport.test.js` passes
 
 ## 2. Chart geometry (core)
 
