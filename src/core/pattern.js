@@ -214,3 +214,19 @@ function compareOrdinal(a, b) {
   }
   return 0;
 }
+
+// Returns the LegendEntry of the cell at column x, row y of a Pattern (both 0-based
+// integers inside the grid), or null when the cell is empty.
+// Throws RangeError for coordinates outside the grid or not integers.
+export function legendEntryAt(pattern, x, y) {
+  checkCoordinate('x', x, pattern.width);
+  checkCoordinate('y', y, pattern.height);
+  const legendIndex = pattern.cells[y * pattern.width + x];
+  return legendIndex === EMPTY_CELL ? null : pattern.legend[legendIndex];
+}
+
+function checkCoordinate(axis, value, size) {
+  if (!Number.isInteger(value) || value < 0 || value >= size) {
+    throw new RangeError(`${axis} must be an integer from 0 to ${size - 1}, got ${String(value)}`);
+  }
+}
