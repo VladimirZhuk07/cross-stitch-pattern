@@ -41,8 +41,48 @@ export function buildPattern(input) {
   checkPositiveInteger('height', height);
   checkCellCount(cells, width * height);
   checkColors(colors);
-  countStitchesPerColor(cells, width, colors.length);
-  return null;
+  const stitchCounts = countStitchesPerColor(cells, width, colors.length);
+  const legend = buildLegend(colors, stitchCounts);
+  return { width, height, cells: remapCells(cells, legend.legendIndexOfColor), legend: legend.entries };
+}
+
+// Turns the used input colors into numbered legend entries. Also returns, for every input
+// color index, the index of its legend entry (EMPTY_CELL for unused colors).
+function buildLegend(colors, stitchCounts) {
+  const groups = [];
+  for (let i = 0; i < colors.length; i++) {
+    if (stitchCounts[i] === 0) {
+      continue;
+    }
+    const { code, name, hex } = colors[i];
+    groups.push({ code, name, hex: hex.toUpperCase(), stitchCount: stitchCounts[i], colorIndexes: [i] });
+  }
+  groups.sort(compareLegendGroups);
+
+  const legendIndexOfColor = new Int32Array(colors.length).fill(EMPTY_CELL);
+  const entries = [];
+  for (let legendIndex = 0; legendIndex < groups.length; legendIndex++) {
+    const { code, name, hex, stitchCount, colorIndexes } = groups[legendIndex];
+    entries.push({ number: legendIndex + 1, code, name, hex, stitchCount });
+    for (const colorIndex of colorIndexes) {
+      legendIndexOfColor[colorIndex] = legendIndex;
+    }
+  }
+  return { entries, legendIndexOfColor };
+}
+
+// Most stitches first; equal counts by DMC code, so the numbering is deterministic.
+function compareLegendGroups(a, b) {
+  return b.stitchCount - a.stitchCount || compareDmcCodes(a.code, b.code);
+}
+
+function remapCells(cells, legendIndexOfColor) {
+  const out = new Int16Array(cells.length);
+  for (let i = 0; i < cells.length; i++) {
+    const value = cells[i];
+    out[i] = value === EMPTY_CELL ? EMPTY_CELL : legendIndexOfColor[value];
+  }
+  return out;
 }
 
 function checkColors(colors) {

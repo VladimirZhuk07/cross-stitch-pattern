@@ -12,7 +12,7 @@
 - [x] 2.3 Write failing tests for color and cell validation: cell index 2 with 2 colors (message has position `1` and value `2`), cell `-2`, cell `0.5`, empty code, non-string name, hex `000000` (`TypeError` with `310` and `000000`); verify they fail
 - [x] 2.4 Implement color and cell-value validation; verify 2.3 passes
 - [x] 2.5 Write failing tests for the "Plain arrays and typed arrays are both accepted", "Grid layout of a 3 × 2 pattern", "Legend entry fields", "Counts exclude empty cells", "Unused BLANC is dropped", "Most stitches get number 1", "Ties ordered by DMC code", "Numeric codes compare by value", "Empty is not white", "Fully transparent image" and "Hex is normalised to uppercase" scenarios; verify they fail
-- [ ] 2.6 Implement counting, dropping, sorting, numbering, hex normalisation and the remap into a new `Int16Array`; verify 2.5 passes
+- [x] 2.6 Implement counting, dropping, sorting, numbering, hex normalisation and the remap into a new `Int16Array`; verify 2.5 passes
 - [ ] 2.7 Write failing tests for "Two clusters land on DMC 310" and "Conflicting data for one code" (error message contains `310`, `#000000`, `#111111`); verify they fail
 - [ ] 2.8 Implement grouping by DMC code with the conflict check; verify 2.7 passes
 - [ ] 2.9 Write failing tests for the color limit: 99 distinct codes accepted (numbers 1–99), 100 rejected (`RangeError` with `100` and `99`), 120 input colors sharing 2 codes accepted; verify the 100-color test fails
