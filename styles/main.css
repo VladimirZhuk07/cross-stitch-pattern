@@ -145,6 +145,7 @@ body {
 }
 
 .settings__error,
+.settings__size--error,
 .settings__status--error {
   color: var(--color-error);
 }
