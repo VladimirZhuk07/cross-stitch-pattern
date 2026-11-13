@@ -31,7 +31,7 @@
 
 - [x] 4.1 In `.claude/rules/domain.md`, replace the "Symbols" section with "Chart numbers": each legend color gets a number 1..N (1 = most stitches, ties by DMC code: digit-only codes numerically, then others in ordinal order), at most 99 colors so numbers have ≤ 2 digits, cells are white with the number in black, never depend on color to read the chart; and change "symbol" to "number" in the vocabulary table; verify by reading the section
 - [x] 4.2 In `.claude/rules/ui.md`, replace "Two views: color blocks, and symbols" with the three layers (original image, DMC color blocks, number chart: white cells with the legend number, printable in black and white), change the legend accessibility line to "number, DMC code, name, swatch and stitch count", and "symbol chart" in the print rule to "number chart"; verify by reading the changed lines
-- [ ] 4.3 In `.claude/rules/architecture.md` (pipeline step 4) and `CLAUDE.md` (intro), replace "symbol" with "number"/"numbered chart"; verify `grep -rni symbol CLAUDE.md .claude/rules` prints nothing and `grep -rniE "typedef|ts-check|types\.js" CLAUDE.md .claude/rules` shows only the "no type annotations" rule in `javascript.md`
+- [x] 4.3 In `.claude/rules/architecture.md` (pipeline step 4) and `CLAUDE.md` (intro), replace "symbol" with "number"/"numbered chart"; verify `grep -rni symbol CLAUDE.md .claude/rules` prints nothing and `grep -rniE "typedef|ts-check|types\.js" CLAUDE.md .claude/rules` shows only the "no type annotations" rules in `CLAUDE.md` and `javascript.md`
 
 ## 5. Verification
 

@@ -28,8 +28,8 @@ data/ ◄── core/
 2. **Resize** (`core/`): pixels → stitch grid of the target width/height (area averaging,
    one cell = one stitch).
 3. **Reduce & match** (`core/`): grid colors → at most N DMC colors (see `domain.md`).
-4. **Build pattern** (`core/`): `Pattern` = grid of palette indices + legend
-   (DMC code, name, hex, symbol, stitch count).
+4. **Build pattern** (`core/`): `Pattern` = grid of legend indices + legend
+   (number 1..N, DMC code, name, hex, stitch count).
 5. **Render / export** (`ui/`, `io/`): canvas preview, printable chart, PNG, JSON.
 
 Each step is a separate function with clearly documented input/output so it can be tested and reused.

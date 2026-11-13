@@ -2,7 +2,7 @@
 
 A static, browser-only web app that turns an image (JPG, PNG, WebP, GIF, BMP, AVIF —
 anything the browser can decode) into a cross-stitch pattern using the DMC embroidery
-floss palette: a symbol grid, a color legend with DMC codes, and printable/exportable output.
+floss palette: a numbered chart, a color legend with DMC codes, and printable/exportable output.
 
 ## Hard constraints
 
