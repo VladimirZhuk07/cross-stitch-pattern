@@ -12,7 +12,7 @@
 - [x] 2.3 Write failing tests for `numberFontSize`: 20 → 12, 50 → 30, 14 → 8.4, 13.9 → `null`, 7.52 → `null`, 18.359375 → ≈ 11.0156; −1 and `NaN` throw `RangeError`; verify they fail
 - [x] 2.4 Implement `numberFontSize` with the named constants `NUMBER_FONT_FRACTION = 0.6` and `MIN_NUMBERED_CELL_SIZE = 14`; verify 2.3 passes
 - [x] 2.5 Write failing tests for `gridLines` (range 0–23 of 23 at 10 px → bold 0, 10, 20, 23 and 20 thin; range 0–12 of 12 → bold 0, 10, 12 and 10 thin; same at 3 px → bold only; 4 px → thin included; range 8–12 of 100 → 8, 9 thin, 10 bold, 11, 12 thin), `chartLineWidths` (ratios 1, 1.25, 2, 3 → thin 1, 1, 2, 3 and bold 2, 2, 4, 6; ratio 0 throws `RangeError`) and `snapLine` (10.3 at width 1 ratio 1 → 10.5; width 2 ratio 1 → 10; width 2 ratio 2 → 10.5; width 1 ratio 1.25 → 10; width 1 ratio 2 → 10.25); verify they fail
-- [ ] 2.6 Implement `gridLines`, `chartLineWidths`, `snapLine` with `MAJOR_LINE_STEP = 10` and `MIN_THIN_LINE_CELL_SIZE = 4`; verify 2.5 passes
+- [x] 2.6 Implement `gridLines`, `chartLineWidths`, `snapLine` with `MAJOR_LINE_STEP = 10` and `MIN_THIN_LINE_CELL_SIZE = 4`; verify 2.5 passes
 
 ## 3. Rulers and centre marker (core)
 
