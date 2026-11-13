@@ -7,7 +7,7 @@
 
 ## 2. Stitch grid size and resize (core)
 
-- [ ] 2.1 Write grid-size tests in `tests/unit/core/stitch-grid.test.js`: `stitchGridSize` 1200 × 800 @100 → 100 × 67, 2048 × 1365 @100 → 100 × 67, 800 × 1200 @100 → 100 × 150, 2048 × 1 @100 → 100 × 1, 41 × 2048 @100 → height 4995; `maxTargetWidth` 41 × 2048 → 10, 10 × 2048 → 2, 1 × 2048 → 0, 1200 × 800 → 500; invalid image sizes (0, 12.5) throw `RangeError`. Verify it fails
+- [x] 2.1 Write grid-size tests in `tests/unit/core/stitch-grid.test.js`: `stitchGridSize` 1200 × 800 @100 → 100 × 67, 2048 × 1365 @100 → 100 × 67, 800 × 1200 @100 → 100 × 150, 2048 × 1 @100 → 100 × 1, 41 × 2048 @100 → height 4995; `maxTargetWidth` 41 × 2048 → 10, 10 × 2048 → 2, 1 × 2048 → 0, 1200 × 800 → 500; invalid image sizes (0, 12.5) throw `RangeError`. Verify it fails
 - [ ] 2.2 Implement `MAX_GRID_SIDE`, `stitchGridSize`, `maxTargetWidth` in `src/core/stitch-grid.js` per design D2. Verify the grid-size tests pass
 - [ ] 2.3 Add `resizeToGrid` tests: black + white 2 × 1 → 1 cell linear `(0.5, 0.5, 0.5)`; red/blue/green 3 × 1 → 2 cells `(0.6667, 0, 0.3333)` / `(0, 0.6667, 0.3333)` within 1e-4; opaque `(199,43,59)` + transparent → alpha 0.5 and the opaque pixel's linear color exactly; 1 opaque of 4 → alpha 0.25; 1 × 1 → 3 × 3 upscale gives 9 equal cells; fully transparent → all alpha 0 and color 0; wrong buffer length (2 × 2 with 12 bytes) throws `RangeError` containing `16` and `12`; the input buffer is unchanged. Verify they fail
 - [ ] 2.4 Implement `EMPTY_ALPHA_THRESHOLD = 0.5` and `resizeToGrid` per design D3 (separable overlap spans, 256-entry linear table, alpha-weighted color). Verify `node --test tests/unit/core/stitch-grid.test.js` passes
