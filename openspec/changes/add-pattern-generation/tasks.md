@@ -67,4 +67,4 @@
   - load a fully transparent PNG: `Pattern ready: the image is fully transparent, so there is nothing to stitch.`
   - load a large photo and immediately a small PNG: the status and the pattern belong to the small PNG
   - DevTools Network: `pattern.worker.js` and its modules load from the app's own path, no external requests; Console: no errors
-- [ ] 9.4 Run `openspec validate add-pattern-generation --strict` and confirm it passes
+- [x] 9.4 Run `openspec validate add-pattern-generation --strict` and confirm it passes
