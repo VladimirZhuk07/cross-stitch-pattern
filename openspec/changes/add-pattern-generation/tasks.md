@@ -19,7 +19,7 @@
 
 ## 4. Settings defaults and texts (core)
 
-- [ ] 4.1 Write `tests/unit/core/generation-settings.test.js`: `DEFAULT_SETTINGS` is `{ targetWidth: 100, maxColors: 24, fabricCount: 14 }` and frozen; form ranges width 10–500, colors 1–99; `parseWholeNumber` accepts `'100'`, `' 24 '` and rejects `''`, `'12.5'`, `'5'` (below min), `'600'`, `'abc'` (→ `null`); `formatPatternSize({100, 67}, 14)` and `(…, 18)` give the spec texts; `formatGridTooLarge` gives the 4995/10 text and the "too tall and narrow" text when the max width is below 10; `NO_IMAGE_SIZE_TEXT`; `describeGenerationResult` for 18 colors, 1 color, and an empty legend; the two invalid-field messages. Verify it fails
+- [x] 4.1 Write `tests/unit/core/generation-settings.test.js`: `DEFAULT_SETTINGS` is `{ targetWidth: 100, maxColors: 24, fabricCount: 14 }` and frozen; form ranges width 10–500, colors 1–99; `parseWholeNumber` accepts `'100'`, `' 24 '` and rejects `''`, `'12.5'`, `'5'` (below min), `'600'`, `'abc'` (→ `null`); `formatPatternSize({100, 67}, 14)` and `(…, 18)` give the spec texts; `formatGridTooLarge` gives the 4995/10 text and the "too tall and narrow" text when the max width is below 10; `NO_IMAGE_SIZE_TEXT`; `describeGenerationResult` for 18 colors, 1 color, and an empty legend; the two invalid-field messages. Verify it fails
 - [ ] 4.2 Implement `src/core/generation-settings.js` per design D10/D11. Verify the settings tests pass
 
 ## 5. Pipeline (core)
