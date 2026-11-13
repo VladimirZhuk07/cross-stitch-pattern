@@ -1,0 +1,16 @@
+{
+  "name": "cross-stitch-pattern",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Turn an image into a cross-stitch pattern with the DMC floss palette. Zero dependencies.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\"",
+    "test:integration": "node --test \"tests/integration/**/*.test.js\"",
+    "serve": "node scripts/serve.js"
+  }
+}

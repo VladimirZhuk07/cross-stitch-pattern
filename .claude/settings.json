@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(node --test)",
+      "Bash(node --test *)",
+      "Bash(node scripts/serve.js)",
+      "Bash(node scripts/serve.js *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)"
+    ],
+    "deny": [
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npm i)",
+      "Bash(npm i *)",
+      "Bash(npm add *)",
+      "Bash(npm ci)",
+      "Bash(npx *)",
+      "Bash(yarn *)",
+      "Bash(pnpm *)"
+    ]
+  }
+}

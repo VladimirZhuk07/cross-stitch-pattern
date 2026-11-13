@@ -1,0 +1,51 @@
+schema: spec-driven
+
+# Project context: constraints an agent cannot infer from the code.
+# Full rules live in CLAUDE.md and .claude/rules/*.md.
+context: |
+  Browser-only static app that converts an image into a cross-stitch pattern using the DMC floss palette.
+  Zero dependencies: no npm packages (runtime or dev), no bundler, no build step. Plain ES modules + JSDoc (// @ts-check).
+  Hosted on GitHub Pages under a sub-path: every URL must be relative.
+  Images never leave the device: no network requests, no CDNs, no analytics.
+  Layers: src/core (pure, no DOM, unit-tested in Node), src/io, src/ui, src/workers, src/data. core never imports ui/io.
+  Color matching happens in CIELAB with CIEDE2000. DMC codes/colors are never invented.
+  Tests use only node:test + node:assert/strict: tests/unit (mirrors src/core) and tests/integration.
+  Every change is developed in its own git worktree at .claude/worktrees/<change-name> on branch change/<change-name>.
+  Write all OpenSpec artifacts in English.
+
+rules:
+  proposal:
+    - State explicitly what is out of scope.
+    - If the change touches UI, name the user-visible behavior that changes.
+    - Keep it under 400 words; prefer one capability per change.
+  specs:
+    - Every requirement has at least one scenario with concrete input and expected output (numbers, DMC codes, sizes), not vague wording.
+    - Include error/edge scenarios (invalid input, empty/transparent image, limits) where relevant.
+  design:
+    - Say which layer (core/io/ui/workers/data) each new module belongs to and confirm core stays pure.
+    - Name any new data shapes as JSDoc typedefs for src/core/types.js.
+    - Justify any algorithm choice (quantization, color distance, dithering) with its trade-off.
+  tasks:
+    - Each task is small enough to finish and commit on its own.
+    - For every new or changed core/ function, list the unit test task before the implementation task (TDD).
+    - Add integration test tasks when a change crosses modules (pipeline, worker protocol, export format, served files).
+    - The final task group must be named "Verification" and contain, in order -
+      run unit tests (npm run test:unit);
+      run integration tests (npm run test:integration);
+      manual browser smoke check via node scripts/serve.js (only if UI/io changed; list what to click and what to expect);
+      openspec validate <change-name> --strict.
+
+operations:
+  apply:
+    guidance:
+      - Work only inside the change worktree (.claude/worktrees/<change-name>, branch change/<change-name>), never on main.
+      - Follow TDD for core/ - write the failing unit test, see it fail, implement, see it pass.
+      - Commit after each completed task with an imperative English message; mark the task done in the same commit.
+      - Do not add dependencies or a build step to make something work; stop and ask instead.
+      - Before reporting the change done, run the full test suite (npm test) and report the real result.
+  archive:
+    guidance:
+      - Archive inside the change worktree, before merging to main, so code + updated specs + archived change merge together.
+      - Before archiving, confirm - all tasks checked, npm test passes, openspec validate <change-name> --strict passes, and the browser smoke check is done when UI/io changed.
+      - After archiving, commit, rebase the branch onto main, and re-run npm test.
+      - Do not merge or push. Report readiness and wait for the user to confirm the merge.

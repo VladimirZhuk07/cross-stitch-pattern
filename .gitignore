@@ -1,0 +1,13 @@
+# Git worktrees for OpenSpec changes
+.claude/worktrees/
+
+# Local Claude Code settings (personal, not shared)
+.claude/settings.local.json
+
+# Should never exist (zero-dependency project), but never commit it
+node_modules/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
