@@ -41,7 +41,7 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Run `npm run test:unit`; all tests pass (show output)
+- [x] 7.1 Run `npm run test:unit`; all tests pass (show output)
 - [ ] 7.2 Run `npm run test:integration`; all tests pass (show output)
 - [ ] 7.3 Browser smoke check. Precondition: `add-pattern-generation` is merged into `main` and this branch is rebased onto it (until then `state.pattern` is always null and the Chart layer cannot be selected). Run `node scripts/serve.js`, open the printed URL, load a photo and a PNG with transparency, generate a pattern, then check:
   - Fitted view: 24 px margin; `Chart` shows white cells, bold lines every 10 stitches and around the grid, thin lines only if cells ≥ 4 px, no numbers if cells < 14 px; transparent areas are grey without numbers; rulers above and left of the grid with 10, 20, … and no overlapping labels; triangles at the centre column and row
