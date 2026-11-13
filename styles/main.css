@@ -214,6 +214,10 @@ body {
   pointer-events: none;
 }
 
+.viewer__empty[hidden] {
+  display: none;
+}
+
 /* Status line */
 
 .status {

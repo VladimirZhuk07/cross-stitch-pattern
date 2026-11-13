@@ -183,8 +183,9 @@ the first is used.
 ### D9. High-DPI canvas
 Before each paint the viewer compares `canvasBufferSize(frame, devicePixelRatio)` with the
 canvas size and resizes the buffer if needed, then sets `ctx.setTransform(dpr, 0, 0, dpr, 0,
-0)`. Checking on every paint also catches DPR changes (browser zoom, moving to another
-monitor) without extra listeners. The Original layer turns image smoothing off when
+0)`. A `matchMedia('(resolution: <dpr>dppx)')` listener, re-armed after each change,
+schedules a repaint when the ratio changes without a frame resize (moving the window to a
+screen with another density). The Original layer turns image smoothing off when
 `scale ≥ 1` so pixels stay sharp and line up with the stitch grid.
 
 ### D10. Dev server and served-site test
