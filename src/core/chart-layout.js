@@ -17,6 +17,8 @@
 //                 0…H. The range is empty when a start equals its end. The stitch boundaries
 //                 (grid lines) bounding the visible cells are columnStart … columnEnd inclusive.
 
+import { FIT_MARGIN } from './viewport.js';
+
 /**
  * Cell numbers are drawn at this fraction of the cell size. Two digits of about 0.55 em
  * then take about 66 % of the cell width and their height (about 0.7 em) about 42 % of the
@@ -32,6 +34,33 @@ export const MAJOR_LINE_STEP = 10;
 
 /** Smallest cell size in CSS px with thin lines; below it they would merge into grey. */
 export const MIN_THIN_LINE_CELL_SIZE = 4;
+
+/**
+ * Thickness of the rulers along the top and left grid edges, CSS px. Equal to the fit
+ * margin, so at fit the rulers lie in the margin and cover no cell.
+ */
+export const RULER_SIZE = FIT_MARGIN;
+
+/** Ruler label font size in CSS px, and the smallest size it may shrink to. */
+export const RULER_FONT_SIZE = 10;
+export const MIN_RULER_FONT_SIZE = 7;
+
+/** The centre triangles: width along the ruler and depth into it from the grid edge, CSS px. */
+export const CENTER_MARKER_WIDTH = 8;
+export const CENTER_MARKER_DEPTH = 5;
+
+/** Space between the ruler's outer edge and its labels, and between labels and triangles. */
+export const RULER_PADDING = 1;
+export const RULER_MARKER_GAP = 2;
+
+/** Room for a row label across the left ruler: 24 − 5 − 2 − 1 = 16 CSS px. */
+export const RULER_LABEL_ROOM = RULER_SIZE - CENTER_MARKER_DEPTH - RULER_MARKER_GAP - RULER_PADDING;
+
+/** Label every n stitches, n being the first of these steps that leaves labels apart. */
+export const RULER_LABEL_STEPS = Object.freeze([10, 20, 50, 100, 200, 500]);
+
+/** Smallest free space between two neighbouring ruler labels, CSS px. */
+export const RULER_LABEL_GAP = 4;
 
 /**
  * Returns the CellGeometry of a grid drawn into the content rectangle:
@@ -136,6 +165,75 @@ export function snapLine(position, widthDevicePixels, pixelRatio) {
   const isOddWidth = widthDevicePixels % 2 === 1;
   const snapped = isOddWidth ? Math.floor(devicePosition) + 0.5 : Math.round(devicePosition);
   return snapped / pixelRatio;
+}
+
+/**
+ * Returns where the rulers go, as { top, left }: top is the y of the top ruler's upper
+ * edge, left the x of the left ruler's left edge. Each ruler sits directly outside its grid
+ * edge and sticks to the frame edge (0) once that grid edge is scrolled out of view.
+ */
+export function rulerPlacement(content) {
+  return {
+    top: Math.max(0, content.y - RULER_SIZE),
+    left: Math.max(0, content.x - RULER_SIZE),
+  };
+}
+
+/**
+ * Returns the line indexes to label, in order: the multiples of step from max(start, 1)
+ * to end (line 0 is never labelled). The label text is the index itself, i.e. the number of
+ * stitches counted from the top-left.
+ * start, end  visible boundary indexes (e.g. columnStart, columnEnd)
+ * step        label step from rulerLabelStep, positive integer
+ * Throws RangeError if step is not a positive integer.
+ */
+export function rulerLabels(start, end, step) {
+  assertPositiveInteger('step', step);
+  const labels = [];
+  const first = Math.max(step, Math.ceil(start / step) * step);
+  for (let index = first; index <= end; index += step) {
+    labels.push(index);
+  }
+  return labels;
+}
+
+/**
+ * Returns how many stitches apart ruler labels are: the first of RULER_LABEL_STEPS whose
+ * length on screen is at least the widest label plus RULER_LABEL_GAP, or the last step if
+ * none is. Both rulers use the same step so the counts line up.
+ * cellSize           CellGeometry.cellSize, CSS px
+ * widestLabelWidth   measured width of the widest label text, CSS px
+ */
+export function rulerLabelStep(cellSize, widestLabelWidth) {
+  const neededLength = widestLabelWidth + RULER_LABEL_GAP;
+  for (const step of RULER_LABEL_STEPS) {
+    if (step * cellSize >= neededLength) {
+      return step;
+    }
+  }
+  return RULER_LABEL_STEPS[RULER_LABEL_STEPS.length - 1];
+}
+
+/**
+ * Returns the font size in CSS px for both rulers: RULER_FONT_SIZE, shrunk in proportion
+ * when the widest row label would not fit in RULER_LABEL_ROOM, but not below
+ * MIN_RULER_FONT_SIZE.
+ * widestRowLabelWidth  measured width of the widest row label at RULER_FONT_SIZE, CSS px
+ */
+export function rulerFontSize(widestRowLabelWidth) {
+  if (widestRowLabelWidth <= RULER_LABEL_ROOM) {
+    return RULER_FONT_SIZE;
+  }
+  const shrunk = (RULER_FONT_SIZE * RULER_LABEL_ROOM) / widestRowLabelWidth;
+  return Math.max(MIN_RULER_FONT_SIZE, shrunk);
+}
+
+/**
+ * Returns the centre of the grid { column, row } in stitches from the top-left:
+ * W / 2 and H / 2 (x.5 means the middle of a cell, a whole number a grid line).
+ */
+export function chartCenter(grid) {
+  return { column: grid.width / 2, row: grid.height / 2 };
 }
 
 // The cells k with gridStart + k · cellLength < frameLength and
