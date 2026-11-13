@@ -10,7 +10,7 @@
 - [x] 2.1 Write failing tests for size and cell-count validation (width 0, height 1.5, negative and non-number sizes, 5 cells for 3 × 2) with `assert.throws` checking `RangeError` and the values in the message; verify they fail
 - [x] 2.2 Implement `buildPattern` input checks for width, height and cell count; verify 2.1 passes
 - [x] 2.3 Write failing tests for color and cell validation: cell index 2 with 2 colors (message has position `1` and value `2`), cell `-2`, cell `0.5`, empty code, non-string name, hex `000000` (`TypeError` with `310` and `000000`); verify they fail
-- [ ] 2.4 Implement color and cell-value validation; verify 2.3 passes
+- [x] 2.4 Implement color and cell-value validation; verify 2.3 passes
 - [ ] 2.5 Write failing tests for the "Plain arrays and typed arrays are both accepted", "Grid layout of a 3 × 2 pattern", "Legend entry fields", "Counts exclude empty cells", "Unused BLANC is dropped", "Most stitches get number 1", "Ties ordered by DMC code", "Numeric codes compare by value", "Empty is not white", "Fully transparent image" and "Hex is normalised to uppercase" scenarios; verify they fail
 - [ ] 2.6 Implement counting, dropping, sorting, numbering, hex normalisation and the remap into a new `Int16Array`; verify 2.5 passes
 - [ ] 2.7 Write failing tests for "Two clusters land on DMC 310" and "Conflicting data for one code" (error message contains `310`, `#000000`, `#111111`); verify they fail

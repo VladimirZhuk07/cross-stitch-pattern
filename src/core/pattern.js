@@ -13,6 +13,7 @@ export const DEFAULT_FABRIC_COUNT = 14;
 export const FABRIC_COUNTS = Object.freeze([11, 14, 16, 18]);
 
 const DIGITS_ONLY = /^\d+$/;
+const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
 // Sort comparator for DMC codes (strings such as '310', '3865', 'B5200', 'BLANC').
 // Digit-only codes come first, by numeric value; all other codes follow in ordinal string
@@ -35,11 +36,54 @@ export function compareDmcCodes(a, b) {
 }
 
 export function buildPattern(input) {
-  const { width, height, cells } = input;
+  const { width, height, cells, colors } = input;
   checkPositiveInteger('width', width);
   checkPositiveInteger('height', height);
   checkCellCount(cells, width * height);
+  checkColors(colors);
+  countStitchesPerColor(cells, width, colors.length);
   return null;
+}
+
+function checkColors(colors) {
+  if (!Array.isArray(colors)) {
+    throw new TypeError(`colors must be an array of { code, name, hex }, got ${String(colors)}`);
+  }
+  for (let i = 0; i < colors.length; i++) {
+    checkColor(colors[i], i);
+  }
+}
+
+function checkColor(color, index) {
+  const code = color?.code;
+  if (typeof code !== 'string' || code === '') {
+    throw new TypeError(`colors[${index}].code must be a non-empty string, got ${String(code)}`);
+  }
+  if (typeof color.name !== 'string' || color.name === '') {
+    throw new TypeError(`colors[${index}] (DMC ${code}).name must be a non-empty string, got ${String(color.name)}`);
+  }
+  if (typeof color.hex !== 'string' || !HEX_COLOR.test(color.hex)) {
+    throw new TypeError(`colors[${index}] (DMC ${code}).hex must look like #RRGGBB, got ${String(color.hex)}`);
+  }
+}
+
+// Validates every cell value and returns how many cells use each input color index.
+function countStitchesPerColor(cells, width, colorCount) {
+  const counts = new Int32Array(colorCount);
+  for (let i = 0; i < cells.length; i++) {
+    const value = cells[i];
+    if (value === EMPTY_CELL) {
+      continue;
+    }
+    if (!Number.isInteger(value) || value < 0 || value >= colorCount) {
+      throw new RangeError(
+        `cell ${i} (x ${i % width}, y ${Math.floor(i / width)}) has color index ${String(value)}, ` +
+        `expected ${EMPTY_CELL} or 0–${colorCount - 1}`,
+      );
+    }
+    counts[value]++;
+  }
+  return counts;
 }
 
 function checkPositiveInteger(field, value) {
