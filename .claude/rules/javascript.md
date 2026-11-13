@@ -14,14 +14,15 @@ paths:
 - No global variables, no writing to `window`. No side effects at import time
   except in `main.js` and worker entry files.
 
-## Typing with JSDoc
+## Documentation instead of types
 
-- Every file starts with `// @ts-check`.
-- Every exported function has JSDoc with `@param` and `@returns` types.
-- Shared data shapes are declared once with `@typedef` in `src/core/types.js` and
-  imported via `/** @typedef {import('./types.js').Pattern} Pattern */`.
-- Prefer precise types: `Uint8ClampedArray`, `{ r: number, g: number, b: number }`,
-  string literal unions (`'none' | 'floyd-steinberg'`).
+- No type annotations: no `// @ts-check`, no `@typedef`, no `{type}` in `@param`/`@returns`,
+  no `src/core/types.js`. Correctness comes from tests.
+- Every exported function has a short plain-text comment: what it does, what each
+  parameter means (units, ranges), and what it returns or throws.
+- A data shape shared between modules (e.g. `Pattern`) is described once, in plain words,
+  in a comment next to the function that creates it; consumers refer to that module.
+  Its OpenSpec spec is the authoritative description.
 
 ## Readability
 
@@ -39,7 +40,7 @@ paths:
 
 - Pure functions by default: same input → same output, do not mutate arguments.
 - Exception: hot loops over pixel buffers may write into a preallocated output typed array —
-  name it clearly (`out`) and document it in JSDoc.
+  name it clearly (`out`) and say so in the function's comment.
 - Use typed arrays for pixel/grid data. Do not allocate an object per pixel in hot loops.
 - Classes only when there is real long-lived state with behavior (e.g. a worker client).
   Otherwise use functions and plain objects.
@@ -58,6 +59,6 @@ paths:
 |---|---|---|
 | Files | kebab-case | `color-distance.js`, `pattern.worker.js` |
 | Functions, variables | camelCase | `buildPattern`, `targetWidth` |
-| Typedefs, classes | PascalCase | `Pattern`, `WorkerClient` |
+| Classes, data shape names in docs | PascalCase | `WorkerClient`, `Pattern` |
 | Constants | UPPER_SNAKE_CASE | `MAX_COLORS`, `DEFAULT_FABRIC_COUNT` |
 | Booleans | `is/has/should` prefix | `isTransparent`, `hasBackstitch` |

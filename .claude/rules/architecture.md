@@ -32,7 +32,7 @@ data/ ◄── core/
    (DMC code, name, hex, symbol, stitch count).
 5. **Render / export** (`ui/`, `io/`): canvas preview, printable chart, PNG, JSON.
 
-Each step is a separate function with typed input/output so it can be tested and reused.
+Each step is a separate function with clearly documented input/output so it can be tested and reused.
 
 ## State
 

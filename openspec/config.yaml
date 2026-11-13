@@ -4,7 +4,7 @@ schema: spec-driven
 # Full rules live in CLAUDE.md and .claude/rules/*.md.
 context: |
   Browser-only static app that converts an image into a cross-stitch pattern using the DMC floss palette.
-  Zero dependencies: no npm packages (runtime or dev), no bundler, no build step. Plain ES modules + JSDoc (// @ts-check).
+  Zero dependencies: no npm packages (runtime or dev), no bundler, no build step. Plain ES modules, no type annotations (no @ts-check, no JSDoc types, no types.js).
   Hosted on GitHub Pages under a sub-path: every URL must be relative.
   Images never leave the device: no network requests, no CDNs, no analytics.
   Layers: src/core (pure, no DOM, unit-tested in Node), src/io, src/ui, src/workers, src/data. core never imports ui/io.
@@ -23,7 +23,7 @@ rules:
     - Include error/edge scenarios (invalid input, empty/transparent image, limits) where relevant.
   design:
     - Say which layer (core/io/ui/workers/data) each new module belongs to and confirm core stays pure.
-    - Name any new data shapes as JSDoc typedefs for src/core/types.js.
+    - Describe any new data shape shared between modules (fields, units, ranges) in plain words, and name the module that creates it.
     - Justify any algorithm choice (quantization, color distance, dithering) with its trade-off.
   tasks:
     - Each task is small enough to finish and commit on its own.
@@ -48,6 +48,6 @@ operations:
       - Archive inside the change worktree, before merging to main, so code + updated specs + archived change merge together.
       - Before archiving, confirm - all tasks checked, npm test passes, openspec validate <change-name> --strict passes, and the browser smoke check is done when UI/io changed.
       - Before archiving, verify against the spec deltas - list every requirement and scenario of the change and, for each, name the code that implements it and the test that covers it. Report a table (requirement / scenario / code / test / status). Any missing implementation or test blocks the archive.
-      - Also check the code follows design.md (layers, typedefs, algorithm choices); report any divergence and resolve it (fix code or /opsx:update the design) before archiving.
+      - Also check the code follows design.md (layers, data shapes, algorithm choices); report any divergence and resolve it (fix code or /opsx:update the design) before archiving.
       - After archiving, commit, rebase the branch onto main, and re-run npm test.
       - Do not merge or push. Report readiness and wait for the user to confirm the merge.

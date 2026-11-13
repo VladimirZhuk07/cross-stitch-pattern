@@ -10,7 +10,7 @@ floss palette: a symbol grid, a color legend with DMC codes, and printable/expor
   `package.json` may exist only for `"type": "module"` and `scripts`; it must never
   contain `dependencies` or `devDependencies`.
 - **No build step.** Source files are served as-is. Native ES modules, no bundler,
-  no transpiler, no TypeScript compiler. Type safety comes from `// @ts-check` + JSDoc.
+  no transpiler, no TypeScript compiler, no type annotations (`// @ts-check`, JSDoc types).
 - **Static hosting on GitHub Pages.** The app is served from a sub-path
   (`https://<user>.github.io/<repo>/`), so every URL in HTML/JS/CSS is **relative**
   (`./src/main.js`, never `/src/main.js`).
@@ -60,7 +60,7 @@ openspec/
 Detailed rules live in `.claude/rules/` and are loaded automatically:
 
 - `architecture.md` — layers, dependency direction, workers, data flow
-- `javascript.md` — JS style, JSDoc typing, naming, error handling
+- `javascript.md` — JS style, documentation comments, naming, error handling
 - `ui.md` — HTML, CSS, DOM, accessibility, canvas rendering
 - `domain.md` — cross-stitch and color-science rules (DMC, CIELAB, ΔE2000, fabric count)
 - `testing.md` — node:test conventions, unit vs integration tests, TDD for core/
