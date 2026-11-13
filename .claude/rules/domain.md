@@ -6,7 +6,7 @@
 |---|---|
 | Stitch / cell | One square of the grid = one full cross stitch = one output "pixel" |
 | Pattern (chart) | Grid of cells, each holding a palette index or "empty" |
-| Palette / legend | The DMC colors actually used: code, name, hex, symbol, stitch count |
+| Palette / legend | The DMC colors actually used: number, code, name, hex, stitch count |
 | Fabric count (ct) | Stitches per inch of fabric. Aida 14 ct is the default; also 11, 16, 18 |
 | Floss / thread | DMC stranded cotton, identified by its code (`310`, `BLANC`, `3865`) |
 
@@ -42,12 +42,15 @@
 - Results must be **deterministic** for the same input and settings (seed any randomness,
   e.g. k-means initialization).
 
-## Symbols
+## Chart numbers
 
-- Each palette color gets a unique symbol from a fixed, ordered list of printable,
-  clearly distinguishable characters. Avoid look-alikes in one pattern (`O`/`0`, `l`/`1`/`I`).
-- Lighter colors get lighter-looking symbols where possible; never depend on color to read
-  the chart.
+- Each legend color gets a number 1..N; the chart shows that number in every cell of the
+  color.
+- Number 1 is the color with the most stitches. Equal stitch counts are ordered by DMC code:
+  digit-only codes by numeric value first (`310` before `3865`), then all other codes in
+  ordinal string order (`B5200`, `BLANC`, `ECRU`). The order must not depend on the locale.
+- At most 99 colors per pattern, so a number never needs more than 2 digits in a cell.
+- Chart cells are white with the number in black; never depend on color to read the chart.
 
 ## Physical size
 
