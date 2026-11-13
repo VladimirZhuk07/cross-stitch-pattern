@@ -50,6 +50,5 @@ zoom, and extracting raw pixels for processing.
 
 - New: `index.html`, `styles/`, `src/main.js`, `src/ui/`, `src/io/image-loader.js`,
   `src/core/image-size.js`, `src/core/viewport.js`, `scripts/serve.js`, tests.
-- No dependencies, no build step. No files owned by parallel changes (`src/core/types.js`,
-  `src/core/pattern.js`, `src/core/color.js`, `src/core/dmc-match.js`, `src/data/`,
-  `src/workers/`).
+- No dependencies, no build step. No files owned by parallel changes (`src/core/pattern.js`,
+  `src/core/color.js`, `src/core/dmc-match.js`, `src/data/`, `src/workers/`).

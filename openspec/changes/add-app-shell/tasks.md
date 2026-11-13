@@ -3,46 +3,46 @@
 ## 1. Dev server and page skeleton
 
 - [ ] 1.1 Write `tests/integration/serve.test.js` (server on port 0, closed in `after()`): `/` → 200 `text/html`; missing file → 404; `/%2e%2e/package.json` and `/.git/HEAD` → 404; POST → 405; with `basePath: '/repo/'`, `/repo/` → `index.html` and `/index.html` → 404. Verify it fails because `scripts/serve.js` does not exist
-- [ ] 1.2 Implement `scripts/serve.js` per design D10 (`startServer` export + CLI with `--port`, `--base`, `PORT`; prints the URL with `process.stdout.write`). Verify `node --test tests/integration/serve.test.js` passes and `node scripts/serve.js` serves on 8080
+- [ ] 1.2 Implement `scripts/serve.js` per design D10 (`startServer` export + CLI with `--port`, `--base`, `PORT`; prints the URL with `process.stdout.write`). Verify `npm run test:integration` passes and `node scripts/serve.js` serves on 8080
 - [ ] 1.3 Write `tests/helpers/site-references.js` (extract HTML, JS, CSS references) and `tests/integration/served-site.test.js` (crawl from `/cross-stitch-pattern/` per D10). Verify it fails because `index.html` is missing
-- [ ] 1.4 Create `index.html` (static markup: header with labelled file chooser, layer-switcher fieldset with three radios `original`/`dmc`/`chart` with `dmc` and `chart` disabled, zoom buttons and zoom `<output>`, focusable viewer with canvas and empty-state text, status `<output aria-live="polite">`, D11 comment anchors, `<link rel="icon" href="data:,">`), `styles/main.css` (tokens on `:root`, layout, `:focus-visible`, drop-target and error styles), `styles/print.css` (hides controls), and a `src/main.js` stub with `// @ts-check`. Verify `node --test tests/integration/served-site.test.js` passes
+- [ ] 1.4 Create `index.html` (static markup: header with labelled file chooser, layer-switcher fieldset with three radios `original`/`dmc`/`chart` with `dmc` and `chart` disabled, zoom buttons and zoom `<output>`, focusable viewer with canvas and empty-state text, status `<output aria-live="polite">`, D11 comment anchors, `<link rel="icon" href="data:,">`), `styles/main.css` (tokens on `:root`, layout, `:focus-visible`, drop-target and error styles), `styles/print.css` (hides controls), and an empty `src/main.js` module. Verify `npm run test:integration` passes
 
 ## 2. Image size cap (core)
 
 - [ ] 2.1 Write `tests/unit/core/image-size.test.js`: 1200×800 → unchanged, `isDownscaled: false`; 2048×2048 → unchanged; 6000×4000 → 2048×1365; 100×5000 → 41×2048; 10000×3 → 2048×1; `RangeError` for width 0, width 12.5, height −1, maxSide 0. Verify it fails
-- [ ] 2.2 Implement `capImageSize(width, height, maxSide)` in `src/core/image-size.js` with `CappedSize` typedef. Verify `node --test tests/unit/core/image-size.test.js` passes
+- [ ] 2.2 Implement `capImageSize(width, height, maxSide)` in `src/core/image-size.js` with a plain-words comment describing the returned shape. Verify `npm run test:unit` passes
 
 ## 3. Viewport math (core)
 
 - [ ] 3.1 Write tests in `tests/unit/core/viewport.test.js` for `fitViewport` and `zoomLimits`: 2000×1000 in 1000×800 → scale 0.484, offset (16, 158); 100×50 in 1000×800 → scale 9.68, offset (16, 158); `RangeError` for a 0-wide frame or content; limits for fit 0.484 → min 0.242, max 64; fit 100 → max 100. Verify they fail
-- [ ] 3.2 Implement `fitViewport`, `zoomLimits`, `FIT_MARGIN`, `MAX_SCALE` and the geometry typedefs in `src/core/viewport.js`. Verify the 3.1 tests pass
+- [ ] 3.2 Implement `fitViewport`, `zoomLimits`, `FIT_MARGIN`, `MAX_SCALE` and the plain-words description of the viewport shape in `src/core/viewport.js`. Verify the 3.1 tests pass
 - [ ] 3.3 Add tests for `zoomAt` and `wheelZoomFactor`: scale 1 offset (0, 0), factor 1.25 at (100, 50) → scale 1.25, offset (−25, −12.5); scale 60 × 1.25 with max 64 → 64 and the anchor point stays fixed; zoom out below min clamps to min; `wheelZoomFactor(-100)` → 1.25, `(100)` → 0.8, `(0)` → 1. Verify they fail
 - [ ] 3.4 Implement `zoomAt`, `wheelZoomFactor` and `ZOOM_STEP`. Verify the 3.3 tests pass
 - [ ] 3.5 Add tests for `panBy`, `recenterOnResize`, `contentRect`, `canvasBufferSize`: pan (16, 158) by (30, −20) → (46, 138); resize 1000×800 → 800×800 moves offset (16, 158) → (−84, 158); content 2048×1365 at scale 0.5 offset (10, 20) → rect (10, 20, 1024, 682.5); buffer 800×600 @2 → 1600×1200, 801×601 @1.25 → 1001×751; `RangeError` for pixel ratio 0. Verify they fail
-- [ ] 3.6 Implement `panBy`, `recenterOnResize`, `contentRect`, `canvasBufferSize`. Verify `node --test tests/unit/core/viewport.test.js` passes in full
+- [ ] 3.6 Implement `panBy`, `recenterOnResize`, `contentRect`, `canvasBufferSize`. Verify `npm run test:unit` passes (all viewport tests)
 
 ## 4. Application state
 
 - [ ] 4.1 Write `tests/unit/ui/store.test.js`: `getState` returns the initial state; `setState` merges shallowly into a new frozen object; listeners get `(state, previous)` in subscription order; no notification when all given values are `===` current; unsubscribe stops calls; a nested `setState` from a listener ends with the newest state. Verify it fails
 - [ ] 4.2 Implement `createStore` in `src/ui/store.js` per design D5. Verify the store test passes
-- [ ] 4.3 Create `src/ui/app-state.js` with the `LayerId`, `StatusMessage`, `AppState` typedefs and `createInitialState()` (`image: null`, `pattern: null`, `activeLayer: 'original'`, `viewport: null`, `frame: { width: 0, height: 0 }`, status idle). Verify it imports in Node: `node -e "import('./src/ui/app-state.js').then(m => console.log(m.createInitialState()))"`
+- [ ] 4.3 Create `src/ui/app-state.js` with `createInitialState()` and a comment describing every state field in plain words (design: Data shapes) (`image: null`, `pattern: null`, `activeLayer: 'original'`, `viewport: null`, `frame: { width: 0, height: 0 }`, status idle). Verify it imports in Node without a DOM: `node -e "import('./src/ui/app-state.js').then(m => console.log(m.createInitialState()))"`
 
 ## 5. Image import (io + ui)
 
-- [ ] 5.1 Implement `src/io/image-loader.js` per design D6 (`MAX_DECODE_SIDE`, `LoadedImage`, `ImageDecodeError`, `loadImageFile`). Verify the served-site test still passes and the module has no import outside `core/`
-- [ ] 5.2 Implement `src/ui/status.js` (`setupStatus(root, store)`: text via `textContent`, error class for `kind: 'error'`). Verify by wiring it in `main.js` and seeing the idle text in the browser
-- [ ] 5.3 Implement `src/ui/image-input.js` file-chooser path per design D7: loading text `Loading <name>…`, summary `<name> — W × H px` plus `(downscaled from W × H px)`, the exact error text from the spec, `latestLoadId` stale guard, closing replaced and stale bitmaps, resetting `pattern`, `activeLayer`, `viewport`. Verify in the browser that picking a PNG and a `.txt` file shows the spec texts
-- [ ] 5.4 Add drag-and-drop to `image-input.js` (first file only, drop-target highlight, prevent navigation on drops outside the frame). Verify in the browser by dropping two files and by dropping one outside the frame
+- [ ] 5.1 Implement `src/io/image-loader.js` per design D6 (`MAX_DECODE_SIDE`, `LoadedImage`, `ImageDecodeError`, `loadImageFile`). Verify `npm run test:integration` passes and the module imports nothing outside `core/`
+- [ ] 5.2 Implement `src/ui/status.js` (`setupStatus(root, store)`: text via `textContent`, error class for `kind: 'error'`). Verify `npm run test:integration` passes (the module is reachable from `main.js`); the idle text is checked in 7.3
+- [ ] 5.3 Implement `src/ui/image-input.js` file-chooser path per design D7: loading text `Loading <name>…`, summary `<name> — W × H px` plus `(downscaled from W × H px)`, the exact error text from the spec, `latestLoadId` stale guard, closing replaced and stale bitmaps, resetting `pattern`, `activeLayer`, `viewport`. Verify `npm run test:integration` passes; the texts are checked in 7.3
+- [ ] 5.4 Add drag-and-drop to `image-input.js` (first file only, drop-target highlight, prevent navigation on drops outside the frame). Verify `npm run test:integration` passes; dropping is checked in 7.3
 
 ## 6. Viewer and layers (ui)
 
 - [ ] 6.1 Write `tests/integration/view-layers.test.js`: the three factories return layers with ids `original`, `dmc`, `chart` and `render` functions; `original.isAvailable` is true without a pattern; `dmc` and `chart` are false with `pattern: null` and true with `pattern: {}`; the radio values in `index.html` are exactly `original, dmc, chart` in that order. Verify it fails
-- [ ] 6.2 Create `src/ui/layers/view-layer.js` (typedef-only contract from design D4) and `src/ui/layers/original-layer.js` (draws the bitmap into `frame.content`, smoothing off when `scale ≥ 1`). Verify the original-layer part of 6.1 passes
-- [ ] 6.3 Create the stubs `src/ui/layers/dmc-layer.js` and `src/ui/layers/chart-layer.js` (`isAvailable: state.pattern !== null`, centered "not available yet" note). Verify `node --test tests/integration/view-layers.test.js` passes
-- [ ] 6.4 Implement `src/ui/viewer.js` (`setupViewer(root, store, layers)`): `ResizeObserver` → `frame` and `recenterOnResize`; fit when `viewport` is null; rAF-coalesced repaint of the active layer only; DPR buffer check per paint (D9); empty-state text toggle; skip painting for a 0-size frame. Verify in the browser that a loaded image is fitted and stays centered on window resize
-- [ ] 6.5 Implement `src/ui/viewer-input.js` (`setupViewerInput(root, store)`) per design D8: drag pan, wheel zoom at the cursor with `deltaMode` normalization, keys `+`/`=`, `-`, `0`, arrows. Verify in the browser that the point under the cursor stays put while zooming
-- [ ] 6.6 Implement `src/ui/zoom-controls.js` (`+`, `−`, `Fit` around the frame center; zoom shown as a whole percentage; all disabled without an image). Verify in the browser that `+` from 200 % shows 250 %
-- [ ] 6.7 Implement `src/ui/layer-switcher.js` (`setupLayerSwitcher(root, store, layers)`): enable/disable from `isAvailable`, write `activeLayer` on change, fall back to `original` when the active layer becomes unavailable. Verify `dmc` and `chart` stay disabled in the browser
+- [ ] 6.2 Create `src/ui/layers/original-layer.js` (draws the bitmap into `frame.content`, smoothing off when `scale ≥ 1`). Verify the original-layer part of 6.1 passes
+- [ ] 6.3 Create the stubs `src/ui/layers/dmc-layer.js` and `src/ui/layers/chart-layer.js` (`isAvailable: state.pattern !== null`, centered "not available yet" note). Verify `npm run test:integration` passes
+- [ ] 6.4 Implement `src/ui/viewer.js` (`setupViewer(root, store, layers)`, header comment with the view-layer contract from design D4): `ResizeObserver` → `frame` and `recenterOnResize`; fit when `viewport` is null; rAF-coalesced repaint of the active layer only; DPR buffer check per paint (D9); empty-state text toggle; skip painting for a 0-size frame. Verify `npm run test:integration` passes; fit and resize are checked in 7.3
+- [ ] 6.5 Implement `src/ui/viewer-input.js` (`setupViewerInput(root, store)`) per design D8: drag pan, wheel zoom at the cursor with `deltaMode` normalization, keys `+`/`=`, `-`, `0`, arrows. Verify `npm run test:integration` passes; zoom at the cursor is checked in 7.3
+- [ ] 6.6 Implement `src/ui/zoom-controls.js` (`+`, `−`, `Fit` around the frame center; zoom shown as a whole percentage; all disabled without an image). Verify `npm run test:integration` passes; the buttons are checked in 7.3
+- [ ] 6.7 Implement `src/ui/layer-switcher.js` (`setupLayerSwitcher(root, store, layers)`): enable/disable from `isAvailable`, write `activeLayer` on change, fall back to `original` when the active layer becomes unavailable. Verify `npm run test:integration` passes; disabled radios are checked in 7.3
 - [ ] 6.8 Wire everything in `src/main.js` (store, `const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer()]`, `setup*` groups per D11). Verify `npm test` passes and the page loads without console errors
 
 ## 7. Verification

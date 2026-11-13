@@ -33,14 +33,13 @@ different files.
 | `src/core/viewport.js` | core | fit, zoom, pan, resize, content rectangle, canvas buffer size |
 | `src/io/image-loader.js` | io | `loadImageFile(file, maxSide)` via `createImageBitmap`; `ImageDecodeError` |
 | `src/ui/store.js` | ui | `createStore(initial)` → `getState`, `setState`, `subscribe` |
-| `src/ui/app-state.js` | ui | `AppState` typedefs and `createInitialState()` |
+| `src/ui/app-state.js` | ui | `createInitialState()` and the plain-words description of the app state |
 | `src/ui/status.js` | ui | renders `state.status` into the status `<output>` |
 | `src/ui/image-input.js` | ui | file chooser, drag-and-drop, stale-load guard, error text |
-| `src/ui/viewer.js` | ui | canvas, DPR buffer, `ResizeObserver`, rAF rendering, empty state |
+| `src/ui/viewer.js` | ui | canvas, DPR buffer, `ResizeObserver`, rAF rendering, empty state; documents the view-layer contract |
 | `src/ui/viewer-input.js` | ui | pointer drag, wheel, keyboard → viewport updates |
 | `src/ui/zoom-controls.js` | ui | `+`, `−`, `Fit` buttons and zoom percentage |
 | `src/ui/layer-switcher.js` | ui | enable/disable radios, select layer, fallback to Original |
-| `src/ui/layers/view-layer.js` | ui | typedef-only: the `ViewLayer` contract |
 | `src/ui/layers/original-layer.js` | ui | `createOriginalLayer()` |
 | `src/ui/layers/dmc-layer.js` | ui | `createDmcLayer()` stub (replaced by `add-dmc-preview-layer`) |
 | `src/ui/layers/chart-layer.js` | ui | `createChartLayer()` stub (replaced by `add-stitch-chart-layer`) |
@@ -53,51 +52,29 @@ core stays pure and runs in Node tests. No module in this change touches `src/wo
 
 ## Data shapes
 
-`src/core/types.js` is owned by `add-pattern-model`, which is in flight. To avoid a merge
-conflict, each typedef lives in the module that owns it; geometry types can move to
-`types.js` in a later change.
+Shapes are plain objects, documented in plain words in a comment next to the function that
+creates them (no type annotations). The specs are authoritative.
 
-```js
-// src/core/viewport.js
-/** @typedef {{ width: number, height: number }} Size */
-/** @typedef {{ x: number, y: number }} Point */
-/** @typedef {{ x: number, y: number, width: number, height: number }} Rect */
-/**
- * @typedef {object} Viewport
- * @property {number} scale    CSS px per image px (1 = zoom 100 %)
- * @property {number} offsetX  frame-relative CSS x of the image's top-left corner
- * @property {number} offsetY  frame-relative CSS y of the image's top-left corner
- */
-/** @typedef {{ minScale: number, maxScale: number }} ZoomLimits */
-
-// src/core/image-size.js
-/** @typedef {{ width: number, height: number, isDownscaled: boolean }} CappedSize */
-
-// src/io/image-loader.js
-/**
- * @typedef {object} LoadedImage
- * @property {ImageBitmap} bitmap   decoded image, already capped
- * @property {string} fileName
- * @property {number} width         bitmap width (after cap)
- * @property {number} height
- * @property {number} sourceWidth   width before the cap
- * @property {number} sourceHeight
- * @property {boolean} isDownscaled
- */
-
-// src/ui/app-state.js
-/** @typedef {'original' | 'dmc' | 'chart'} LayerId */
-/** @typedef {{ kind: 'idle' | 'loading' | 'info' | 'error', text: string }} StatusMessage */
-/**
- * @typedef {object} AppState
- * @property {LoadedImage | null} image
- * @property {object | null} pattern   always null here; add-pattern-generation types it as Pattern
- * @property {LayerId} activeLayer
- * @property {Viewport | null} viewport  null = "fit as soon as the frame has a size"
- * @property {Size} frame               frame size in CSS px, written only by viewer.js
- * @property {StatusMessage} status
- */
-```
+- **Viewport** (created by `fitViewport` in `src/core/viewport.js`):
+  `{ scale, offsetX, offsetY }`. `scale` is CSS px per image px (1 = zoom 100 %, > 0);
+  `offsetX`/`offsetY` are the CSS px position of the image's top-left corner relative to the
+  frame's top-left (any real number). Sizes are `{ width, height }`, points `{ x, y }`,
+  rectangles `{ x, y, width, height }`, all in CSS px unless stated otherwise. Zoom limits are
+  `{ minScale, maxScale }`.
+- **Capped size** (created by `capImageSize` in `src/core/image-size.js`):
+  `{ width, height, isDownscaled }`, whole pixels ≥ 1.
+- **Loaded image** (created by `loadImageFile` in `src/io/image-loader.js`):
+  `{ bitmap, fileName, width, height, sourceWidth, sourceHeight, isDownscaled }`. `bitmap` is
+  the decoded `ImageBitmap`, already capped; `width`/`height` are its size; `sourceWidth`/
+  `sourceHeight` are the size before the cap.
+- **App state** (created by `createInitialState` in `src/ui/app-state.js`):
+  - `image`: a loaded image, or `null` before the first successful load;
+  - `pattern`: `null` until a pattern exists (`add-pattern-generation` fills it; its shape
+    is described in `src/core/pattern.js`);
+  - `activeLayer`: `'original'`, `'dmc'` or `'chart'`;
+  - `viewport`: a viewport, or `null` meaning "fit as soon as the frame has a size";
+  - `frame`: frame size `{ width, height }` in CSS px, written only by `viewer.js`;
+  - `status`: `{ kind, text }` with `kind` one of `'idle'`, `'loading'`, `'info'`, `'error'`.
 
 ## Decisions
 
@@ -140,24 +117,15 @@ Rejected: the grid would overhang or fall short of the image by up to half a sti
 Original and DMC layers would visibly shift against each other.
 
 ### D4. View-layer interface (plug-in point for #5 and #6)
-`src/ui/layers/view-layer.js` documents the contract (typedef only, no code):
+The contract is described once, in plain words, in the header comment of `src/ui/viewer.js`
+(the module that calls layers). A **view layer** is a plain object:
 
-```js
-/**
- * @typedef {object} LayerFrame
- * @property {number} width        frame width, CSS px
- * @property {number} height       frame height, CSS px
- * @property {number} pixelRatio   device px per CSS px (for 1-device-px lines)
- * @property {Viewport} viewport
- * @property {Rect} content        shared content rectangle, CSS px
- */
-/**
- * @typedef {object} ViewLayer
- * @property {LayerId} id
- * @property {(state: AppState) => boolean} isAvailable
- * @property {(ctx: CanvasRenderingContext2D, frame: LayerFrame, state: AppState) => void} render
- */
-```
+- `id`: `'original'`, `'dmc'` or `'chart'`;
+- `isAvailable(state)`: returns `true` when the layer can be shown for this app state;
+- `render(ctx, frame, state)`: draws the layer. `ctx` is the frame canvas's 2D context;
+  `frame` is `{ width, height, pixelRatio, viewport, content }`: frame size in CSS px, device
+  px per CSS px (for 1-device-px lines), the current viewport, and the shared content
+  rectangle in CSS px.
 
 Rules: `render` is synchronous, gets a cleared context already scaled so 1 unit = 1 CSS px
 (wrapped in `save`/`restore` by the viewer), is called only for the active layer with a
@@ -243,9 +211,9 @@ non-adjacent lines.
 
 - [Stub layers ship code that is replaced soon] → They are about 15 lines each, and they make
   the contract testable now (an integration test checks all three factories and ids).
-- [Typedefs outside `core/types.js` deviate from the config rule] → Avoids a conflict with
-  `add-pattern-model`; can move later in a small follow-up.
-- [`pattern` typed as `object | null`] → `add-pattern-generation` narrows it to `Pattern`.
+- [Shapes are only described in comments, not checked] → Unit tests cover every core
+  function that creates or transforms them; the layer-contract integration test checks the
+  three layers.
 - [Full-size first decode for huge files] → See D6; accepted for a desktop target.
 - [Listener fan-out on every pan move] → Listeners compare fields; painting is rAF-coalesced.
 - [`createImageBitmap` resize quality differs between browsers] → Only the display and the
