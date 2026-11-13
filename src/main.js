@@ -8,6 +8,7 @@ import { setupImageInput } from './ui/image-input.js';
 import { setupViewer } from './ui/viewer.js';
 import { setupViewerInput } from './ui/viewer-input.js';
 import { setupZoomControls } from './ui/zoom-controls.js';
+import { setupLayerSwitcher } from './ui/layer-switcher.js';
 import { createOriginalLayer } from './ui/layers/original-layer.js';
 import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
@@ -19,6 +20,7 @@ const store = createStore(createInitialState());
 const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer()];
 
 setupStatus(document, store);
+setupLayerSwitcher(document, store, layers);
 setupImageInput(document, store);
 
 setupViewer(document, store, layers);
