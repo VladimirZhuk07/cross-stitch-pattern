@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { patternToStitchImage } from '../../../src/core/pattern-image.js';
+import { isStitchSmallerThanDevicePixel, patternToStitchImage } from '../../../src/core/pattern-image.js';
 
 // Hex values are test fixtures, not palette data.
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -87,5 +87,31 @@ describe('patternToStitchImage', () => {
   it('rejects a cell count that is not width × height', () => {
     const pattern = { width: 3, height: 2, cells: new Int16Array(5), legend: [{ number: 1, code: '310', name: 'Black', hex: '#000000', stitchCount: 5 }] };
     assertThrowsWith(() => patternToStitchImage(pattern), RangeError, '6', '5');
+  });
+});
+
+describe('isStitchSmallerThanDevicePixel', () => {
+  // Only width and height are read, so plain size objects stand in for patterns.
+  const content484x242 = { x: 0, y: 0, width: 484, height: 242 };
+
+  it('is false for 2 stitches in 968 CSS px at ratio 1', () => {
+    const content = { x: 16, y: 158, width: 968, height: 484 };
+    assert.equal(isStitchSmallerThanDevicePixel({ width: 2, height: 1 }, content, 1), false);
+  });
+
+  it('is false at exactly one device pixel per stitch (968 × 484 in 484 × 242 at ratio 2)', () => {
+    assert.equal(isStitchSmallerThanDevicePixel({ width: 968, height: 484 }, content484x242, 2), false);
+  });
+
+  it('is true for 1000 × 500 stitches in 484 × 242 CSS px at ratio 2', () => {
+    assert.equal(isStitchSmallerThanDevicePixel({ width: 1000, height: 500 }, content484x242, 2), true);
+  });
+
+  it('is true when only the height is too small', () => {
+    assert.equal(isStitchSmallerThanDevicePixel({ width: 10, height: 500 }, content484x242, 2), true);
+  });
+
+  it('is true when only the width is too small', () => {
+    assert.equal(isStitchSmallerThanDevicePixel({ width: 969, height: 10 }, content484x242, 2), true);
   });
 });
