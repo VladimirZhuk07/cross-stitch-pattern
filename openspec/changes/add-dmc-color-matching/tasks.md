@@ -4,7 +4,7 @@
 
 - [x] 1.1 Write failing tests in `tests/unit/core/color.test.js` for `hexToRgb`: `'#ff8000'` and `'#FF8000'` → `{ r: 255, g: 128, b: 0 }`; `'#fff'`, `'ff8000'`, `'#gg0000'`, `42` → `TypeError` with the value in the message; verify they fail with `npm run test:unit`
 - [x] 1.2 Implement `hexToRgb` in `src/core/color.js`; verify the 1.1 tests pass
-- [ ] 1.3 Write failing tests for `srgbToLinear` / `linearToSrgb`: channels 0, 10, 128, 255 → 0, 0.0030353, 0.2158605, 1 (±1e-6); round trip of all 0..255 within 1e-6; linear 1.0000001 → 255 and -0.0000001 → 0; `RangeError` for sRGB 256, -1, `NaN` and linear `NaN`; verify they fail
+- [x] 1.3 Write failing tests for `srgbToLinear` / `linearToSrgb`: channels 0, 10, 128, 255 → 0, 0.0030353, 0.2158605, 1 (±1e-6); round trip of all 0..255 within 1e-6; linear 1.0000001 → 255 and -0.0000001 → 0; `RangeError` for sRGB 256, -1, `NaN` and linear `NaN`; verify they fail
 - [ ] 1.4 Implement `srgbToLinear` and `linearToSrgb` (IEC 61966-2-1, cite in a comment); verify the 1.3 tests pass
 - [ ] 1.5 Write failing tests for `rgbToLab` and `linearRgbToLab`: white, black, red, green, blue, grey 128 against reference values taken from one cited source that uses D65 and the design's constants (cite it in the test file; ±0.01); linear grey 0.2158605 equals Lab of sRGB grey 128 (±1e-4); `RangeError` for `(300, 0, 0)`; verify they fail
 - [ ] 1.6 Implement `rgbToLab` and `linearRgbToLab` with internal `linearRgbToXyz` / `xyzToLab` (Lindbloom matrix, D65 white, ε = 216/24389, κ = 24389/27); verify the 1.5 tests pass
