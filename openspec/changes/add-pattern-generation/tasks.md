@@ -31,7 +31,7 @@
 ## 6. Worker (workers)
 
 - [x] 6.1 Write `tests/integration/pattern-worker.test.js` calling `createPatternWorkerHandler()` directly: request id 7 with a 2 × 2 black image → `{ type: 'pattern', id: 7 }`, 2 × 2, `310` ×4, `transfer` contains `pattern.cells.buffer`; then id 8 without image @1 → 1 × 1 `310` ×1; fresh handler without image → error id 1 mentioning `image`; `{ type: 'resize', id: 3 }` → error id 3 mentioning `resize`; maxColors 100 → error id 4 with `100` and `99`, and the next valid request still succeeds; a response survives `structuredClone(response, { transfer })`. Verify it fails
-- [ ] 6.2 Implement `src/workers/pattern-worker-handler.js` per design D7 (no `self`, imports only `core/`). Verify the worker test passes
+- [x] 6.2 Implement `src/workers/pattern-worker-handler.js` per design D7 (no `self`, imports only `core/`). Verify the worker test passes
 - [ ] 6.3 Create the entry `src/workers/pattern.worker.js` (message listener → handler → `postMessage(response, transfer)`). Verify it imports only `./pattern-worker-handler.js` and `npm run test:integration` passes
 
 ## 7. Browser I/O (io)

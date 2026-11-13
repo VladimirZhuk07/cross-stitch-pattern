@@ -137,7 +137,14 @@ function buildLinearTable() {
   return table;
 }
 
-function checkPixelImage(image) {
+// Checks that image is a pixel image as described at resizeToGrid: positive integer width
+// and height, and a Uint8ClampedArray or Uint8Array of exactly width × height × 4 bytes.
+// Returns nothing. Throws TypeError for a missing image or pixels that are not a byte array,
+// RangeError for invalid sizes or a buffer of the wrong length.
+export function checkPixelImage(image) {
+  if (image === null || typeof image !== 'object') {
+    throw new TypeError(`image must be a pixel image { width, height, pixels }, got ${String(image)}`);
+  }
   checkImageSize(image.width, image.height);
   const { pixels } = image;
   if (!(pixels instanceof Uint8ClampedArray || pixels instanceof Uint8Array)) {

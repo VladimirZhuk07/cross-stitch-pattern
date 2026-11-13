@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { MAX_GRID_SIDE, maxTargetWidth, resizeToGrid, stitchGridSize } from '../../../src/core/stitch-grid.js';
+import { MAX_GRID_SIDE, checkPixelImage, maxTargetWidth, resizeToGrid, stitchGridSize } from '../../../src/core/stitch-grid.js';
 import { srgbToLinear } from '../../../src/core/color.js';
 import { assertClose } from '../../helpers/assert-close.js';
 import { OPAQUE_BLACK, OPAQUE_WHITE, TRANSPARENT, pixelImage, solidImage } from '../../helpers/pixel-image.js';
@@ -145,3 +145,19 @@ function assertCellColor(grid, cell, expected, tolerance = 1e-4) {
     assertClose(grid.linearRgb[cell * 3 + channel], expected[channel], tolerance, `cell ${cell} channel ${channel}`);
   }
 }
+
+describe('checkPixelImage', () => {
+  it('accepts a well-formed pixel image', () => {
+    assert.doesNotThrow(() => checkPixelImage(solidImage(2, 2, OPAQUE_BLACK)));
+  });
+
+  it('rejects a buffer of the wrong size, pixels of the wrong type and bad sizes', () => {
+    assertThrowsWith(() => checkPixelImage({ width: 2, height: 2, pixels: new Uint8ClampedArray(12) }), RangeError, '16', '12');
+    assertThrowsWith(() => checkPixelImage({ width: 1, height: 1, pixels: [0, 0, 0, 0] }), TypeError, 'pixels');
+    assertThrowsWith(() => checkPixelImage({ width: 0, height: 1, pixels: new Uint8ClampedArray(0) }), RangeError, 'imageWidth');
+  });
+
+  it('rejects a missing image', () => {
+    assertThrowsWith(() => checkPixelImage(undefined), TypeError, 'image');
+  });
+});
