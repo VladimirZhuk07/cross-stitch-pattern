@@ -6,6 +6,7 @@ import { createInitialState } from './ui/app-state.js';
 import { setupStatus } from './ui/status.js';
 import { setupImageInput } from './ui/image-input.js';
 import { setupViewer } from './ui/viewer.js';
+import { setupViewerInput } from './ui/viewer-input.js';
 import { createOriginalLayer } from './ui/layers/original-layer.js';
 import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
@@ -20,3 +21,4 @@ setupStatus(document, store);
 setupImageInput(document, store);
 
 setupViewer(document, store, layers);
+setupViewerInput(document, store);
