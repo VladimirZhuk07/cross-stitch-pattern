@@ -31,7 +31,7 @@
 
 - [x] 5.1 Implement `src/io/image-loader.js` per design D6 (`MAX_DECODE_SIDE`, `LoadedImage`, `ImageDecodeError`, `loadImageFile`). Verify `npm run test:integration` passes and the module imports nothing outside `core/`
 - [x] 5.2 Implement `src/ui/status.js` (`setupStatus(root, store)`: text via `textContent`, error class for `kind: 'error'`). Verify `npm run test:integration` passes (the module is reachable from `main.js`); the idle text is checked in 7.3
-- [ ] 5.3 Implement `src/ui/image-input.js` file-chooser path per design D7: loading text `Loading <name>…`, summary `<name> — W × H px` plus `(downscaled from W × H px)`, the exact error text from the spec, `latestLoadId` stale guard, closing replaced and stale bitmaps, resetting `pattern`, `activeLayer`, `viewport`. Verify `npm run test:integration` passes; the texts are checked in 7.3
+- [x] 5.3 Implement `src/ui/image-input.js` file-chooser path per design D7: loading text `Loading <name>…`, summary `<name> — W × H px` plus `(downscaled from W × H px)`, the exact error text from the spec, `latestLoadId` stale guard, closing replaced and stale bitmaps, resetting `pattern`, `activeLayer`, `viewport`. Verify `npm run test:integration` passes; the texts are checked in 7.3
 - [ ] 5.4 Add drag-and-drop to `image-input.js` (first file only, drop-target highlight, prevent navigation on drops outside the frame). Verify `npm run test:integration` passes; dropping is checked in 7.3
 
 ## 6. Viewer and layers (ui)

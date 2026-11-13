@@ -4,7 +4,9 @@
 import { createStore } from './ui/store.js';
 import { createInitialState } from './ui/app-state.js';
 import { setupStatus } from './ui/status.js';
+import { setupImageInput } from './ui/image-input.js';
 
 const store = createStore(createInitialState());
 
 setupStatus(document, store);
+setupImageInput(document, store);
