@@ -1,9 +1,11 @@
 // Tiny static file server for local development and for the served-site tests.
 // ES modules do not load over file://, so the app needs an HTTP server even locally.
 //
-// Usage: node scripts/serve.js [--port 8080] [--base /cross-stitch-pattern/]
+// Usage: node scripts/serve.js [--port 8080] [--base cross-stitch-pattern]
 //   --port  port to listen on (also read from the PORT environment variable; 0 = any free port)
-//   --base  URL prefix the site is served under, to mimic GitHub Pages sub-path hosting
+//   --base  URL prefix the site is served under, to mimic GitHub Pages sub-path hosting.
+//           Slashes are optional ('cross-stitch-pattern' = '/cross-stitch-pattern/'). Leave
+//           them out in Git Bash on Windows, which rewrites '/name/' into a Windows path.
 
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
