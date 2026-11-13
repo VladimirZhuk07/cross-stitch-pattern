@@ -6,8 +6,9 @@ Greenfield: there is no `src/` yet. See proposal.md (Why) for the motivation and
 `specs/pattern-model/spec.md` for the behavior. Three later changes are designed against this
 contract in parallel: `add-pattern-generation` (#4, producer, runs in a Web Worker),
 `add-dmc-preview-layer` (#5) and `add-stitch-chart-layer` (#6) (consumers on the main thread).
-`add-dmc-color-matching` (#2) creates `src/core/types.js` in parallel with `Rgb`, `Lab`,
-`DmcColor`.
+`add-dmc-color-matching` (#2) is built in parallel; this change does not import from it.
+The project uses no type annotations: shapes are described in plain words in a comment in
+`src/core/pattern.js`, and the spec is authoritative.
 
 ## Goals / Non-Goals
 
@@ -28,85 +29,49 @@ contract in parallel: `add-pattern-generation` (#4, producer, runs in a Web Work
 
 | Module | Layer | Notes |
 |---|---|---|
-| `src/core/types.js` (pattern section) | core | typedefs only, `export {}` so it is a module |
-| `src/core/pattern.js` | core | pure; imports nothing at runtime (only JSDoc `import()` types) |
+| `src/core/pattern.js` | core | pure; no imports |
 | `tests/unit/core/pattern.test.js` | test | `node:test` + `node:assert/strict` |
 
 `core/` stays pure: no DOM, `self`, timers or I/O; input and output are plain data. Callers in
 `workers/` (#4) and `ui/` (#5, #6) import `pattern.js` directly.
 
-## Data shapes (`src/core/types.js`)
+## Data shapes (created by `src/core/pattern.js`)
 
-Placed under a banner comment `// ---- Pattern model (add-pattern-model) ----` so the
-hand-merge with #2's section is mechanical. Both changes need `export {};` once.
+Described once, in plain words, in a comment block at the top of `pattern.js` (next to
+`buildPattern`, which creates them). Consumers refer to that module and to the spec.
 
-```js
-/**
- * Input for buildPattern. Colors are structurally compatible with DmcColor from
- * add-dmc-color-matching, so palette entries can be passed as-is.
- * @typedef {object} PatternInput
- * @property {number} width  stitches per row, positive integer
- * @property {number} height rows, positive integer
- * @property {ArrayLike<number>} cells row-major, length width * height; each value is an
- *   index into `colors` or EMPTY_CELL (-1). Use a signed array (number[], Int16Array,
- *   Int32Array) so -1 is representable.
- * @property {ReadonlyArray<{ code: string, name: string, hex: string }>} colors
- *   may contain unused entries and several entries with the same DMC code
- */
-
-/**
- * One row of the legend. `number` is what the chart prints in each cell.
- * @typedef {object} LegendEntry
- * @property {number} number      1..N, equals legend position + 1
- * @property {string} code        DMC code, e.g. '310', 'BLANC', 'B5200'
- * @property {string} name        DMC color name, e.g. 'Black'
- * @property {string} hex         '#RRGGBB', uppercase
- * @property {number} stitchCount cells using this color, >= 1
- */
-
-/**
- * A finished cross-stitch pattern. Plain data: safe for structuredClone/postMessage;
- * transfer `cells.buffer` to avoid a copy.
- * @typedef {object} Pattern
- * @property {number} width
- * @property {number} height
- * @property {Int16Array} cells row-major, length width * height, owns its whole buffer;
- *   each value is a 0-based index into `legend` or EMPTY_CELL (-1)
- * @property {LegendEntry[]} legend ordered by number: most stitches first,
- *   ties by compareDmcCodes
- */
-
-/**
- * @typedef {object} FinishedSize
- * @property {number} widthInches
- * @property {number} heightInches
- * @property {number} widthCm
- * @property {number} heightCm
- */
-```
+- **PatternInput** (argument of `buildPattern`):
+  - `width`, `height`: stitches per row / number of rows, positive integers.
+  - `cells`: list of `width × height` numbers, row-major (cell (x, y) at `y * width + x`); each
+    is an index into `colors` or `EMPTY_CELL` (-1). A plain array, `Int16Array` or
+    `Int32Array` (a signed list, so -1 fits).
+  - `colors`: list of `{ code, name, hex }`; may contain unused entries and repeated codes.
+    Same fields as the DMC palette entries of #2, so palette entries can be passed as-is.
+- **LegendEntry**: `{ number, code, name, hex, stitchCount }`. `number` is 1..N and equals the
+  entry's legend position + 1; it is what the chart prints. `code` is the DMC code string
+  (`'310'`, `'BLANC'`, `'B5200'`), `name` the DMC name, `hex` uppercase `#RRGGBB`,
+  `stitchCount` ≥ 1.
+- **Pattern**: `{ width, height, cells, legend }`. `cells` is a new `Int16Array` of length
+  `width × height` that owns its whole buffer; each value is a 0-based index into `legend` or
+  `EMPTY_CELL` (-1). `legend` is a list of LegendEntry ordered by number (most stitches
+  first, ties by `compareDmcCodes`). Plain data: safe for `structuredClone`/`postMessage`;
+  transfer `cells.buffer` to avoid a copy.
+- **FinishedSize**: `{ widthInches, heightInches, widthCm, heightCm }`, unrounded numbers.
 
 ## Public API (`src/core/pattern.js`)
 
-```js
-export const EMPTY_CELL = -1;
-export const MAX_PATTERN_COLORS = 99;
-export const DEFAULT_FABRIC_COUNT = 14;
-export const FABRIC_COUNTS = Object.freeze([11, 14, 16, 18]);
+Constants: `EMPTY_CELL = -1`, `MAX_PATTERN_COLORS = 99`, `DEFAULT_FABRIC_COUNT = 14`,
+`FABRIC_COUNTS = Object.freeze([11, 14, 16, 18])`.
 
-/** @param {PatternInput} input @returns {Pattern} */
-export function buildPattern(input) {}
+| Function | Takes | Returns / throws |
+|---|---|---|
+| `buildPattern(input)` | a PatternInput | a Pattern; RangeError / TypeError / Error on invalid input |
+| `compareDmcCodes(a, b)` | two DMC code strings | negative, 0 or positive (sort comparator) |
+| `legendEntryAt(pattern, x, y)` | a Pattern, column x, row y (integers inside the grid) | the LegendEntry, or `null` for an empty cell; RangeError outside the grid |
+| `finishedSize(size, fabricCount)` | `{ width, height }` in stitches (a Pattern works), fabric count in stitches per inch (default 14) | a FinishedSize; RangeError for a count that is not positive and finite |
 
-/** @param {string} a @param {string} b @returns {number} negative, 0 or positive */
-export function compareDmcCodes(a, b) {}
-
-/** @param {Pattern} pattern @param {number} x @param {number} y
- *  @returns {LegendEntry | null} null for an empty cell */
-export function legendEntryAt(pattern, x, y) {}
-
-/** @param {{ width: number, height: number }} size  a Pattern or target dimensions
- *  @param {number} [fabricCount=DEFAULT_FABRIC_COUNT] @returns {FinishedSize} */
-export function finishedSize(size, fabricCount) {}
-```
+Each exported function gets a short plain-text comment (what it does, parameters with
+units/ranges, returns/throws), per `.claude/rules/javascript.md`.
 
 ## Decisions
 
@@ -165,9 +130,7 @@ concern.
 
 ## Risks / Trade-offs
 
-- [Parallel `types.js` creation with #2 causes a rebase conflict] → separate banner sections;
-  the later change to rebase merges both and keeps one `export {}`.
-- [A producer passes a `Uint8Array` and cannot express -1] → JSDoc states a signed array is
+- [A producer passes a `Uint8Array` and cannot express -1] → the shape comment states a signed list is
   required; validation rejects out-of-range indices, and a 255 would be reported clearly.
 - [99 may be too low for photo-realistic charts] → single constant; raising it to 999 would
   only affect the chart's font sizing, the `Int16Array` already has room.

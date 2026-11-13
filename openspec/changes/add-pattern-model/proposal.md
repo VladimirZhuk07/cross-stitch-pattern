@@ -22,8 +22,8 @@ numbers that the chart prints in every cell.
   cloned or transferred across a Web Worker boundary.
 - Helpers for consumers: legend entry of cell (x, y); finished size in inches and cm for a
   fabric count (default 14 ct).
-- JSDoc typedefs `PatternInput`, `LegendEntry`, `Pattern`, `FinishedSize` in their own
-  section of `src/core/types.js`.
+- The shapes `PatternInput`, `LegendEntry`, `Pattern` and `FinishedSize` are described in
+  plain words in `src/core/pattern.js` (no type annotations); the spec is authoritative.
 - Project rules switch from chart **symbols** to chart **numbers 1..N** (user decision) in
   `.claude/rules/domain.md`, `ui.md`, `architecture.md` and `CLAUDE.md`. Kept: the chart is
   readable without color; the legend shows number, DMC code, name, swatch, stitch count.
@@ -52,9 +52,6 @@ None (no existing specs).
 
 ## Impact
 
-- New: `src/core/pattern.js`, `src/core/types.js` (pattern section),
-  `tests/unit/core/pattern.test.js`.
-- `src/core/types.js` is also created by `add-dmc-color-matching`; the sections are merged
-  by hand on rebase.
+- New: `src/core/pattern.js`, `tests/unit/core/pattern.test.js`.
 - Contract for `add-pattern-generation`, `add-dmc-preview-layer`, `add-stitch-chart-layer`.
 - No dependencies, no build step.

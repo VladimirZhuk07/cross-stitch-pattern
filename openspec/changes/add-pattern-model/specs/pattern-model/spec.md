@@ -12,6 +12,16 @@ otherwise, scenarios use these input colors: `310` "Black" `#000000`, `321` "Red
 
 ## ADDED Requirements
 
+### Requirement: Build input
+A pattern SHALL be built from: `width` and `height` (stitches), `cells` (a list of
+`width × height` numbers, row-major, each an index into `colors` or the empty marker `-1`),
+and `colors` (a list of `{ code, name, hex }` objects that MAY contain unused entries and
+repeated DMC codes). Hex input MAY be upper- or lowercase.
+
+#### Scenario: Plain arrays and typed arrays are both accepted
+- **WHEN** a 2 × 1 pattern is built with colors `[310]` once with cells `[0, -1]` as a plain array and once as an `Int16Array`
+- **THEN** both results are deep-equal, with cells `[0, -1]` and 1 legend entry `310`
+
 ### Requirement: Pattern shape
 A pattern SHALL consist of a width and height in stitches, a row-major cell grid of
 `width × height` entries, and a legend ordered by legend number. Each cell SHALL hold either
@@ -188,10 +198,12 @@ not integers.
 The model SHALL compute the finished size of a grid for a fabric count: inches = stitches /
 fabric count, centimeters = inches × 2.54. The fabric count SHALL default to 14 and MUST be
 a positive finite number. The supported choices offered to users SHALL be 11, 14, 16, 18.
+The result SHALL have the fields `widthInches`, `heightInches`, `widthCm`, `heightCm`,
+unrounded.
 
 #### Scenario: 140 × 98 stitches on 14 ct Aida
 - **WHEN** the finished size of width 140, height 98 is computed for fabric count 14
-- **THEN** it is 10 × 7 inches and 25.4 × 17.78 cm (within 1e-9)
+- **THEN** it is `{ widthInches: 10, heightInches: 7, widthCm: 25.4, heightCm: 17.78 }` (within 1e-9)
 
 #### Scenario: Default fabric count
 - **WHEN** the finished size of width 28, height 14 is computed without a fabric count
