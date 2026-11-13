@@ -34,6 +34,27 @@ export function compareDmcCodes(a, b) {
   return compareOrdinal(a, b);
 }
 
+export function buildPattern(input) {
+  const { width, height, cells } = input;
+  checkPositiveInteger('width', width);
+  checkPositiveInteger('height', height);
+  checkCellCount(cells, width * height);
+  return null;
+}
+
+function checkPositiveInteger(field, value) {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new RangeError(`${field} must be a positive integer, got ${String(value)}`);
+  }
+}
+
+function checkCellCount(cells, expectedCount) {
+  const count = cells?.length;
+  if (count !== expectedCount) {
+    throw new RangeError(`cells must have width × height = ${expectedCount} entries, got ${String(count)}`);
+  }
+}
+
 function compareOrdinal(a, b) {
   if (a < b) {
     return -1;
