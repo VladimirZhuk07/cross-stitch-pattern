@@ -24,7 +24,7 @@
 ## 4. Application state
 
 - [x] 4.1 Write `tests/unit/ui/store.test.js`: `getState` returns the initial state; `setState` merges shallowly into a new frozen object; listeners get `(state, previous)` in subscription order; no notification when all given values are `===` current; unsubscribe stops calls; a nested `setState` from a listener ends with the newest state. Verify it fails
-- [ ] 4.2 Implement `createStore` in `src/ui/store.js` per design D5. Verify the store test passes
+- [x] 4.2 Implement `createStore` in `src/ui/store.js` per design D5. Verify the store test passes
 - [ ] 4.3 Create `src/ui/app-state.js` with `createInitialState()` and a comment describing every state field in plain words (design: Data shapes) (`image: null`, `pattern: null`, `activeLayer: 'original'`, `viewport: null`, `frame: { width: 0, height: 0 }`, status idle). Verify it imports in Node without a DOM: `node -e "import('./src/ui/app-state.js').then(m => console.log(m.createInitialState()))"`
 
 ## 5. Image import (io + ui)
