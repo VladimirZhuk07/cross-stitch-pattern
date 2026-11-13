@@ -16,7 +16,7 @@
 
 - [x] 3.1 Write tests in `tests/unit/core/viewport.test.js` for `fitViewport` and `zoomLimits`: 2000×1000 in 1000×800 → scale 0.484, offset (16, 158); 100×50 in 1000×800 → scale 9.68, offset (16, 158); `RangeError` for a 0-wide frame or content; limits for fit 0.484 → min 0.242, max 64; fit 100 → max 100. Verify they fail
 - [x] 3.2 Implement `fitViewport`, `zoomLimits`, `FIT_MARGIN`, `MAX_SCALE` and the plain-words description of the viewport shape in `src/core/viewport.js`. Verify the 3.1 tests pass
-- [ ] 3.3 Add tests for `zoomAt` and `wheelZoomFactor`: scale 1 offset (0, 0), factor 1.25 at (100, 50) → scale 1.25, offset (−25, −12.5); scale 60 × 1.25 with max 64 → 64 and the anchor point stays fixed; zoom out below min clamps to min; `wheelZoomFactor(-100)` → 1.25, `(100)` → 0.8, `(0)` → 1. Verify they fail
+- [x] 3.3 Add tests for `zoomAt` and `wheelZoomFactor`: scale 1 offset (0, 0), factor 1.25 at (100, 50) → scale 1.25, offset (−25, −12.5); scale 60 × 1.25 with max 64 → 64 and the anchor point stays fixed; zoom out below min clamps to min; `wheelZoomFactor(-100)` → 1.25, `(100)` → 0.8, `(0)` → 1. Verify they fail
 - [ ] 3.4 Implement `zoomAt`, `wheelZoomFactor` and `ZOOM_STEP`. Verify the 3.3 tests pass
 - [ ] 3.5 Add tests for `panBy`, `recenterOnResize`, `contentRect`, `canvasBufferSize`: pan (16, 158) by (30, −20) → (46, 138); resize 1000×800 → 800×800 moves offset (16, 158) → (−84, 158); content 2048×1365 at scale 0.5 offset (10, 20) → rect (10, 20, 1024, 682.5); buffer 800×600 @2 → 1600×1200, 801×601 @1.25 → 1001×751; `RangeError` for pixel ratio 0. Verify they fail
 - [ ] 3.6 Implement `panBy`, `recenterOnResize`, `contentRect`, `canvasBufferSize`. Verify `npm run test:unit` passes (all viewport tests)
