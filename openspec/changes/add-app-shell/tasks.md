@@ -49,7 +49,7 @@
 
 - [x] 7.1 Run `npm run test:unit` and confirm all unit tests pass
 - [x] 7.2 Run `npm run test:integration` and confirm all integration tests pass
-- [ ] 7.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern` (no slashes, so Git Bash does not rewrite the path), open `http://127.0.0.1:8080/cross-stitch-pattern/`:
+- [x] 7.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern` (no slashes, so Git Bash does not rewrite the path), open `http://127.0.0.1:8080/cross-stitch-pattern/`:
   - start: frame shows `Choose an image or drop it here`; `+`, `−`, `Fit` disabled; `DMC colors` and `Chart` disabled, `Original` selected
   - pick a ~1200×800 JPG: status `<name> — 1200 × 800 px`, image fitted and centered
   - pick a photo larger than 2048 px: status names the 2048 px size and `(downscaled from …)`
@@ -61,4 +61,5 @@
   - pick `notes.txt`: the spec error text appears and the previous image stays at its zoom
   - pick a large photo then quickly a small PNG: the small PNG is shown
   - DevTools Network: only the app's own files load (no favicon, no external requests); Console: no errors
+  - Result (user, browser): app loaded from `http://127.0.0.1:8080/cross-stitch-pattern/`; a 1080×903 JPEG was fitted and centered at 89 % with a margin; status `processed.jpeg — 1080 × 903 px` (no downscale notice); Original selected, DMC colors and Chart disabled; −, + and Fit enabled (screenshot). The user then said to continue without itemizing the remaining points above.
 - [x] 7.4 Run `openspec validate add-app-shell --strict` and confirm it passes
