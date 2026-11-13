@@ -25,7 +25,7 @@
 - [x] 3.1 Write failing tests for `legendEntryAt`: (0, 0) of the 3 × 2 pattern returns entry number 2 code `321`, (0, 1) returns `null`, (3, 0), (-1, 0) and (0.5, 0) throw `RangeError`; verify they fail
 - [x] 3.2 Implement `legendEntryAt` with its plain-text comment; verify 3.1 passes
 - [x] 3.3 Write failing tests for `finishedSize`: 140 × 98 at 14 ct = `{ widthInches: 10, heightInches: 7, widthCm: 25.4, heightCm: 17.78 }` (tolerance 1e-9), 28 × 14 with default count = 2 × 1 in, 110 × 55 at 11 ct = 10 × 5 in / 25.4 × 12.7 cm, fabric count 0, -14, `NaN` and `Infinity` throw `RangeError`; verify they fail
-- [ ] 3.4 Implement `finishedSize` with a named `INCHES_TO_CM = 2.54` constant, its plain-text comment and the FinishedSize description; verify 3.3 passes and `pattern.js` stays under ~300 lines with functions under ~40 lines
+- [x] 3.4 Implement `finishedSize` with a named `INCHES_TO_CM = 2.54` constant, its plain-text comment and the FinishedSize description; verify 3.3 passes and `pattern.js` stays under ~300 lines with functions under ~40 lines
 
 ## 4. Project rules: numbers instead of symbols
 

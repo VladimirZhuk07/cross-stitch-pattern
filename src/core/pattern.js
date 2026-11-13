@@ -12,6 +12,7 @@ export const MAX_PATTERN_COLORS = 99;
 export const DEFAULT_FABRIC_COUNT = 14;
 export const FABRIC_COUNTS = Object.freeze([11, 14, 16, 18]);
 
+const INCHES_TO_CM = 2.54;
 const DIGITS_ONLY = /^\d+$/;
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
@@ -223,6 +224,25 @@ export function legendEntryAt(pattern, x, y) {
   checkCoordinate('y', y, pattern.height);
   const legendIndex = pattern.cells[y * pattern.width + x];
   return legendIndex === EMPTY_CELL ? null : pattern.legend[legendIndex];
+}
+
+// Finished size of a stitched grid on fabric with `fabricCount` stitches per inch
+// (default DEFAULT_FABRIC_COUNT; any positive finite number). `size` is { width, height }
+// in stitches, so a Pattern works as well as target dimensions chosen before generating.
+// Returns FinishedSize { widthInches, heightInches, widthCm, heightCm }, unrounded;
+// rounding for display is up to the caller. Throws RangeError for an invalid fabric count.
+export function finishedSize(size, fabricCount = DEFAULT_FABRIC_COUNT) {
+  if (!Number.isFinite(fabricCount) || fabricCount <= 0) {
+    throw new RangeError(`fabricCount must be a positive number of stitches per inch, got ${String(fabricCount)}`);
+  }
+  const widthInches = size.width / fabricCount;
+  const heightInches = size.height / fabricCount;
+  return {
+    widthInches,
+    heightInches,
+    widthCm: widthInches * INCHES_TO_CM,
+    heightCm: heightInches * INCHES_TO_CM,
+  };
 }
 
 function checkCoordinate(axis, value, size) {
