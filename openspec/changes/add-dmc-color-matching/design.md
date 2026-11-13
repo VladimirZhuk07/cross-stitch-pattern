@@ -128,7 +128,10 @@ committed; the app never runs it.
   into a new empty temp directory outside the repo. Tests therefore never touch the network.
 - Exported pure functions: `convertSourceEntries(entries)` → DMC colors (validate, upper-case
   code, upper-case hex, drop `rgb`, check `rgb` agrees with hex) and
-  `renderPaletteModule(colors, provenance)` → module source text. The CLI part runs only when the file is
+  `renderPaletteModule(colors, provenance)` → module source text.
+  `readSourceColors(sourceFile)` takes the parsed source file (an object with `license`, `count`,
+  `colors`), checks `license` is `CC-BY-4.0` and `count` equals the number of colors, and returns
+  `colors`. The CLI part runs only when the file is
   executed directly.
 - Header records: source repo URL, file path, commit SHA, SHA-256 of the source file, license
   CC-BY-4.0 with link and author attribution, upstream sources declared by the dataset, the list
