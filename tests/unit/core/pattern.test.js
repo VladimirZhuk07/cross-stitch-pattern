@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPattern, compareDmcCodes } from '../../../src/core/pattern.js';
+import { buildPattern, compareDmcCodes, legendEntryAt } from '../../../src/core/pattern.js';
 
 // Hex values are test fixtures, not palette data.
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -316,5 +316,33 @@ describe('buildPattern: determinism and plain data', () => {
     const clone = structuredClone(pattern, { transfer: [pattern.cells.buffer] });
     assert.deepEqual(clone, copyBefore);
     assert.equal(pattern.cells.length, 0, 'the transferred original is detached');
+  });
+});
+
+describe('legendEntryAt', () => {
+  it('returns the legend entry of a stitched cell', () => {
+    const entry = legendEntryAt(buildGridExample(), 0, 0);
+    assert.equal(entry.number, 2);
+    assert.equal(entry.code, '321');
+  });
+
+  it('returns null for an empty cell', () => {
+    assert.equal(legendEntryAt(buildGridExample(), 0, 1), null);
+  });
+
+  it('rejects a column past the right edge', () => {
+    assertThrowsWith(() => legendEntryAt(buildGridExample(), 3, 0), RangeError, '3');
+  });
+
+  it('rejects a negative column', () => {
+    assertThrowsWith(() => legendEntryAt(buildGridExample(), -1, 0), RangeError, '-1');
+  });
+
+  it('rejects a row past the bottom edge', () => {
+    assertThrowsWith(() => legendEntryAt(buildGridExample(), 0, 2), RangeError, '2');
+  });
+
+  it('rejects a fractional coordinate', () => {
+    assertThrowsWith(() => legendEntryAt(buildGridExample(), 0.5, 0), RangeError, '0.5');
   });
 });
