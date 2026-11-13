@@ -42,9 +42,9 @@ probably one line in `main.js`.
 | Module | Layer | Responsibility |
 |---|---|---|
 | `src/core/random.js` | core | `createSeededRandom(seed)` — mulberry32 PRNG returning numbers in [0, 1) |
-| `src/core/stitch-grid.js` | core | `MAX_GRID_SIDE = 500`, `EMPTY_ALPHA_THRESHOLD = 0.5`, `stitchGridSize`, `maxTargetWidth`, `resizeToGrid` |
+| `src/core/stitch-grid.js` | core | `MAX_GRID_SIDE = 500`, `EMPTY_ALPHA_THRESHOLD = 0.5`, `stitchGridSize`, `maxTargetWidth`, `resizeToGrid`, `checkPixelImage` |
 | `src/core/kmeans.js` | core | `KMEANS_SEED`, `MAX_KMEANS_ITERATIONS = 30`, `kMeansLab(points, maxClusters, seed)` |
-| `src/core/generation-settings.js` | core | defaults, form ranges, `parseWholeNumber`, user-facing size/result texts |
+| `src/core/generation-settings.js` | core | `DEFAULT_SETTINGS`, form ranges, `parseWholeNumber`, field messages, `formatPatternSize`, `formatGridTooLarge`, `GENERATING_TEXT`, `describeGenerationResult`, `describeGenerationError` |
 | `src/core/pattern-generator.js` | core | `generatePattern(image, settings, palette)` — the pipeline |
 | `src/io/image-pixels.js` | io | `readImagePixels(image)` — `ImageBitmap` → RGBA bytes via `OffscreenCanvas` |
 | `src/io/pattern-worker-client.js` | io | `createPatternWorkerClient(worker)` — ids, pending requests, transfers |
@@ -196,7 +196,8 @@ transfer list. Responses (worker → main):
 
 `createPatternWorkerHandler()` returns `handleMessage(message) → { response, transfer }` and
 holds one piece of state, the remembered pixel image. It stores `message.image` (after checking
-its size) before generating, so later requests can omit it even if this one is stale. It
+it with `checkPixelImage` from `core/stitch-grid.js`; an invalid image clears the remembered
+one) before generating, so later requests can omit it even if this one is stale. It
 catches every error and turns it into an error response echoing the id (unknown `type`,
 `generate` with no image yet, invalid settings, core errors). `pattern.worker.js` is only:
 `self.addEventListener('message', (event) => { const { response, transfer } =
@@ -245,8 +246,11 @@ data-role="settings">` with a `<fieldset>` + `<legend>Pattern settings</legend>`
 labelled controls with `data-setting="targetWidth" | "maxColors" | "fabricCount"`
 (`<input type="number" min="10" max="500" step="1">`, `<input type="number" min="1" max="99"
 step="1">`, `<select>` with 11/14/16/18 ct), one error `<span>` per number field (linked via
-`aria-describedby`, `hidden` when valid), a size `<output data-role="pattern-size">` and a
-`<output data-role="generation-status" aria-live="polite">`. Submitting the form is prevented.
+`aria-describedby` and found via `data-error-for="…"`, `hidden` when valid), a size
+`<output data-role="pattern-size">` and a `<output data-role="generation-status"
+aria-live="polite">`. The form has `novalidate` (the app shows its own messages instead of the
+browser's bubbles), and submitting it is prevented. A too-large size text gets the
+`settings__size--error` style.
 
 `setupSettingsForm` fills the controls from `state.settings`, and on `input` parses the text with
 `parseWholeNumber(text, min, max)` (core; `null` for empty, fractional or out-of-range). Valid →
