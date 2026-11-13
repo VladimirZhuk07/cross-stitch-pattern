@@ -40,7 +40,9 @@ main --+-- 0. /opsx:explore            optional, read-only, on main
    - every task in `tasks.md` is checked;
    - `npm run test:unit` and `npm run test:integration` pass;
    - browser smoke check via `node scripts/serve.js` when UI/io changed;
-   - `openspec validate <name> --strict` passes.
+   - `openspec validate <name> --strict` passes;
+   - verification table: every requirement/scenario in the change's spec deltas → implementing
+     code → covering test → status; code matches `design.md`. Any gap blocks the archive.
 4. **Archive** (`/opsx:archive`) — inside the worktree, **before** the merge, so code,
    updated `openspec/specs/`, and `openspec/changes/archive/` land on `main` together.
    Commit as `Archive <name>`.

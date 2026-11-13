@@ -47,5 +47,7 @@ operations:
     guidance:
       - Archive inside the change worktree, before merging to main, so code + updated specs + archived change merge together.
       - Before archiving, confirm - all tasks checked, npm test passes, openspec validate <change-name> --strict passes, and the browser smoke check is done when UI/io changed.
+      - Before archiving, verify against the spec deltas - list every requirement and scenario of the change and, for each, name the code that implements it and the test that covers it. Report a table (requirement / scenario / code / test / status). Any missing implementation or test blocks the archive.
+      - Also check the code follows design.md (layers, typedefs, algorithm choices); report any divergence and resolve it (fix code or /opsx:update the design) before archiving.
       - After archiving, commit, rebase the branch onto main, and re-run npm test.
       - Do not merge or push. Report readiness and wait for the user to confirm the merge.

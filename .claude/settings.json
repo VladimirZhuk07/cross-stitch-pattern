@@ -2,16 +2,28 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Bash(node --test)",
+      "Bash(npm test)",
+      "Bash(npm run test:unit)",
+      "Bash(npm run test:integration)",
       "Bash(node --test *)",
       "Bash(node scripts/serve.js)",
       "Bash(node scripts/serve.js *)",
+      "Bash(openspec list)",
+      "Bash(openspec list *)",
+      "Bash(openspec status *)",
+      "Bash(openspec show *)",
+      "Bash(openspec validate *)",
+      "Bash(openspec instructions *)",
       "Bash(git status)",
       "Bash(git status *)",
       "Bash(git diff)",
       "Bash(git diff *)",
       "Bash(git log)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(git branch)",
+      "Bash(git branch --list *)",
+      "Bash(git worktree list)",
+      "Bash(git worktree add .claude/worktrees/*)"
     ],
     "deny": [
       "Bash(npm install)",
@@ -22,7 +34,9 @@
       "Bash(npm ci)",
       "Bash(npx *)",
       "Bash(yarn *)",
-      "Bash(pnpm *)"
+      "Bash(pnpm *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)"
     ]
   }
 }
