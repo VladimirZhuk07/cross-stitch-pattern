@@ -9,7 +9,7 @@
 
 ## 2. Image size cap (core)
 
-- [ ] 2.1 Write `tests/unit/core/image-size.test.js`: 1200×800 → unchanged, `isDownscaled: false`; 2048×2048 → unchanged; 6000×4000 → 2048×1365; 100×5000 → 41×2048; 10000×3 → 2048×1; `RangeError` for width 0, width 12.5, height −1, maxSide 0. Verify it fails
+- [x] 2.1 Write `tests/unit/core/image-size.test.js`: 1200×800 → unchanged, `isDownscaled: false`; 2048×2048 → unchanged; 6000×4000 → 2048×1365; 100×5000 → 41×2048; 10000×3 → 2048×1; `RangeError` for width 0, width 12.5, height −1, maxSide 0. Verify it fails
 - [ ] 2.2 Implement `capImageSize(width, height, maxSide)` in `src/core/image-size.js` with a plain-words comment describing the returned shape. Verify `npm run test:unit` passes
 
 ## 3. Viewport math (core)
