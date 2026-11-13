@@ -15,26 +15,37 @@ export const FABRIC_COUNTS = Object.freeze([11, 14, 16, 18]);
 const DIGITS_ONLY = /^\d+$/;
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 
-// Sort comparator for DMC codes (strings such as '310', '3865', 'B5200', 'BLANC').
-// Digit-only codes come first, by numeric value; all other codes follow in ordinal string
-// order. Equal numeric values ('01', '1') fall back to ordinal order.
-// Ordinal order (not localeCompare) keeps the result identical in every browser locale.
-// Returns a negative number if a sorts first, a positive number if b does, 0 if equal.
-export function compareDmcCodes(a, b) {
-  const isNumericA = DIGITS_ONLY.test(a);
-  const isNumericB = DIGITS_ONLY.test(b);
-  if (isNumericA !== isNumericB) {
-    return isNumericA ? -1 : 1;
-  }
-  if (isNumericA) {
-    const byValue = Number(a) - Number(b);
-    if (byValue !== 0) {
-      return byValue;
-    }
-  }
-  return compareOrdinal(a, b);
-}
+// Data shapes created here (shared with pattern generation, the preview and the chart):
+//
+// PatternInput, the argument of buildPattern:
+//   width, height  stitches per row and number of rows, positive integers.
+//   cells          width × height numbers, row-major (cell x, y is at y * width + x).
+//                  Each is an index into `colors`, or EMPTY_CELL (-1) for no stitch.
+//                  A plain array, Int16Array or Int32Array (a signed list, so -1 fits).
+//   colors         list of { code, name, hex }: DMC code string ('310', 'BLANC'), DMC name,
+//                  hex '#RRGGBB' (any letter case). May contain unused entries and repeated
+//                  codes; palette entries from src/data/dmc.js can be passed as they are.
+//
+// LegendEntry, one row of the legend:
+//   number       1..N, the entry's legend position + 1; the chart prints it in each cell.
+//   code, name   DMC code and name.
+//   hex          '#RRGGBB', uppercase.
+//   stitchCount  how many cells use this color, at least 1.
+//
+// Pattern, the result:
+//   width, height  as in the input.
+//   cells          a new Int16Array of width × height values, row-major, owning its whole
+//                  buffer. Each is a 0-based index into `legend`, or EMPTY_CELL (-1).
+//                  Treat it as read-only.
+//   legend         LegendEntry list in number order: most stitches first, equal counts
+//                  ordered by compareDmcCodes.
+//   Plain data: safe for structuredClone/postMessage; transfer cells.buffer to avoid a copy.
 
+// Builds a Pattern from a PatternInput: counts stitches, drops unused colors, merges colors
+// that share a DMC code, numbers the legend 1..N and rewrites the cells to legend indexes.
+// Does not modify the input. Throws RangeError for a bad width/height, wrong cell count,
+// out-of-range cell value or more than MAX_PATTERN_COLORS colors; TypeError for a malformed
+// color; Error when one DMC code comes with two different names or hex values.
 export function buildPattern(input) {
   const { width, height, cells, colors } = input;
   checkPositiveInteger('width', width);
@@ -172,6 +183,26 @@ function checkCellCount(cells, expectedCount) {
   if (count !== expectedCount) {
     throw new RangeError(`cells must have width × height = ${expectedCount} entries, got ${String(count)}`);
   }
+}
+
+// Sort comparator for DMC codes (strings such as '310', '3865', 'B5200', 'BLANC').
+// Digit-only codes come first, by numeric value; all other codes follow in ordinal string
+// order. Equal numeric values ('01', '1') fall back to ordinal order.
+// Ordinal order (not localeCompare) keeps the result identical in every browser locale.
+// Returns a negative number if a sorts first, a positive number if b does, 0 if equal.
+export function compareDmcCodes(a, b) {
+  const isNumericA = DIGITS_ONLY.test(a);
+  const isNumericB = DIGITS_ONLY.test(b);
+  if (isNumericA !== isNumericB) {
+    return isNumericA ? -1 : 1;
+  }
+  if (isNumericA) {
+    const byValue = Number(a) - Number(b);
+    if (byValue !== 0) {
+      return byValue;
+    }
+  }
+  return compareOrdinal(a, b);
 }
 
 function compareOrdinal(a, b) {
