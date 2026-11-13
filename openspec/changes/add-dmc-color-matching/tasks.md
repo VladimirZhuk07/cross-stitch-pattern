@@ -2,7 +2,7 @@
 
 ## 1. Color math (`src/core/color.js`)
 
-- [ ] 1.1 Write failing tests in `tests/unit/core/color.test.js` for `hexToRgb`: `'#ff8000'` and `'#FF8000'` → `{ r: 255, g: 128, b: 0 }`; `'#fff'`, `'ff8000'`, `'#gg0000'`, `42` → `TypeError` with the value in the message; verify they fail with `npm run test:unit`
+- [x] 1.1 Write failing tests in `tests/unit/core/color.test.js` for `hexToRgb`: `'#ff8000'` and `'#FF8000'` → `{ r: 255, g: 128, b: 0 }`; `'#fff'`, `'ff8000'`, `'#gg0000'`, `42` → `TypeError` with the value in the message; verify they fail with `npm run test:unit`
 - [ ] 1.2 Implement `hexToRgb` in `src/core/color.js`; verify the 1.1 tests pass
 - [ ] 1.3 Write failing tests for `srgbToLinear` / `linearToSrgb`: channels 0, 10, 128, 255 → 0, 0.0030353, 0.2158605, 1 (±1e-6); round trip of all 0..255 within 1e-6; linear 1.0000001 → 255 and -0.0000001 → 0; `RangeError` for sRGB 256, -1, `NaN` and linear `NaN`; verify they fail
 - [ ] 1.4 Implement `srgbToLinear` and `linearToSrgb` (IEC 61966-2-1, cite in a comment); verify the 1.3 tests pass
