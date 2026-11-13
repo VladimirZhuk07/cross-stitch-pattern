@@ -22,6 +22,12 @@ export const FIT_MARGIN = 16;
 /** Highest zoom in CSS px per image px (6400 %), unless fitting itself needs more. */
 export const MAX_SCALE = 64;
 
+/** Zoom factor of one zoom step (button, key, or 100 px of wheel). */
+export const ZOOM_STEP = 1.25;
+
+/** Wheel distance that counts as one zoom step; one mouse-wheel notch is 100 px in most browsers. */
+const WHEEL_PIXELS_PER_STEP = 100;
+
 /** How far out the user may zoom, as a fraction of the fit scale. */
 const MIN_SCALE_OF_FIT = 0.5;
 
@@ -59,6 +65,37 @@ export function zoomLimits(content, frame) {
 
   const fit = fitScale(content, frame);
   return { minScale: fit * MIN_SCALE_OF_FIT, maxScale: Math.max(MAX_SCALE, fit) };
+}
+
+/**
+ * Returns a viewport zoomed by factor around anchor, with the scale clamped to limits.
+ * The world point under the anchor stays at the same screen position.
+ * viewport  current viewport
+ * factor    multiplier for the scale (> 0; 1.25 zooms in one step, 0.8 out one step)
+ * anchor    { x, y } screen point in CSS px that must not move (cursor or frame center)
+ * limits    { minScale, maxScale } from zoomLimits
+ * Throws RangeError if factor is not a positive number.
+ */
+export function zoomAt(viewport, factor, anchor, limits) {
+  assertPositiveNumber('factor', factor);
+
+  const scale = Math.min(limits.maxScale, Math.max(limits.minScale, viewport.scale * factor));
+  const ratio = scale / viewport.scale;
+  return {
+    scale,
+    offsetX: anchor.x - (anchor.x - viewport.offsetX) * ratio,
+    offsetY: anchor.y - (anchor.y - viewport.offsetY) * ratio,
+  };
+}
+
+/**
+ * Converts a wheel movement into a zoom factor: every 100 px scrolled up zooms in one
+ * ZOOM_STEP, every 100 px down zooms out one step. Small trackpad movements give
+ * proportionally small factors, so zooming feels smooth.
+ * deltaPixels  vertical wheel delta in CSS px (negative = scroll up = zoom in)
+ */
+export function wheelZoomFactor(deltaPixels) {
+  return ZOOM_STEP ** (-deltaPixels / WHEEL_PIXELS_PER_STEP);
 }
 
 function fitScale(content, frame) {
