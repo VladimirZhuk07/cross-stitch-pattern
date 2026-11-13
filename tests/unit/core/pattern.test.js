@@ -137,3 +137,91 @@ describe('buildPattern: color and cell validation', () => {
     );
   });
 });
+
+// The 3 x 2 example from the spec: 321 has 2 stitches, 310 has 3, BLANC is unused.
+function buildGridExample() {
+  return buildPattern({ width: 3, height: 2, colors: [RED, BLACK, WHITE], cells: [0, 1, 1, -1, 1, 0] });
+}
+
+function legendCodes(pattern) {
+  return pattern.legend.map((entry) => entry.code);
+}
+
+describe('buildPattern: legend and cells', () => {
+  it('accepts plain arrays and typed arrays alike', () => {
+    const fromArray = buildPattern({ width: 2, height: 1, colors: [BLACK], cells: [0, -1] });
+    const fromTyped = buildPattern({ width: 2, height: 1, colors: [BLACK], cells: Int16Array.from([0, -1]) });
+    assert.deepEqual(fromArray, fromTyped);
+    assert.deepEqual(Array.from(fromArray.cells), [0, -1]);
+    assert.deepEqual(legendCodes(fromArray), ['310']);
+  });
+
+  it('lays out a 3 x 2 grid row-major in legend order', () => {
+    const pattern = buildGridExample();
+    assert.equal(pattern.width, 3);
+    assert.equal(pattern.height, 2);
+    assert.ok(pattern.cells instanceof Int16Array);
+    assert.deepEqual(Array.from(pattern.cells), [1, 0, 0, -1, 0, 1]);
+    assert.deepEqual(legendCodes(pattern), ['310', '321']);
+  });
+
+  it('fills every legend entry field', () => {
+    const pattern = buildGridExample();
+    assert.deepEqual(pattern.legend, [
+      { number: 1, code: '310', name: 'Black', hex: '#000000', stitchCount: 3 },
+      { number: 2, code: '321', name: 'Red', hex: '#C72B3B', stitchCount: 2 },
+    ]);
+  });
+
+  it('does not count empty cells as stitches', () => {
+    const pattern = buildPattern({ width: 2, height: 2, colors: [BLACK], cells: [0, -1, 0, -1] });
+    assert.deepEqual(pattern.legend.map((entry) => entry.stitchCount), [2]);
+    assert.deepEqual(Array.from(pattern.cells), [0, -1, 0, -1]);
+  });
+
+  it('drops colors that no cell uses', () => {
+    const pattern = buildPattern({ width: 2, height: 1, colors: [BLACK, WHITE], cells: [0, 0] });
+    assert.deepEqual(legendCodes(pattern), ['310']);
+    assert.equal(pattern.legend[0].stitchCount, 2);
+  });
+
+  it('gives number 1 to the color with the most stitches', () => {
+    const pattern = buildPattern({ width: 3, height: 1, colors: [WHITE, BLACK], cells: [0, 1, 1] });
+    assert.deepEqual(pattern.legend.map((entry) => [entry.number, entry.code, entry.stitchCount]), [
+      [1, '310', 2],
+      [2, 'BLANC', 1],
+    ]);
+  });
+
+  it('orders equal stitch counts by DMC code', () => {
+    const colors = ['ECRU', '3865', 'B5200', '310', 'BLANC'].map((code) => ({ code, name: code, hex: '#808080' }));
+    const pattern = buildPattern({ width: 5, height: 1, colors, cells: [0, 1, 2, 3, 4] });
+    assert.deepEqual(legendCodes(pattern), ['310', '3865', 'B5200', 'BLANC', 'ECRU']);
+    assert.deepEqual(pattern.legend.map((entry) => entry.number), [1, 2, 3, 4, 5]);
+  });
+
+  it('compares numeric codes by value when breaking ties', () => {
+    const winterWhite = { code: '3865', name: 'Winter White', hex: '#F9F7F1' };
+    const pattern = buildPattern({ width: 2, height: 1, colors: [winterWhite, BLACK], cells: [0, 1] });
+    assert.deepEqual(legendCodes(pattern), ['310', '3865']);
+  });
+
+  it('keeps empty cells distinct from white', () => {
+    const pattern = buildPattern({ width: 2, height: 1, colors: [WHITE], cells: [0, -1] });
+    assert.deepEqual(Array.from(pattern.cells), [0, -1]);
+    assert.deepEqual(pattern.legend, [{ number: 1, code: 'BLANC', name: 'White', hex: '#FFFFFF', stitchCount: 1 }]);
+  });
+
+  it('builds a fully transparent image as an empty legend', () => {
+    const pattern = buildPattern({ width: 2, height: 2, colors: [], cells: [-1, -1, -1, -1] });
+    assert.equal(pattern.width, 2);
+    assert.equal(pattern.height, 2);
+    assert.deepEqual(Array.from(pattern.cells), [-1, -1, -1, -1]);
+    assert.deepEqual(pattern.legend, []);
+  });
+
+  it('stores hex in uppercase', () => {
+    const pattern = buildPattern({ width: 1, height: 1, colors: [{ ...RED, hex: '#c72b3b' }], cells: [0] });
+    assert.equal(pattern.legend[0].hex, '#C72B3B');
+  });
+});
