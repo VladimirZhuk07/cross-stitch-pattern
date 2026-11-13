@@ -171,14 +171,17 @@ the desktop target makes the simple path acceptable.
 closes its bitmap and returns. On success it sets `{ image, pattern: null, activeLayer:
 'original', viewport: null, status }` and then closes the previous bitmap. The viewer fits
 whenever `viewport` is `null`, an image exists, and the frame has a size; `Fit` also sets
-`viewport: null`, so fitting has one implementation.
+`viewport: null`, so fitting has one implementation. While a load runs, `status.js` marks the workspace
+section `aria-busy="true"`.
 
 ### D8. Input handling
 Pointer Events with `setPointerCapture` (mouse, pen, one finger; CSS `touch-action: none`),
 `wheel` with `{ passive: false }` to stop page scroll, and keys on the focusable frame
 (`tabindex="0"`): `+`/`=`, `-`, `0`, arrows (`PAN_STEP = 50`). Drops outside the frame are
 prevented so the browser does not navigate to the file. When `drop` delivers several files,
-the first is used.
+the first is used. Keys pressed with Ctrl, Meta or Alt are ignored so browser shortcuts
+(Ctrl + `+` zooms the page) keep working. `zoomStepAtCenter` and `fitToFrame` are exported
+from `viewer-input.js` and reused by the zoom buttons.
 
 ### D9. High-DPI canvas
 Before each paint the viewer compares `canvasBufferSize(frame, devicePixelRatio)` with the
