@@ -16,7 +16,7 @@
 - [x] 2.7 Write failing tests for "Two clusters land on DMC 310" and "Conflicting data for one code" (error message contains `310`, `#000000`, `#111111`); verify they fail
 - [x] 2.8 Implement grouping by DMC code with the conflict check; verify 2.7 passes
 - [x] 2.9 Write failing tests for the color limit: 99 distinct codes accepted (numbers 1–99), 100 rejected (`RangeError` with `100` and `99`), 120 input colors sharing 2 codes accepted; verify the 100-color test fails
-- [ ] 2.10 Implement the `MAX_PATTERN_COLORS` check on the merged legend; verify 2.9 passes
+- [x] 2.10 Implement the `MAX_PATTERN_COLORS` check on the merged legend; verify 2.9 passes
 - [ ] 2.11 Write tests for determinism, input color order independence, non-mutation of input `cells`/`colors`, and `structuredClone(pattern, { transfer: [pattern.cells.buffer] })` (deep-equal to a prior copy; buffer byte length 12, byte offset 0); fix `buildPattern` if any fails; verify all `pattern.test.js` tests pass
 - [ ] 2.12 Add the plain-words description of PatternInput, LegendEntry and Pattern (fields, units, ranges, empty marker, cell order) at the top of `src/core/pattern.js` and a plain-text comment on `buildPattern` (what it does, parameter, returns, throws), matching design.md; no type annotations; verify by reading and `npm run test:unit` still passes
 

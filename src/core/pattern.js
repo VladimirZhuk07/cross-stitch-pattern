@@ -50,6 +50,9 @@ export function buildPattern(input) {
 // color index, the index of its legend entry (EMPTY_CELL for unused colors).
 function buildLegend(colors, stitchCounts) {
   const groups = groupUsedColorsByCode(colors, stitchCounts);
+  if (groups.length > MAX_PATTERN_COLORS) {
+    throw new RangeError(`pattern uses ${groups.length} DMC colors, at most ${MAX_PATTERN_COLORS} are allowed`);
+  }
   groups.sort(compareLegendGroups);
 
   const legendIndexOfColor = new Int32Array(colors.length).fill(EMPTY_CELL);
