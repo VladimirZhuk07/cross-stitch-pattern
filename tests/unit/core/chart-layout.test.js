@@ -9,7 +9,14 @@ import {
   gridLines,
   chartLineWidths,
   snapLine,
+  RULER_SIZE,
+  rulerPlacement,
+  rulerLabels,
+  rulerLabelStep,
+  rulerFontSize,
+  chartCenter,
 } from '../../../src/core/chart-layout.js';
+import { FIT_MARGIN } from '../../../src/core/viewport.js';
 
 const TOLERANCE = 1e-9;
 
@@ -238,5 +245,98 @@ describe('snapLine', () => {
 
   it('rejects pixel ratio 0', () => {
     assert.throws(() => snapLine(10, 1, 0), { name: 'RangeError', message: /pixelRatio.*0/ });
+  });
+});
+
+describe('RULER_SIZE', () => {
+  it('equals the fit margin, 24 px, so a ruler fits beside the fitted grid', () => {
+    assert.equal(RULER_SIZE, FIT_MARGIN);
+    assert.equal(RULER_SIZE, 24);
+  });
+});
+
+describe('rulerPlacement', () => {
+  it('puts the rulers directly outside a fitted grid', () => {
+    assert.deepEqual(rulerPlacement({ x: 24, y: 162, width: 952, height: 476 }), { top: 138, left: 0 });
+  });
+
+  it('places the top ruler at y 76 for a grid starting at y 100', () => {
+    assert.deepEqual(rulerPlacement({ x: 24, y: 100, width: 1000, height: 670 }), { top: 76, left: 0 });
+  });
+
+  it('sticks both rulers to the frame edges when the grid edges are scrolled out', () => {
+    assert.deepEqual(rulerPlacement({ x: -300, y: -120, width: 3000, height: 2000 }), { top: 0, left: 0 });
+  });
+});
+
+describe('rulerLabels', () => {
+  it('labels every 10th line of a 100-wide grid, but not line 0', () => {
+    assert.deepEqual(rulerLabels(0, 100, 10), [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+  });
+
+  it('labels only lines inside the visible range', () => {
+    assert.deepEqual(rulerLabels(8, 50, 10), [10, 20, 30, 40, 50]);
+  });
+
+  it('does not label the far border of a 67-high grid', () => {
+    assert.deepEqual(rulerLabels(0, 67, 10), [10, 20, 30, 40, 50, 60]);
+  });
+
+  it('returns no labels for a grid narrower than one step', () => {
+    assert.deepEqual(rulerLabels(0, 5, 10), []);
+  });
+
+  it('rejects step 0', () => {
+    assert.throws(() => rulerLabels(0, 10, 0), { name: 'RangeError', message: /step.*0/ });
+  });
+});
+
+describe('rulerLabelStep', () => {
+  it('labels every 10 stitches when 10 cells fit the widest label plus 4 px', () => {
+    assert.equal(rulerLabelStep(3.2, 17), 10);
+  });
+
+  it('labels every 20 stitches when 10 cells are too short', () => {
+    assert.equal(rulerLabelStep(1.6, 17), 20);
+  });
+
+  it('labels every 50 stitches in 0.5 px cells', () => {
+    assert.equal(rulerLabelStep(0.5, 17), 50);
+  });
+
+  it('falls back to 500 when no step is long enough', () => {
+    assert.equal(rulerLabelStep(0.01, 17), 500);
+  });
+
+  it('labels every 10 stitches in 10 px cells', () => {
+    assert.equal(rulerLabelStep(10, 17), 10);
+  });
+});
+
+describe('rulerFontSize', () => {
+  it('keeps 10 px when the widest row label is 12 px wide', () => {
+    assert.equal(rulerFontSize(12), 10);
+  });
+
+  it('keeps 10 px when the widest row label exactly fills the 16 px label room', () => {
+    assert.equal(rulerFontSize(16), 10);
+  });
+
+  it('shrinks to 8 px when the widest row label is 20 px wide at 10 px', () => {
+    assertClose(rulerFontSize(20), 8, TOLERANCE, 'font size');
+  });
+
+  it('never goes below 7 px', () => {
+    assert.equal(rulerFontSize(40), 7);
+  });
+});
+
+describe('chartCenter', () => {
+  it('is at column 50, row 33.5 of a 100 × 67 grid', () => {
+    assert.deepEqual(chartCenter({ width: 100, height: 67 }), { column: 50, row: 33.5 });
+  });
+
+  it('is the middle of the only cell of a 1 × 1 grid', () => {
+    assert.deepEqual(chartCenter({ width: 1, height: 1 }), { column: 0.5, row: 0.5 });
   });
 });

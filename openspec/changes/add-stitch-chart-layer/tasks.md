@@ -16,7 +16,7 @@
 
 ## 3. Rulers and centre marker (core)
 
-- [ ] 3.1 Write failing tests for `RULER_SIZE` (equals `FIT_MARGIN`, 24), `rulerPlacement` (content (24, 162) → top 138, left 0; (−300, −120) → top 0, left 0; (24, 100) → top 76, left 0), `rulerLabels` ((0, 100, 10) → 10…100; (8, 50, 10) → 10…50; (0, 67, 10) → 10…60; (0, 5, 10) → []; step 0 throws `RangeError`), `rulerLabelStep` ((3.2, 17) → 10; (1.6, 17) → 20; (0.5, 17) → 50; (0.01, 17) → 500; (10, 17) → 10), `rulerFontSize` (12 → 10; 16 → 10; 20 → 8; 40 → 7) and `chartCenter` (100 × 67 → column 50, row 33.5; 1 × 1 → 0.5, 0.5); verify they fail
+- [x] 3.1 Write failing tests for `RULER_SIZE` (equals `FIT_MARGIN`, 24), `rulerPlacement` (content (24, 162) → top 138, left 0; (−300, −120) → top 0, left 0; (24, 100) → top 76, left 0), `rulerLabels` ((0, 100, 10) → 10…100; (8, 50, 10) → 10…50; (0, 67, 10) → 10…60; (0, 5, 10) → []; step 0 throws `RangeError`), `rulerLabelStep` ((3.2, 17) → 10; (1.6, 17) → 20; (0.5, 17) → 50; (0.01, 17) → 500; (10, 17) → 10), `rulerFontSize` (12 → 10; 16 → 10; 20 → 8; 40 → 7) and `chartCenter` (100 × 67 → column 50, row 33.5; 1 × 1 → 0.5, 0.5); verify they fail
 - [ ] 3.2 Implement them with the named constants of design D2 (`RULER_FONT_SIZE = 10`, `MIN_RULER_FONT_SIZE = 7`, `RULER_LABEL_ROOM = 16`, `RULER_LABEL_STEPS`, `RULER_LABEL_GAP = 4`, `CENTER_MARKER_DEPTH = 5`, `CENTER_MARKER_WIDTH = 8`) and a plain-text comment on every export; verify 3.1 passes and `chart-layout.js` stays under ~300 lines with functions under ~40 lines (split rulers into `chart-rulers.js` otherwise and update design.md)
 
 ## 4. Legend rows (core)
