@@ -5,6 +5,7 @@ import {
   chartCellGeometry,
   cellCenter,
   visibleCellRange,
+  numberFontSize,
 } from '../../../src/core/chart-layout.js';
 
 const TOLERANCE = 1e-9;
@@ -99,5 +100,39 @@ describe('visibleCellRange', () => {
       () => visibleCellRange({ x: 0, y: 0, width: 10, height: 10 }, { width: 400, height: 300 }, { width: 1.5, height: 2 }),
       { name: 'RangeError', message: /grid\.width.*1\.5/ },
     );
+  });
+});
+
+describe('numberFontSize', () => {
+  it('is 0.6 × the cell size: 12 px for 20 px cells', () => {
+    assertClose(numberFontSize(20), 12, TOLERANCE, 'font size');
+  });
+
+  it('is 30 px for 50 px cells', () => {
+    assertClose(numberFontSize(50), 30, TOLERANCE, 'font size');
+  });
+
+  it('is 8.4 px at the 14 px threshold', () => {
+    assertClose(numberFontSize(14), 8.4, TOLERANCE, 'font size');
+  });
+
+  it('hides numbers in cells just below 14 px', () => {
+    assert.equal(numberFontSize(13.9), null);
+  });
+
+  it('hides numbers in a fitted 100 × 100 chart (7.52 px cells)', () => {
+    assert.equal(numberFontSize(7.52), null);
+  });
+
+  it('shows numbers at about 11.02 px after zooming in 4 steps (18.359375 px cells)', () => {
+    assertClose(numberFontSize(18.359375), 11.015625, TOLERANCE, 'font size');
+  });
+
+  it('rejects a negative cell size', () => {
+    assert.throws(() => numberFontSize(-1), { name: 'RangeError', message: /-1/ });
+  });
+
+  it('rejects NaN', () => {
+    assert.throws(() => numberFontSize(NaN), { name: 'RangeError', message: /NaN/ });
   });
 });
