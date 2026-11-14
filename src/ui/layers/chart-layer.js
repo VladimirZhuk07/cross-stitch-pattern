@@ -1,67 +1,61 @@
 // View layer 3: the cross-stitch chart. Follows the view-layer contract in ../viewer.js.
 //
-// Every stitched cell is white with its legend number (1..N) in black; empty cells are light
-// grey without a number. The layout rules (visible range, sizes, thresholds) live in
-// ../../core/chart-layout.js; this module only turns them into canvas calls.
+// Every stitched cell is filled with a pale tint of its DMC color and, when the cells are
+// large enough, shows its legend number (1..N) in black; empty cells are light grey with a
+// diagonal hatch and no number. The rules (visible range, sizes, thresholds, tints) live in
+// ../../core/chart-layout.js and ../../core/chart-tint.js; this module only draws them.
 //
 // Paint order, each step limited to the cells visible in the frame:
-//   1. white rectangle under the visible cells
-//   2. empty cells: consecutive empty cells of a row merged into one rect, filled once
+//   1. the cell image: one pixel per cell (tints and empty grey), scaled up unsmoothed
+//   2. the empty-cell hatch: one diagonal per visible empty cell, in one path
 //   3. numbers: one font for all, one fillText per visible stitched cell (skipped when the
 //      cells are too small to read them)
 //   4. thin lines, then bold lines (one path each, snapped to device pixels, so bold wins at
 //      crossings)
 //   5. rulers with row/column labels, the centre triangles, and the corner square
-// There is no bitmap cache: the work per paint depends on the visible area only. The one
-// cached value is the list of number texts, kept per pattern (by object identity).
+//      (./chart-rulers.js)
+// Cached per pattern (by object identity): the cell image and the number texts.
 
 import { EMPTY_CELL } from '../../core/pattern.js';
+import { tintedCellPixels } from '../../core/chart-tint.js';
 import {
   chartCellGeometry,
   visibleCellRange,
   cellCenter,
   numberFontSize,
+  isEmptyHatchVisible,
   gridLines,
   chartLineWidths,
   snapLine,
-  chartCenter,
-  rulerPlacement,
-  rulerLabels,
-  rulerLabelStep,
-  rulerFontSize,
-  MAJOR_LINE_STEP,
-  RULER_SIZE,
-  RULER_FONT_SIZE,
-  CENTER_MARKER_WIDTH,
-  CENTER_MARKER_DEPTH,
-  RULER_MARKER_GAP,
 } from '../../core/chart-layout.js';
+import { drawRulers } from './chart-rulers.js';
 
-const CELL_COLOR = '#FFFFFF';
-const EMPTY_CELL_COLOR = '#E0E0E0';
+const HATCH_COLOR = '#909090';
 const NUMBER_COLOR = '#000000';
 const THIN_LINE_COLOR = '#A0A0A0';
 const BOLD_LINE_COLOR = '#000000';
-const RULER_BACKGROUND = '#F6F4F0';
-const RULER_TEXT_COLOR = '#1F1F1F';
-const CENTER_MARKER_COLOR = '#000000';
 const FONT_FAMILY = 'system-ui, sans-serif';
 
 /**
  * Creates the Chart layer. It is available once a pattern exists (state.pattern is not null).
+ * options.createCellCanvas(width, height)  makes the small canvas that holds one pixel per
+ *   cell; defaults to an OffscreenCanvas. Tests pass a fake.
  * Returns a view layer { id: 'chart', isAvailable, render }.
  */
-export function createChartLayer() {
+export function createChartLayer(options = {}) {
+  const createCellCanvas = options.createCellCanvas ?? createOffscreenCanvas;
   let cachedPattern = null;
+  let cachedCellImage = null;
   let cachedNumberTexts = [];
 
-  // The texts '1'..'N' of the legend numbers, indexed like pattern.legend.
-  function numberTextsOf(pattern) {
+  // The cell image and the number texts '1'..'N' (indexed like pattern.legend) of a pattern.
+  function cachedDrawingsOf(pattern) {
     if (pattern !== cachedPattern) {
       cachedPattern = pattern;
+      cachedCellImage = createCellImage(createCellCanvas, pattern);
       cachedNumberTexts = pattern.legend.map((entry) => String(entry.number));
     }
-    return cachedNumberTexts;
+    return { cellImage: cachedCellImage, numberTexts: cachedNumberTexts };
   }
 
   return {
@@ -75,48 +69,76 @@ export function createChartLayer() {
         return;
       }
       const geometry = chartCellGeometry(content, pattern);
-      drawCells(ctx, pattern, content, geometry, range);
-      drawNumbers(ctx, pattern, content, geometry, range, numberTextsOf(pattern));
+      const { cellImage, numberTexts } = cachedDrawingsOf(pattern);
+      drawCellImage(ctx, cellImage, content, geometry, range);
+      drawEmptyHatch(ctx, frame.pixelRatio, pattern, content, geometry, range);
+      drawNumbers(ctx, pattern, content, geometry, range, numberTexts);
       drawGridLines(ctx, frame.pixelRatio, pattern, content, geometry, range);
       drawRulers(ctx, frame, pattern, content, geometry, range);
     },
   };
 }
 
-function drawCells(ctx, pattern, content, geometry, range) {
-  const { cellWidth, cellHeight } = geometry;
-  ctx.fillStyle = CELL_COLOR;
-  ctx.fillRect(
-    content.x + range.columnStart * cellWidth,
-    content.y + range.rowStart * cellHeight,
-    (range.columnEnd - range.columnStart) * cellWidth,
-    (range.rowEnd - range.rowStart) * cellHeight,
-  );
-
-  ctx.beginPath();
-  for (let row = range.rowStart; row < range.rowEnd; row++) {
-    addEmptyRuns(ctx, pattern, content, geometry, range, row);
-  }
-  ctx.fillStyle = EMPTY_CELL_COLOR;
-  ctx.fill();
+function createOffscreenCanvas(width, height) {
+  return new OffscreenCanvas(width, height);
 }
 
-// Adds one rect per run of consecutive empty cells in the visible part of a row.
-function addEmptyRuns(ctx, pattern, content, geometry, range, row) {
+// A width × height canvas with one pixel per cell in its chart color.
+function createCellImage(createCellCanvas, pattern) {
+  const canvas = createCellCanvas(pattern.width, pattern.height);
+  const cellCtx = canvas.getContext('2d');
+  const image = cellCtx.createImageData(pattern.width, pattern.height);
+  image.data.set(tintedCellPixels(pattern));
+  cellCtx.putImageData(image, 0, 0);
+  return canvas;
+}
+
+// Scales the visible part of the cell image onto the matching part of the content rectangle.
+// Without smoothing every image pixel becomes exactly one cell, aligned like the other layers.
+function drawCellImage(ctx, cellImage, content, geometry, range) {
+  const columns = range.columnEnd - range.columnStart;
+  const rows = range.rowEnd - range.rowStart;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    cellImage,
+    range.columnStart,
+    range.rowStart,
+    columns,
+    rows,
+    content.x + range.columnStart * geometry.cellWidth,
+    content.y + range.rowStart * geometry.cellHeight,
+    columns * geometry.cellWidth,
+    rows * geometry.cellHeight,
+  );
+}
+
+// One diagonal from the bottom-left to the top-right corner of every visible empty cell, so
+// "no stitch" never looks like a grey floss tint.
+function drawEmptyHatch(ctx, pixelRatio, pattern, content, geometry, range) {
+  if (!isEmptyHatchVisible(geometry.cellSize)) {
+    return;
+  }
   const { cellWidth, cellHeight } = geometry;
-  const rowOffset = row * pattern.width;
-  const y = content.y + row * cellHeight;
-  let runStart = -1;
-  for (let column = range.columnStart; column <= range.columnEnd; column++) {
-    const isEmpty = column < range.columnEnd && pattern.cells[rowOffset + column] === EMPTY_CELL;
-    if (isEmpty && runStart === -1) {
-      runStart = column;
-    }
-    if (!isEmpty && runStart !== -1) {
-      ctx.rect(content.x + runStart * cellWidth, y, (column - runStart) * cellWidth, cellHeight);
-      runStart = -1;
+  let hasEmptyCell = false;
+  ctx.beginPath();
+  for (let row = range.rowStart; row < range.rowEnd; row++) {
+    const rowOffset = row * pattern.width;
+    const top = content.y + row * cellHeight;
+    for (let column = range.columnStart; column < range.columnEnd; column++) {
+      if (pattern.cells[rowOffset + column] === EMPTY_CELL) {
+        const left = content.x + column * cellWidth;
+        ctx.moveTo(left, top + cellHeight);
+        ctx.lineTo(left + cellWidth, top);
+        hasEmptyCell = true;
+      }
     }
   }
+  if (!hasEmptyCell) {
+    return;
+  }
+  ctx.lineWidth = chartLineWidths(pixelRatio).thin / pixelRatio;
+  ctx.strokeStyle = HATCH_COLOR;
+  ctx.stroke();
 }
 
 function drawNumbers(ctx, pattern, content, geometry, range, numberTexts) {
@@ -186,98 +208,4 @@ function strokeLines(ctx, lines, isBold, widthDevicePixels, color) {
   ctx.lineWidth = widthDevicePixels / pixelRatio;
   ctx.strokeStyle = color;
   ctx.stroke();
-}
-
-function drawRulers(ctx, frame, pattern, content, geometry, range) {
-  const placement = rulerPlacement(content);
-  const span = {
-    left: Math.max(0, content.x),
-    right: Math.min(frame.width, content.x + content.width),
-    top: Math.max(0, content.y),
-    bottom: Math.min(frame.height, content.y + content.height),
-  };
-  const step = chooseRulerFont(ctx, pattern, geometry.cellSize);
-  const center = chartCenter(pattern);
-  const ruler = { ctx, content, geometry, placement, span };
-
-  drawTopRuler(ruler, rulerLabels(range.columnStart, range.columnEnd, step), content.x + center.column * geometry.cellWidth);
-  drawLeftRuler(ruler, rulerLabels(range.rowStart, range.rowEnd, step), content.y + center.row * geometry.cellHeight);
-
-  // The square where both rulers meet hides labels that would run into each other.
-  ctx.fillStyle = RULER_BACKGROUND;
-  ctx.fillRect(placement.left, placement.top, RULER_SIZE, RULER_SIZE);
-}
-
-// Sets the ruler font (shrunk if the widest row label does not fit) and returns the label
-// step, measured with that font so neighbouring labels never overlap.
-function chooseRulerFont(ctx, pattern, cellSize) {
-  ctx.font = `${RULER_FONT_SIZE}px ${FONT_FAMILY}`;
-  const widestRowLabel = String(largestLabel(pattern.height));
-  const fontSize = rulerFontSize(ctx.measureText(widestRowLabel).width);
-  ctx.font = `${fontSize}px ${FONT_FAMILY}`;
-  const widestLabel = String(largestLabel(Math.max(pattern.width, pattern.height)));
-  return rulerLabelStep(cellSize, ctx.measureText(widestLabel).width);
-}
-
-// The largest multiple of MAJOR_LINE_STEP up to count (at least one step).
-function largestLabel(count) {
-  return Math.max(MAJOR_LINE_STEP, Math.floor(count / MAJOR_LINE_STEP) * MAJOR_LINE_STEP);
-}
-
-function drawTopRuler(ruler, labels, centerX) {
-  const { ctx, content, geometry, placement, span } = ruler;
-  ctx.fillStyle = RULER_BACKGROUND;
-  ctx.fillRect(span.left, placement.top, span.right - span.left, RULER_SIZE);
-
-  // Labels in the outer part of the band, the triangle in the inner CENTER_MARKER_DEPTH px.
-  ctx.fillStyle = RULER_TEXT_COLOR;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const labelY = placement.top + (RULER_SIZE - CENTER_MARKER_DEPTH) / 2;
-  for (const index of labels) {
-    ctx.fillText(String(index), content.x + index * geometry.cellWidth, labelY);
-  }
-
-  if (centerX >= span.left && centerX <= span.right) {
-    const tipY = placement.top + RULER_SIZE;
-    fillTriangle(ctx, [
-      { x: centerX - CENTER_MARKER_WIDTH / 2, y: tipY - CENTER_MARKER_DEPTH },
-      { x: centerX + CENTER_MARKER_WIDTH / 2, y: tipY - CENTER_MARKER_DEPTH },
-      { x: centerX, y: tipY },
-    ]);
-  }
-}
-
-function drawLeftRuler(ruler, labels, centerY) {
-  const { ctx, content, geometry, placement, span } = ruler;
-  ctx.fillStyle = RULER_BACKGROUND;
-  ctx.fillRect(placement.left, span.top, RULER_SIZE, span.bottom - span.top);
-
-  // Labels right-aligned just before the triangle area next to the grid edge.
-  ctx.fillStyle = RULER_TEXT_COLOR;
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  const labelRight = placement.left + RULER_SIZE - CENTER_MARKER_DEPTH - RULER_MARKER_GAP;
-  for (const index of labels) {
-    ctx.fillText(String(index), labelRight, content.y + index * geometry.cellHeight);
-  }
-
-  if (centerY >= span.top && centerY <= span.bottom) {
-    const tipX = placement.left + RULER_SIZE;
-    fillTriangle(ctx, [
-      { x: tipX - CENTER_MARKER_DEPTH, y: centerY - CENTER_MARKER_WIDTH / 2 },
-      { x: tipX - CENTER_MARKER_DEPTH, y: centerY + CENTER_MARKER_WIDTH / 2 },
-      { x: tipX, y: centerY },
-    ]);
-  }
-}
-
-function fillTriangle(ctx, corners) {
-  ctx.beginPath();
-  ctx.moveTo(corners[0].x, corners[0].y);
-  ctx.lineTo(corners[1].x, corners[1].y);
-  ctx.lineTo(corners[2].x, corners[2].y);
-  ctx.closePath();
-  ctx.fillStyle = CENTER_MARKER_COLOR;
-  ctx.fill();
 }

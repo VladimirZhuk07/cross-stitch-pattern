@@ -42,7 +42,8 @@ See proposal.md for the motivation and `specs/stitch-chart/spec.md` for the beha
 | `src/core/chart-tint.js` | core (new) | `paleTint(hex)`, `contrastRatio(hexA, hexB)`, `tintedCellPixels(pattern)` |
 | `src/core/color.js` | core (edited) | new export `labToLinearRgb(lab)`, the inverse of `linearRgbToLab` |
 | `src/core/legend-rows.js` | core (new) | `legendRows(pattern)`: legend entries → display texts |
-| `src/ui/layers/chart-layer.js` | ui (replaced) | `createChartLayer(options)`; canvas calls only |
+| `src/ui/layers/chart-layer.js` | ui (replaced) | `createChartLayer(options)`; cell image, hatch, numbers, grid lines |
+| `src/ui/layers/chart-rulers.js` | ui (new) | `drawRulers(...)`: rulers, centre triangles, corner square (split out to keep the layer under ~300 lines) |
 | `src/ui/legend.js` | ui (new) | `setupLegend(root, store)`: renders the legend panel |
 | `src/core/viewport.js` | core (edited) | `FIT_MARGIN` 16 → 24 |
 | `index.html`, `styles/main.css`, `src/main.js` | ui / root (edited) | legend markup at the marker, legend CSS block, one import + one setup line |

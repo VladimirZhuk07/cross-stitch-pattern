@@ -126,7 +126,8 @@ describe('chart layer: cells and numbers', () => {
     const recording = render(solidPattern(100, 100), { x: 124, y: 24, width: 752, height: 752 }, { width: 1000, height: 800 });
     assert.equal(recording.images.length, 1);
     assert.deepEqual(recording.images[0].args, [0, 0, 100, 100, 124, 24, 752, 752]);
-    assert.ok(recording.texts.every((text) => text.fontSize === 10), 'only 10 px ruler labels');
+    const texts = recording.texts.map((text) => text.text);
+    assert.ok(texts.every((text) => Number(text) % 10 === 0), `only ruler labels, got ${texts.join(' ')}`);
   });
 
   it('uses the smaller side of non-square cells for the number size', () => {
