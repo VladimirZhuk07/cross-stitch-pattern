@@ -382,12 +382,28 @@ body {
   vertical-align: middle;
 }
 
-@media (max-width: 60rem) {
+/* Settings | frame | legend side by side need about 72rem (16 + 20 rem of panels plus a
+   usable frame). Narrower, the legend moves to its own row under the settings and frame,
+   limited in height so the frame keeps its room. */
+@media (max-width: 72rem) {
   .app-main {
     flex-wrap: wrap;
   }
 
   .legend {
     flex: 1 1 100%;
+    max-height: 40vh;
+  }
+}
+
+/* Below 48rem the settings rule above stacks everything in one column; wrapping would then
+   open a second column, so it is switched off again and the legend keeps its own height. */
+@media (max-width: 48rem) {
+  .app-main {
+    flex-wrap: nowrap;
+  }
+
+  .legend {
+    flex: 0 0 auto;
   }
 }

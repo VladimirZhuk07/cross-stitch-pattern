@@ -160,7 +160,10 @@ code|name|stitchCount"`. `setupLegend` re-renders only when `state.pattern` iden
 clones one row per `legendRows` entry, sets `textContent`, sets the swatch with
 `style.setProperty('--swatch', hex)` (swatch `aria-hidden="true"`; the text columns carry the
 information) and `replaceChildren` on the tbody. No `innerHTML`. The panel sits right of the
-workspace (`flex: 0 0 20rem`, scrolls on its own); below 60rem it wraps under the frame. The
+workspace (`flex: 0 0 20rem`, scrolls on its own); below 72rem (three
+columns settings | frame | legend no longer fit) it wraps to its own row under the settings
+and frame, at most 40vh high; below 48rem the settings form stacks everything in one column
+and the legend rule switches wrapping off again. The
 number cell is styled like a chart cell (white, bordered, black number) to link legend and
 chart. Shown on all layers while a pattern exists: it is the shopping list for the DMC
 colors view too, and switching layers does not shift the frame. Rows have no actions in this
