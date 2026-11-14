@@ -68,4 +68,4 @@
   - DevTools Performance while the overview builds: no frame with more than about 10 ms of scripting (otherwise lower `BUILD_BUDGET_STITCHES` via `/opsx:update`); Memory after a minute of panning in both layers: canvas memory stays below about 130 MB
   - On a phone (iOS Safari if available): both layers show the large pattern, no blank canvas or page reload
   - DevTools Console has no errors; Network shows only the app's own files
-- [ ] 8.4 Run `openspec validate tile-large-pattern-rendering --strict`; it reports the change is valid
+- [x] 8.4 Run `openspec validate tile-large-pattern-rendering --strict`; it reports the change is valid
