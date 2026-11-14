@@ -1,6 +1,7 @@
 // Pinch-zoom math for the shared view frame. Pure: no DOM, no events, no timers.
 //
-// Turns the movement of two fingers (or a trackpad pinch) into a new Viewport. Viewports,
+// Turns the movement of one or two fingers (or a trackpad pinch) into a new Viewport, and keeps
+// track of which pointers take part in a gesture (PointerGesture, see emptyGesture). Viewports,
 // points and zoom limits are the shapes described in ./viewport.js; screen points are CSS px
 // relative to the frame's top-left corner. The pattern-viewer spec is authoritative.
 //
@@ -75,6 +76,72 @@ export function trackpadPinchFactor(deltaPixels) {
     Math.max(-MAX_TRACKPAD_PINCH_DELTA, deltaPixels),
   );
   return Math.exp(-limitedDelta / TRACKPAD_PINCH_PIXELS);
+}
+
+/** At most this many pointers take part in a gesture; further fingers are ignored. */
+export const MAX_GESTURE_POINTERS = 2;
+
+/**
+ * Returns a PointerGesture with no pointers.
+ *
+ * PointerGesture  { pointers }: the pointers (fingers, mouse, pen) currently held down on the
+ *                 frame, 0 to MAX_GESTURE_POINTERS entries { id, x, y } in touch-down order.
+ *                 id is the browser's pointerId; x, y the pointer's last position in CSS px
+ *                 relative to the frame's top-left corner. Gestures are never modified; every
+ *                 function returns a new one (or the same one when nothing changed).
+ *                 Used by ui/viewer-input.js; not stored in the app state.
+ */
+export function emptyGesture() {
+  return { pointers: [] };
+}
+
+/**
+ * Returns the gesture with a newly pressed pointer added at point { x, y }.
+ * Returns the same gesture if the id is already tracked or MAX_GESTURE_POINTERS are held.
+ */
+export function startPointer(gesture, pointerId, point) {
+  const isTracked = gesture.pointers.some((pointer) => pointer.id === pointerId);
+  if (isTracked || gesture.pointers.length >= MAX_GESTURE_POINTERS) {
+    return gesture;
+  }
+  return { pointers: [...gesture.pointers, { id: pointerId, x: point.x, y: point.y }] };
+}
+
+/**
+ * Applies a pointer moving to point { x, y } and returns { gesture, viewport }.
+ * With one tracked pointer the view pans by its movement; with two it pinches
+ * (see pinchViewport). A move of an untracked pointer returns the same gesture and viewport.
+ * viewport  current viewport
+ * limits    { minScale, maxScale } from zoomLimits
+ */
+export function movePointer(gesture, pointerId, point, viewport, limits) {
+  const index = gesture.pointers.findIndex((pointer) => pointer.id === pointerId);
+  if (index === -1) {
+    return { gesture, viewport };
+  }
+
+  const previous = gesture.pointers;
+  const current = previous.map((pointer, i) => (
+    i === index ? { id: pointerId, x: point.x, y: point.y } : pointer
+  ));
+
+  if (current.length === 1) {
+    const moved = panBy(viewport, point.x - previous[0].x, point.y - previous[0].y);
+    return { gesture: { pointers: current }, viewport: moved };
+  }
+  return {
+    gesture: { pointers: current },
+    viewport: pinchViewport(viewport, previous, current, limits),
+  };
+}
+
+/**
+ * Returns the gesture without the released pointer, or the same gesture if it was not tracked.
+ * The remaining pointer keeps its last position, so its next move pans without a jump.
+ */
+export function endPointer(gesture, pointerId) {
+  const remaining = gesture.pointers.filter((pointer) => pointer.id !== pointerId);
+  return remaining.length === gesture.pointers.length ? gesture : { pointers: remaining };
 }
 
 function midpoint([first, second]) {
