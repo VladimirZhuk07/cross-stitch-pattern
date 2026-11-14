@@ -100,6 +100,52 @@ export function regionCells(grid, level, region) {
   };
 }
 
+/**
+ * Returns the detail level to draw: round(log2(1 / devicePxPerStitch)) limited to
+ * 0 … maxLevel. One level pixel then covers about 0.71 to 1.41 device px, so the browser
+ * scales a picture by at most √2 either way and the visible picture has at most twice the
+ * frame's device pixels (the GPU "nearest mip level" rule, design D3).
+ * devicePxPerStitch  the smaller on-screen side of a stitch in device px (> 0)
+ * maxLevel           the overview level (from overviewLevel), integer ≥ 0
+ * Throws RangeError if devicePxPerStitch is not a positive number or maxLevel is invalid.
+ */
+export function detailLevel(devicePxPerStitch, maxLevel) {
+  if (!Number.isFinite(devicePxPerStitch) || devicePxPerStitch <= 0) {
+    throw new RangeError(`devicePxPerStitch must be a positive number, got ${String(devicePxPerStitch)}`);
+  }
+  assertLevel(maxLevel);
+  const ideal = Math.round(Math.log2(1 / devicePxPerStitch));
+  return Math.min(maxLevel, Math.max(0, ideal));
+}
+
+/**
+ * Returns the tiles of level `level` that contain a visible stitch, as a list of
+ * { column, row } in row-major order (TileAddress). Empty for an empty range.
+ * range     CellRange { columnStart, columnEnd, rowStart, rowEnd } from visibleCellRange
+ *           (./chart-layout.js): half-open stitch ranges clamped to the grid
+ * tileSize  tile side in picture px (default TILE_SIZE)
+ */
+export function visibleTiles(grid, level, range, tileSize = TILE_SIZE) {
+  assertGridSize(grid);
+  assertLevel(level);
+  assertPositiveInteger('tileSize', tileSize);
+  if (range.columnStart >= range.columnEnd || range.rowStart >= range.rowEnd) {
+    return [];
+  }
+  const tileStitches = tileSize * 2 ** level;
+  const firstColumn = Math.floor(range.columnStart / tileStitches);
+  const lastColumn = Math.floor((range.columnEnd - 1) / tileStitches);
+  const firstRow = Math.floor(range.rowStart / tileStitches);
+  const lastRow = Math.floor((range.rowEnd - 1) / tileStitches);
+  const tiles = [];
+  for (let row = firstRow; row <= lastRow; row++) {
+    for (let column = firstColumn; column <= lastColumn; column++) {
+      tiles.push({ column, row });
+    }
+  }
+  return tiles;
+}
+
 function assertIndex(name, value, count) {
   if (!Number.isInteger(value) || value < 0 || value >= count) {
     throw new RangeError(`tile ${name} must be an integer 0–${count - 1}, got ${String(value)}`);
