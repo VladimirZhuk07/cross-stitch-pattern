@@ -132,6 +132,36 @@ function labF(ratio) {
   return (LAB_KAPPA * ratio + 16) / 116;
 }
 
+// CIE XYZ (D65) to linear sRGB matrix, the inverse of SRGB_TO_XYZ, from the same Lindbloom page.
+const XYZ_TO_SRGB = [
+  [3.2404542, -1.5371385, -0.4985314],
+  [-0.9692660, 1.8760108, 0.0415560],
+  [0.0556434, -0.2040259, 1.0572252],
+];
+
+// Converts a Lab color { L, a, b } (D65) to linear RGB { r, g, b }. The inverse of
+// linearRgbToLab (CIE 15:2004, section 8.2.1, solved for X, Y, Z).
+// Channels are NOT clamped: a value below 0 or above 1 means the color is outside sRGB.
+export function labToLinearRgb(lab) {
+  const fy = (lab.L + 16) / 116;
+  const x = D65_WHITE.x * inverseLabF(fy + lab.a / 500);
+  const y = D65_WHITE.y * inverseLabF(fy);
+  const z = D65_WHITE.z * inverseLabF(fy - lab.b / 200);
+  return {
+    r: XYZ_TO_SRGB[0][0] * x + XYZ_TO_SRGB[0][1] * y + XYZ_TO_SRGB[0][2] * z,
+    g: XYZ_TO_SRGB[1][0] * x + XYZ_TO_SRGB[1][1] * y + XYZ_TO_SRGB[1][2] * z,
+    b: XYZ_TO_SRGB[2][0] * x + XYZ_TO_SRGB[2][1] * y + XYZ_TO_SRGB[2][2] * z,
+  };
+}
+
+function inverseLabF(f) {
+  const cube = f ** 3;
+  if (cube > LAB_EPSILON) {
+    return cube;
+  }
+  return (116 * f - 16) / LAB_KAPPA;
+}
+
 // CIEDE2000 constants, Sharma, Wu & Dalal 2005. Weighting factors kL = kC = kH = 1.
 const POW25_7 = 25 ** 7;
 const DEGREES_PER_RADIAN = 180 / Math.PI;
