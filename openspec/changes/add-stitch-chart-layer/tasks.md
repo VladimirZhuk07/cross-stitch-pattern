@@ -67,4 +67,4 @@
   - A 300 × 300 pattern zoomed to ~20 px cells: drag-panning for a few seconds feels smooth (DevTools Performance: paints under 16 ms); also at Fit; otherwise implement the glyph-atlas fallback of design D6 via `/opsx:update`
   - Legend at a 1440 px wide window: 24rem wide, compact rows, number boxes show the cell tint, names take at most 2 lines; visible on all three layers, rows in number order with number, swatch, DMC code, name and stitch count with separators; a `BLANC` swatch has a visible border; loading a new image hides it; at 72rem window width and below it moves to its own row under the settings and frame (at most 40 % of the window height); at 48rem and below, settings, frame and legend stack in one column without a second column
   - DevTools Console has no errors; Network shows only the app's own files
-- [ ] 8.4 Run `openspec validate add-stitch-chart-layer --strict`; it reports the change is valid
+- [x] 8.4 Run `openspec validate add-stitch-chart-layer --strict`; it reports the change is valid
