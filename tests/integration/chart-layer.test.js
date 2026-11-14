@@ -276,3 +276,68 @@ describe('chart layer: rulers and centre marker', () => {
     assert.equal(corner.length, 1);
   });
 });
+
+describe('chart layer: large patterns', () => {
+  it('draws cell colors with hard edges at one device pixel per stitch', () => {
+    const recording = render(solidPattern(968, 484), { x: 0, y: 0, width: 484, height: 242 }, { width: 500, height: 300 }, 2);
+    assert.equal(recording.images[0].imageSmoothingEnabled, false);
+  });
+
+  it('smooths cell colors when a stitch is smaller than one device pixel', () => {
+    const recording = render(solidPattern(1000, 500), { x: 0, y: 0, width: 484, height: 242 }, { width: 500, height: 300 }, 2);
+    assert.equal(recording.images[0].imageSmoothingEnabled, true);
+  });
+
+  it('averages the tints of a 2 × 2 block into one overview pixel', () => {
+    // 2050 × 2: overview level 1. Block 0 is 310, 321 / empty, 310.
+    const cells = new Int16Array(2050 * 2);
+    cells[1] = 1;
+    cells[2050] = -1;
+    const pattern = buildPattern({ width: 2050, height: 2, cells, colors: [BLACK, RED] });
+    const factory = createFakeCellCanvasFactory();
+    const layer = createChartLayer({ createCellCanvas: factory.createCellCanvas });
+    const frame = frameFor({ x: 0, y: 0, width: 1025, height: 1 }, { width: 1100, height: 800 }, 1);
+    let needsAnotherFrame = true;
+    for (let draw = 0; draw < 10 && needsAnotherFrame; draw++) {
+      needsAnotherFrame = layer.render(createRecordingContext().ctx, frame, { pattern });
+    }
+    assert.notEqual(needsAnotherFrame, true);
+    const overview = factory.canvases.find((canvas) => canvas.width === 1025);
+    assert.deepEqual([...overview.pixels.slice(0, 4)], [208, 192, 191, 255]);
+  });
+
+  it('draws a fitted 2050 × 2050 pattern from its overview, with a bounded grid and no cell reads', () => {
+    const cells = new Int16Array(2050 * 2050);
+    for (let i = 0; i < cells.length; i += 7) {
+      cells[i] = -1;
+    }
+    const pattern = buildPattern({ width: 2050, height: 2050, cells, colors: [BLACK] });
+    const factory = createFakeCellCanvasFactory();
+    const layer = createChartLayer({ createCellCanvas: factory.createCellCanvas });
+    const frame = frameFor({ x: 124, y: 24, width: 752, height: 752 }, { width: 1000, height: 800 }, 1);
+
+    const answers = [];
+    for (let draw = 0; draw < 9; draw++) {
+      answers.push(layer.render(createRecordingContext().ctx, frame, { pattern }));
+    }
+    assert.deepEqual(answers.map((answer) => answer === true), [true, true, true, true, true, true, true, true, false]);
+
+    pattern.cells = new Proxy(pattern.cells, {
+      get() {
+        throw new Error('a stitch was read');
+      },
+    });
+    const recording = createRecordingContext();
+    layer.render(recording.ctx, frame, { pattern });
+
+    assert.equal(recording.images.length, 1);
+    assert.equal(recording.images[0].image.width, 1025);
+    assert.equal(hatchSegments(recording).length, 0);
+    const bold = segmentsOf(recording, '#000000');
+    assert.equal(bold.filter(isVertical).length, 22);
+    assert.equal(bold.filter((segment) => !isVertical(segment)).length, 22);
+    const labels = recording.texts.map((text) => Number(text.text));
+    assert.ok(labels.length > 0 && labels.every((label) => label % 100 === 0), `labels every 100, got ${labels.join(' ')}`);
+    assert.ok(labels.includes(100) && !labels.includes(50), 'label step 100');
+  });
+});
