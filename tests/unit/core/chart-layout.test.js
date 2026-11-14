@@ -16,6 +16,7 @@ import {
   snapLine,
   RULER_SIZE,
   rulerPlacement,
+  leftRulerWidth,
   rulerLabels,
   rulerLabelStep,
   rulerFontSize,
@@ -334,6 +335,35 @@ describe('rulerPlacement', () => {
 
   it('sticks both rulers to the frame edges when the grid edges are scrolled out', () => {
     assert.deepEqual(rulerPlacement({ x: -300, y: -120, width: 3000, height: 2000 }), { top: 0, left: 0 });
+  });
+
+  it('puts a 28 px left ruler at the frame edge when the grid starts at x 24', () => {
+    assert.deepEqual(rulerPlacement({ x: 24, y: 24, width: 752, height: 752 }, 28), { top: 0, left: 0 });
+  });
+
+  it('puts a 28 px left ruler directly left of a grid starting at x 100', () => {
+    assert.deepEqual(rulerPlacement({ x: 100, y: 100, width: 500, height: 500 }, 28), { top: 76, left: 72 });
+  });
+});
+
+describe('leftRulerWidth', () => {
+  it('stays 24 px when the widest row label fits the 16 px of label room', () => {
+    assert.equal(leftRulerWidth(16), 24);
+    assert.equal(leftRulerWidth(0), 24);
+  });
+
+  it('grows to whole CSS px for a label just over the room', () => {
+    assert.equal(leftRulerWidth(16.01), 25);
+  });
+
+  it('is 28 px for the label 10000 at 7 px (19.25 px wide)', () => {
+    assert.equal(leftRulerWidth(19.25), 28);
+  });
+
+  it('rejects a negative or NaN label width', () => {
+    for (const value of [-1, NaN]) {
+      assert.throws(() => leftRulerWidth(value), { name: 'RangeError', message: new RegExp(`widestRowLabelWidth.*${value}`) });
+    }
   });
 });
 
