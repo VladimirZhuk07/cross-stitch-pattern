@@ -13,8 +13,13 @@
 // measureText(text).width is 0.55 × font size per character (a typical digit width).
 //
 // createFakeCellCanvasFactory() returns { createCellCanvas, canvases }: pass createCellCanvas
-// to createChartLayer({ createCellCanvas }); every canvas it makes is listed in canvases as
-// { width, height, pixels }, where pixels is a copy of the data put with putImageData.
+// to createChartLayer({ createCellCanvas }) or createDmcLayer({ createCellCanvas }); every
+// canvas it makes is listed in canvases as { width, height, pixels, puts }:
+//   pixels  the canvas content as RGBA bytes (null until the first putImageData), updated by
+//           every putImageData(image, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) for
+//           its dirty rectangle (the whole image when no rectangle is given)
+//   puts    one { dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight } per putImageData call
+//   width, height  plain properties; a layer releases a canvas by setting both to 0
 
 const DIGIT_WIDTH_EM = 0.55;
 
@@ -106,13 +111,15 @@ export function createFakeCellCanvasFactory() {
       width,
       height,
       pixels: null,
+      puts: [],
       getContext() {
         return {
           createImageData(imageWidth, imageHeight) {
             return { width: imageWidth, height: imageHeight, data: new Uint8ClampedArray(imageWidth * imageHeight * 4) };
           },
-          putImageData(image) {
-            canvas.pixels = Uint8ClampedArray.from(image.data);
+          putImageData(image, dx, dy, dirtyX = 0, dirtyY = 0, dirtyWidth = image.width, dirtyHeight = image.height) {
+            canvas.puts.push({ dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight });
+            copyDirtyRect(canvas, image, dx, dy, { x: dirtyX, y: dirtyY, width: dirtyWidth, height: dirtyHeight });
           },
         };
       },
@@ -122,6 +129,18 @@ export function createFakeCellCanvasFactory() {
   }
 
   return { createCellCanvas, canvases };
+}
+
+// Copies the dirty rectangle of image into canvas.pixels at (dx, dy), like the real canvas.
+function copyDirtyRect(canvas, image, dx, dy, dirty) {
+  if (canvas.pixels === null) {
+    canvas.pixels = new Uint8ClampedArray(canvas.width * canvas.height * 4);
+  }
+  for (let row = dirty.y; row < dirty.y + dirty.height; row++) {
+    const from = (row * image.width + dirty.x) * 4;
+    const to = ((dy + row) * canvas.width + dx + dirty.x) * 4;
+    canvas.pixels.set(image.data.subarray(from, from + dirty.width * 4), to);
+  }
 }
 
 function emptyPath() {
