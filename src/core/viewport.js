@@ -22,8 +22,15 @@
  */
 export const FIT_MARGIN = 24;
 
-/** Highest zoom in CSS px per image px (6400 %), unless fitting itself needs more. */
+/** Highest zoom in CSS px per image px (6400 %), unless fitting or a fine pattern needs more. */
 export const MAX_SCALE = 64;
+
+/**
+ * With a pattern, the zoom may also go as far as one stitch being this many CSS px wide, so the
+ * chart numbers (shown from 19 px cells, see ./chart-layout.js) can be read even when the
+ * pattern has many more stitches than the image has pixels.
+ */
+export const MAX_ZOOM_CELL_SIZE = 64;
 
 /** Zoom factor of one zoom step (button, key, or 100 px of wheel). */
 export const ZOOM_STEP = 1.25;
@@ -58,16 +65,27 @@ export function fitViewport(content, frame) {
 
 /**
  * Returns the allowed zoom range { minScale, maxScale } for this content in this frame:
- * from half the fit scale up to the larger of MAX_SCALE and the fit scale.
+ * from half the fit scale up to the largest of MAX_SCALE, the fit scale and, with a pattern,
+ * the scale at which one stitch is MAX_ZOOM_CELL_SIZE CSS px wide
+ * (MAX_ZOOM_CELL_SIZE × grid.width / content.width).
  * content, frame  as for fitViewport.
- * Throws RangeError if a size is not a positive number.
+ * grid            optional: the pattern's size { width, height } in stitches (a Pattern works
+ *                 as it is), or null/undefined without a pattern.
+ * Throws RangeError if a size is not a positive number or grid.width is not a positive integer.
  */
-export function zoomLimits(content, frame) {
+export function zoomLimits(content, frame, grid = null) {
   assertPositiveSize('content', content);
   assertPositiveSize('frame', frame);
 
   const fit = fitScale(content, frame);
-  return { minScale: fit * MIN_SCALE_OF_FIT, maxScale: Math.max(MAX_SCALE, fit) };
+  let maxScale = Math.max(MAX_SCALE, fit);
+  if (grid !== null && grid !== undefined) {
+    if (!Number.isInteger(grid.width) || grid.width <= 0) {
+      throw new RangeError(`grid.width must be a positive integer, got ${grid.width}`);
+    }
+    maxScale = Math.max(maxScale, (MAX_ZOOM_CELL_SIZE * grid.width) / content.width);
+  }
+  return { minScale: fit * MIN_SCALE_OF_FIT, maxScale };
 }
 
 /**
