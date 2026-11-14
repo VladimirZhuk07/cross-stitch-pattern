@@ -1,8 +1,8 @@
 ## Purpose
 
-Shows the pattern as a printable-style number chart in the shared view frame (white cells with
-legend numbers, counting grid, rulers, centre marker) and lists the legend that maps each
-number to a DMC floss.
+Shows the pattern as a number chart in the shared view frame (cells in a pale tint of their
+DMC color with legend numbers, counting grid, rulers, centre marker) and lists the legend that
+maps each number to a DMC floss.
 
 Unless stated otherwise, scenarios use the 3 × 2 pattern from the pattern-model spec
 ("Grid layout of a 3 × 2 pattern"): cells `[1, 0, 0, -1, 0, 1]`, legend number 1 = `310`
@@ -12,21 +12,51 @@ and height on screen.
 
 ## ADDED Requirements
 
-### Requirement: Chart cells are white with their legend number
-The Chart layer SHALL draw every stitched cell as a white cell with its legend number (1..N)
-in black, centred in the cell, and SHALL NOT fill any cell with its DMC color. Cells SHALL be
-placed in the shared content rectangle exactly like the other layers (column c spans c/W to
-(c+1)/W of its width, row r spans r/H to (r+1)/H of its height).
+### Requirement: Chart cells are pale tints with their legend number
+The Chart layer SHALL fill every stitched cell with the pale tint of its legend color at every
+zoom level, and draw its legend number (1..N) in black, centred in the cell, when numbers are
+shown. Cells SHALL be placed in the shared content rectangle exactly like the other layers
+(column c spans c/W to (c+1)/W of its width, row r spans r/H to (r+1)/H of its height).
 
 #### Scenario: Numbers of the 3 × 2 pattern
 - **WHEN** the 3 × 2 pattern is shown in the Chart layer with the content rectangle at x 0, y 0, size 60 × 40 (cells 20 × 20)
 - **THEN** row 0 shows `2` centred at (10, 10), `1` at (30, 10), `1` at (50, 10)
 - **AND** row 1 shows no number at (10, 30), `1` at (30, 30), `2` at (50, 30)
-- **AND** every stitched cell is white and every number is black (`#000000`)
+- **AND** cells with number 1 are filled `#B0B0B0` (tint of `310`), cells with number 2 `#FFC0BB` (tint of `321`), and every number is black (`#000000`)
+
+#### Scenario: Tints without numbers at fit
+- **WHEN** a 100 × 100 pattern is fitted into a 1000 × 800 frame (cell size 7.52)
+- **THEN** every stitched cell is filled with its tint and no number is drawn
 
 #### Scenario: Chart is aligned with the other layers
 - **WHEN** a 100 × 67 pattern is shown with the content rectangle at x 10, y 20, size 1024 × 682.5
 - **THEN** the chart cell (column 0, row 0) spans x 10 to 20.24 and y 20 to about 30.19, the same area as in the DMC colors layer
+
+### Requirement: Pale tint of a DMC color
+The pale tint of a color SHALL keep its CIELAB hue, map its lightness L* to 72 + 0.25 × L*
+(so 72 to 97), multiply its chroma by 0.6, and reduce the chroma further only as far as needed
+to stay inside sRGB. It SHALL be given as `#RRGGBB`. Black text on the tint of every DMC color
+SHALL have a WCAG 2 contrast ratio of at least 9.5:1.
+
+#### Scenario: Dark colors
+- **WHEN** the tints of `310` `#000000`, `939` `#1B2853` and `336` `#253B73` are computed
+- **THEN** they are `#B0B0B0` (contrast with black 9.68:1), `#B8BADB` (11.08:1) and `#BBC0E9` (11.83:1)
+
+#### Scenario: Saturated and light colors
+- **WHEN** the tints of `321` `#C72B3B`, `307` `#FDED54`, `BLANC` `#FCFBF8` and `B5200` `#FFFFFF` are computed
+- **THEN** they are `#FFC0BB`, `#FFF2B0`, `#F6F5F4` and `#F6F6F6`
+
+#### Scenario: Lowercase input
+- **WHEN** the tint of `#c72b3b` is computed
+- **THEN** it is `#FFC0BB`
+
+#### Scenario: Whole DMC palette
+- **WHEN** the tints of all 489 DMC palette colors are computed
+- **THEN** every tint has L* between 71.5 and 97.5 and a contrast ratio with black of at least 9.5:1
+
+#### Scenario: Malformed color
+- **WHEN** the tint of `000000` is computed
+- **THEN** it fails with an error whose message contains `000000`
 
 ### Requirement: Number size follows the cell size
 Cell numbers SHALL use one font size for the whole chart: 0.6 × the cell size in CSS px, so a
@@ -61,19 +91,25 @@ numbers SHALL be drawn.
 - **WHEN** a 100 × 100 pattern is fitted into a 1000 × 800 frame (cell size 7.52) and the user zooms in 4 steps (cell size about 18.36)
 - **THEN** the fitted chart shows no numbers and after zooming the numbers are shown at about 11.02 CSS px
 
-### Requirement: Empty cells are grey and unnumbered
-Empty (no-stitch) cells SHALL be filled light grey (`#E0E0E0`) and SHALL have no number, so
-they are distinguishable from every stitched cell, including white floss, without color.
-Grid lines SHALL be drawn over empty cells as over stitched cells.
+### Requirement: Empty cells are grey, hatched and unnumbered
+Empty (no-stitch) cells SHALL be filled light grey (`#E0E0E0`) and SHALL have no number. When
+the cell size is at least 6 CSS px, each empty cell SHALL also get one diagonal `#909090` line
+from its bottom-left to its top-right corner, so it differs from every stitched cell, including
+grey floss whose tint is close to `#E0E0E0` (`318` → `#E1E1E1`). Grid lines SHALL be drawn over
+empty cells as over stitched cells.
 
 #### Scenario: Empty is not white floss
-- **WHEN** a 2 × 1 pattern with colors `[BLANC]` and cells `[0, -1]` is shown with 20 px cells
-- **THEN** cell (0, 0) is white with the number `1`
-- **AND** cell (1, 0) is `#E0E0E0` with no number
+- **WHEN** a 2 × 1 pattern with colors `[BLANC]` and cells `[0, -1]` is shown with 20 px cells at x 0, y 0
+- **THEN** cell (0, 0) is `#F6F5F4` with the number `1`
+- **AND** cell (1, 0) is `#E0E0E0` with no number and a `#909090` line from (20, 20) to (40, 0)
 
 #### Scenario: Pattern without stitches
-- **WHEN** a 2 × 2 pattern with all cells empty is shown in the Chart layer
-- **THEN** all four cells are `#E0E0E0`, no number is drawn, and the grid lines and rulers are drawn
+- **WHEN** a 2 × 2 pattern with all cells empty is shown in the Chart layer with 20 px cells
+- **THEN** all four cells are `#E0E0E0` with a diagonal line, no number is drawn, and the grid lines and rulers are drawn
+
+#### Scenario: Hatch threshold
+- **WHEN** the 3 × 2 pattern is shown with 6 px cells, and again with 5.9 px cells
+- **THEN** the empty cell has a diagonal line at 6 px and none at 5.9 px, where it is only `#E0E0E0`
 
 ### Requirement: Grid lines every stitch and every 10 stitches
 The Chart layer SHALL draw a thin mid-grey (`#A0A0A0`) line between all cells and a bold black
@@ -189,12 +225,13 @@ the grid. Ruler labels SHALL NOT overlap the triangles.
 
 ### Requirement: Legend lists every color in number order
 While a pattern exists, the app SHALL show a legend next to the frame with one row per legend
-entry in number order, each row showing the number, a color swatch, the DMC code, the DMC name
-and the stitch count with thousands separators. All values SHALL be inserted as text.
+entry in number order, each row showing the number on the color's pale tint (as in the chart),
+a color swatch, the DMC code, the DMC name and the stitch count with thousands separators.
+All values SHALL be inserted as text.
 
 #### Scenario: Legend of the 3 × 2 pattern
 - **WHEN** the 3 × 2 pattern is stored in the application state
-- **THEN** the legend has 2 rows: `1`, swatch `#000000`, `310`, `Black`, `3` and `2`, swatch `#C72B3B`, `321`, `Red`, `2`
+- **THEN** the legend has 2 rows: `1` on `#B0B0B0`, swatch `#000000`, `310`, `Black`, `3` and `2` on `#FFC0BB`, swatch `#C72B3B`, `321`, `Red`, `2`
 
 #### Scenario: Large stitch count
 - **WHEN** a legend entry has 12345 stitches
@@ -224,6 +261,19 @@ without stitches SHALL show `This pattern has no stitches.` instead of rows.
 #### Scenario: Pattern without stitches
 - **WHEN** a 2 × 2 pattern with all cells empty is stored
 - **THEN** the legend shows `This pattern has no stitches.` and no rows
+
+### Requirement: Legend is wide and compact
+Beside the frame the legend panel SHALL be 24rem (384 CSS px at the default 16 px font) wide,
+with compact rows, so DMC names take at most 2 lines. Below a 72rem window width it SHALL move
+to its own row under the settings and the frame; below 48rem all panels SHALL stack in one column.
+
+#### Scenario: Desktop window
+- **WHEN** the window is 1440 CSS px wide and the legend lists `939` "Navy Blue Very Dark" and `3865` "Winter White"
+- **THEN** the legend panel is 384 CSS px wide and each of the two rows is at most 2 text lines high
+
+#### Scenario: Narrow window
+- **WHEN** the window is 1100 CSS px wide (below 72rem)
+- **THEN** the legend is shown below the settings and the frame, across the full width
 
 ### Requirement: Legend is readable without color
 The legend SHALL never rely on color alone: every row SHALL show its number, DMC code and name
