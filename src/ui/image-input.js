@@ -122,7 +122,7 @@ function isFileDrag(event) {
   return event.dataTransfer?.types.includes('Files') ?? false;
 }
 
-/** Status text for a loaded image, e.g. "big.jpg — 2048 × 1365 px (downscaled from 6000 × 4000 px)". */
+/** Status text for a loaded image, e.g. "big.jpg — 5016 × 3344 px (downscaled from 6000 × 4000 px)". */
 function describeLoadedImage(image) {
   const size = `${image.fileName} — ${image.width} × ${image.height} px`;
   if (!image.isDownscaled) {

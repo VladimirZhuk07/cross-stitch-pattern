@@ -2,13 +2,16 @@
 // Nothing is uploaded: createImageBitmap reads the File object locally.
 
 import { capImageSize } from '../core/image-size.js';
+import { MAX_GRID_SIDE } from '../core/stitch-grid.js';
 
 /**
- * Longest side, in pixels, of an image as used by the app. Larger images are downscaled.
- * 2048 px is far above any practical stitch width (≤ 500 stitches) and keeps one RGBA copy
- * of the image at most 16 MB.
+ * Decode limits { maxSide, maxPixels } of an image as used by the app; larger images are
+ * downscaled (see capImageSize in ../core/image-size.js).
+ * maxPixels 16,777,216 (4096 × 4096): the pixels are read through an OffscreenCanvas of the
+ * full image size, and Safari/iOS refuses canvases with more pixels; one RGBA copy is then at
+ * most 64 MB. maxSide equals the widest stitch grid, so even that grid gets a pixel per stitch.
  */
-export const MAX_DECODE_SIDE = 2048;
+export const DECODE_LIMITS = Object.freeze({ maxSide: MAX_GRID_SIDE, maxPixels: 4096 * 4096 });
 
 /**
  * Thrown when a file cannot be decoded as an image (wrong type, empty, or corrupt).
@@ -23,8 +26,8 @@ export class ImageDecodeError extends Error {
 }
 
 /**
- * Decodes file (a File or Blob with a name) into a loaded image, downscaled if its longer
- * side exceeds maxSide pixels (default MAX_DECODE_SIDE).
+ * Decodes file (a File or Blob with a name) into a loaded image, downscaled if it exceeds
+ * limits { maxSide, maxPixels } (default DECODE_LIMITS).
  *
  * Resolves to a loaded image { bitmap, fileName, width, height, sourceWidth, sourceHeight,
  * isDownscaled }:
@@ -40,7 +43,7 @@ export class ImageDecodeError extends Error {
  * The image is first decoded at full size and then resized: reading the size from the file
  * header first would need a second decoding path (trade-off described in design.md, D6).
  */
-export async function loadImageFile(file, maxSide = MAX_DECODE_SIDE) {
+export async function loadImageFile(file, limits = DECODE_LIMITS) {
   if (file.size === 0) {
     throw new ImageDecodeError(file.name);
   }
@@ -52,7 +55,7 @@ export async function loadImageFile(file, maxSide = MAX_DECODE_SIDE) {
     throw new ImageDecodeError(file.name, error);
   }
 
-  const capped = capImageSize(decoded.width, decoded.height, maxSide);
+  const capped = capImageSize(decoded.width, decoded.height, limits);
   const result = {
     fileName: file.name,
     sourceWidth: decoded.width,
