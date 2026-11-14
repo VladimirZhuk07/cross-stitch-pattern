@@ -2,7 +2,9 @@
 // The math lives in ../core/viewport.js and ../core/pinch-zoom.js; this module only reads events.
 
 import { zoomAt, zoomLimits, panBy, wheelZoomFactor, ZOOM_STEP } from '../core/viewport.js';
-import { emptyGesture, startPointer, movePointer, endPointer } from '../core/pinch-zoom.js';
+import {
+  emptyGesture, startPointer, movePointer, endPointer, trackpadPinchFactor,
+} from '../core/pinch-zoom.js';
 
 /** Distance one arrow-key press scrolls the view, in CSS px. */
 const PAN_STEP = 50;
@@ -18,6 +20,7 @@ const DELTA_MODE_PAGE = 2;
  *   drag with mouse, pen or one finger   pans
  *   two fingers                          pinch-zoom around their midpoint and pan with it
  *   mouse wheel / trackpad scroll        zooms around the cursor (100 px = one ×1.25 step)
+ *   Ctrl + wheel (trackpad pinch)        zooms around the cursor by e^(−delta / 100)
  *   keys while the frame has focus       + or = zoom in, - zoom out, 0 fits,
  *                                        arrow keys scroll the view by 50 CSS px
  * Does nothing while no image is shown.
@@ -36,7 +39,10 @@ export function setupViewerInput(root, store) {
     event.preventDefault(); // zoom instead of scrolling the page
     const bounds = canvas.getBoundingClientRect();
     const anchor = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-    zoomBy(store, wheelZoomFactor(wheelDeltaPixels(event, bounds.height)), anchor);
+    const deltaPixels = wheelDeltaPixels(event, bounds.height);
+    // Chrome, Edge and Firefox report a trackpad pinch as a wheel event with ctrlKey set.
+    const factor = event.ctrlKey ? trackpadPinchFactor(deltaPixels) : wheelZoomFactor(deltaPixels);
+    zoomBy(store, factor, anchor);
   }, { passive: false });
 
   viewer.addEventListener('keydown', (event) => {

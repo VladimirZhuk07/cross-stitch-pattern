@@ -15,7 +15,7 @@
 ## 3. Viewer input (ui)
 
 - [x] 3.1 In `src/ui/viewer-input.js` replace `setupDragPan` with pointer-gesture tracking on the core functions: `pointerdown` (button 0, image shown) → `startPointer` + `setPointerCapture` only when the pointer was accepted; `pointermove` → `movePointer` with frame-relative points and `zoomLimits`, `setState` only when the viewport changed; `pointerup` → `endPointer`; `pointercancel` → `emptyGesture()`; `viewer--panning` while any pointer is tracked; reset the gesture if the image disappears; update the module comment's input table; verify `npm test` passes and, in the dev server, a mouse drag still pans
-- [ ] 3.2 In the wheel handler use `trackpadPinchFactor` when `event.ctrlKey` is set, `wheelZoomFactor` otherwise (delta conversion unchanged); verify `npm test` passes
+- [x] 3.2 In the wheel handler use `trackpadPinchFactor` when `event.ctrlKey` is set, `wheelZoomFactor` otherwise (delta conversion unchanged); verify `npm test` passes
 - [ ] 3.3 Add Safari `gesturestart`/`gesturechange`/`gestureend` listeners (design D5): `preventDefault` while an image is shown, `zoomAt` by `scale / lastScale` around the frame-relative `clientX/clientY` (frame center if missing), skip zooming while the pointer gesture tracks any pointer, ignore non-positive or non-finite scales; verify `npm test` passes and `viewer-input.js` stays under ~300 lines
 
 ## 4. Page-zoom guard (integration)
