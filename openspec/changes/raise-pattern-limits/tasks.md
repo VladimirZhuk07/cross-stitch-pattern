@@ -79,7 +79,7 @@
 
 ## 14. Verification
 
-- [ ] 14.1 Run `npm run test:unit` and confirm all unit tests pass
+- [x] 14.1 Run `npm run test:unit` and confirm all unit tests pass
 - [ ] 14.2 Run `npm run test:integration` and confirm all integration tests pass
 - [ ] 14.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/` (desktop Chrome; use the 3200 × 4000 reference JPEG from outside the repository, never commit it):
   - form: type width `10000` and colors `489` → accepted; `10001` → `Width must be a whole number from 10 to 10000.`; `490` → `Max colors must be a whole number from 1 to 489.`; reset to `100` / `24`
