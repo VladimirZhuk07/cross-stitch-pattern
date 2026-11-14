@@ -38,7 +38,7 @@
 ## 6. Verification
 
 - [x] 6.1 Run `npm run test:unit`; all tests pass
-- [ ] 6.2 Run `npm run test:integration`; all tests pass
+- [x] 6.2 Run `npm run test:integration`; all tests pass
 - [ ] 6.3 Browser smoke check via `node scripts/serve.js` in Chrome DevTools device mode (reload between devices), loading a 1200 × 800 photo and a PNG with transparency:
   - 1440 × 900 desktop: looks like `main` except `Choose image` is a button; no toggles; legend 384 px; Tab/Space opens the chooser
   - 1100 × 800 and iPad Air 820 × 1180 (touch): medium layout, legend below at ≤ 40 % height; on iPad zoom buttons and view options are ≥ 44 px
@@ -48,5 +48,7 @@
   - Rotate a phone viewport and resize to 1440 px and back: collapsed panels stay collapsed on compact, always open on desktop; the view stays centred
   - Keyboard only at 375 px: Tab order header → Settings → fields (when open) → view options → frame → zoom → Legend; focus ring always visible
   - If an Android phone is available: `chrome://inspect` port forwarding to `localhost:8080`; the picker offers camera and gallery, a photo loads, buttons are easy to tap
+  - Once add-pinch-zoom is on `main` (it adds `node scripts/serve.js --host 0.0.0.0`): open `http://<computer-ip>:8080/` on any phone on the same Wi-Fi, iPhone included; same checks, plus the notch: in landscape nothing sits under the notch or the home indicator
+  - After rebasing onto raise-pattern-limits: the Generate/Stop buttons (`.settings__button`) next to the generation status stay visible with collapsed settings, are ≥ 44 × 44 px at 375 px, and fit the 256 px side column in landscape; the 3-digit legend numbers still fit the landscape legend without sideways scrolling
   - DevTools Console has no errors; Network shows only the app's own files
 - [ ] 6.4 Run `openspec validate improve-mobile-layout --strict`; it reports the change is valid
