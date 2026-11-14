@@ -12,7 +12,7 @@ User-visible behavior:
 
 - **Two-finger pinch on a touch screen** zooms the view around the midpoint between the
   fingers; the content under the midpoint stays under it, and moving both fingers pans at the
-  same time. Zoom limits are the existing ones (half the fit zoom … 6400 %).
+  same time. Zoom limits are the existing ones (from `raise-pattern-limits`).
 - **Changing the number of fingers never makes the view jump**: lifting one of two fingers
   continues as a one-finger pan, a third finger is ignored, and a cancelled touch ends the
   gesture where it is.

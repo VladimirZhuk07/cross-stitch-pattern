@@ -21,8 +21,12 @@ midpoint. Zoom SHALL stay within the zoom limits. Fingers less than 1 CSS px apa
 - **THEN** the zoom is 200 %, the image's top-left is at (−120, −50), and the image point that was under the old midpoint (150, 100) is drawn under the new midpoint (180, 150)
 
 #### Scenario: Upper zoom limit
-- **WHEN** the zoom is 4000 % with the image's top-left at (0, 0) and two fingers move from (100, 100) and (200, 100) to (50, 100) and (250, 100)
+- **WHEN** no pattern exists, the zoom is 4000 % with the image's top-left at (0, 0) and two fingers move from (100, 100) and (200, 100) to (50, 100) and (250, 100)
 - **THEN** the zoom is 6400 % (not 8000 %), the image's top-left is at (−90, −60), and the image point under the midpoint stays at (150, 100)
+
+#### Scenario: Upper zoom limit of a fine pattern
+- **WHEN** a 1000 × 800 px image fitted in a 1000 × 800 CSS px frame has a 10000 × 8000 pattern, the zoom is 40000 % with the image's top-left at (0, 0), and two fingers move from (100, 100) and (200, 100) to (50, 100) and (250, 100)
+- **THEN** the zoom is 64000 % (one stitch is 64 CSS px wide; not 80000 %) and the image's top-left is at (−90, −60)
 
 #### Scenario: Lower zoom limit
 - **WHEN** the fit zoom is 100 % (lower limit 50 %), the zoom is 80 % with the image's top-left at (0, 0), and two fingers move from (100, 100) and (200, 100) to (125, 100) and (175, 100)
@@ -89,7 +93,7 @@ in CSS px limited to −50 … +50, within the zoom limits. It SHALL NOT zoom th
 - **THEN** the delta counts as +50 px: the zoom is 61 % (factor 0.6065) and the image's top-left is at about (39.35, 19.67)
 
 #### Scenario: At the upper limit
-- **WHEN** the zoom is 6400 % and a Ctrl + wheel event with a vertical delta of −40 px arrives
+- **WHEN** no pattern exists, the zoom is 6400 % and a Ctrl + wheel event with a vertical delta of −40 px arrives
 - **THEN** the zoom stays 6400 %
 
 ### Requirement: Safari pinch gestures zoom the view, not the page
@@ -114,10 +118,12 @@ events SHALL NOT zoom again.
 
 ### Requirement: Zoom keeps the point under the cursor in place
 The app SHALL zoom in steps of ×1.25 with the `+`/`−` buttons and the `+`/`-` keys (around the
-frame center) and with the mouse wheel without the Ctrl key (around the cursor; one 100 px wheel
-step = one step). The image point at the zoom anchor SHALL stay at the same screen position.
-Zoom SHALL be limited to between half the fit zoom and the larger of 6400 % and the fit zoom.
-The current zoom SHALL be shown as a whole percentage.
+frame center) and with the mouse wheel without the Ctrl key (around the cursor; one 100 px wheel step =
+one step). The image point at the zoom anchor SHALL stay at the same screen position. Zoom SHALL be
+limited to between half the fit zoom and the largest of 6400 %, the fit zoom and, while a
+pattern exists, the zoom at which one stitch is 64 CSS px wide
+(`64 × pattern width / image width`, as a scale). The current zoom SHALL be shown as a whole
+percentage.
 
 #### Scenario: Wheel zoom at the cursor
 - **WHEN** the zoom is 100 % with the image's top-left at (0, 0) and the user scrolls up one step with the cursor at (100, 50)
@@ -134,3 +140,15 @@ The current zoom SHALL be shown as a whole percentage.
 #### Scenario: Lower zoom limit
 - **WHEN** the fit zoom is 48.4 % and the user zooms out repeatedly
 - **THEN** the zoom stops at 24.2 %
+
+#### Scenario: Huge pattern from a small image
+- **WHEN** a 1000 × 800 px image has a 10000 × 8000 pattern and the user zooms in repeatedly
+- **THEN** the zoom stops at 64000 % (scale 640), where one stitch is 64 CSS px wide
+
+#### Scenario: Pattern coarser than the image keeps 6400 %
+- **WHEN** a 1000 × 800 px image has a 100 × 80 pattern and the user zooms in repeatedly
+- **THEN** the zoom stops at 6400 % (one stitch is then 640 CSS px wide)
+
+#### Scenario: No pattern yet
+- **WHEN** a 1000 × 800 px image is loaded and no pattern exists
+- **THEN** the zoom stops at 6400 %
