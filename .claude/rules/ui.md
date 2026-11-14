@@ -54,5 +54,10 @@ paths:
 - Simple, flat class names (`.legend`, `.legend__row`). Avoid IDs and deep selectors in CSS.
 - No inline styles except values computed at runtime (e.g. a swatch background color via
   `element.style.setProperty('--swatch', hex)`).
-- Layout with flexbox/grid. Mobile-friendly, but desktop is the primary target.
+- Layout with flexbox/grid. Phones (from 360 px wide, portrait and landscape) are a supported
+  target; the desktop layout stays as it is. CSS alone decides the layout: the compact layout
+  applies below 48rem width, or below 30rem height while narrower than 60rem, on `screen` only
+  (never in print). No horizontal page scroll down to 360 px.
+- Touch targets are at least 44 × 44 CSS px in the compact layout and on coarse pointers.
+- Never disable page zoom in the viewport meta tag (no `maximum-scale`/`user-scalable`).
 - `@media print` stylesheet: hide controls, print the number chart and legend on clean pages.

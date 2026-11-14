@@ -33,7 +33,7 @@
 
 ## 5. Documentation
 
-- [ ] 5.1 In `.claude/rules/ui.md` replace "Mobile-friendly, but desktop is the primary target." with: phones (from 360 px, portrait and landscape) are a supported target; desktop layout stays as is; layout is decided in CSS by the compact breakpoints (48rem width, 30rem height below 60rem width, screen only); touch targets ≥ 44 × 44 px on compact and coarse-pointer screens; no horizontal scroll; never disable page zoom; verify the file reads correctly and `git diff` shows only that bullet changed
+- [x] 5.1 In `.claude/rules/ui.md` replace "Mobile-friendly, but desktop is the primary target." with: phones (from 360 px, portrait and landscape) are a supported target; desktop layout stays as is; layout is decided in CSS by the compact breakpoints (48rem width, 30rem height below 60rem width, screen only); touch targets ≥ 44 × 44 px on compact and coarse-pointer screens; no horizontal scroll; never disable page zoom; verify the file reads correctly and `git diff` shows only that bullet changed
 
 ## 6. Verification
 
