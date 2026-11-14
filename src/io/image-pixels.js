@@ -6,7 +6,7 @@
  * Returns the pixel image { width, height, pixels } of a loaded image (see loadImageFile in
  * ./image-loader.js): pixels is a new Uint8ClampedArray of width × height × 4 bytes, RGBA,
  * row-major, sRGB, straight alpha, owning its whole buffer (so it can be transferred).
- * The shape is described at resizeToGrid in ../core/stitch-grid.js.
+ * The shape is described at createGridAverager in ../core/stitch-grid.js.
  * Throws if the browser has no OffscreenCanvas or cannot create a 2D context.
  */
 export function readImagePixels(image) {

@@ -21,7 +21,7 @@
 ## 4. Streaming area averaging (core)
 
 - [x] 4.1 Rewrite the resize tests in `tests/unit/core/stitch-grid.test.js` for `createGridAverager(image, size)` → `averageRow(row, out)` (4 values per cell): black + white 2 × 1 → linear `(0.5, 0.5, 0.5)`, alpha 1; red/blue/green 3 × 1 → `(0.6667, 0, 0.3333)` / `(0, 0.6667, 0.3333)` within 1e-4; `(199,43,59)` + transparent → alpha 0.5 and the opaque color within 1e-12; 1 opaque of 4 → alpha 0.25; 1 × 1 → 3 × 3 gives equal rows; fully transparent → alpha 0 and color 0; rows in any order and a reused `out` give the same values; wrong buffer length → `RangeError` with `16` and `12`; input unchanged. Verify they fail
-- [ ] 4.2 Implement `createGridAverager` per design D4 (flat span arrays, column accumulator, 256-entry linear table) and remove `resizeToGrid`. Verify `node --test tests/unit/core/stitch-grid.test.js` passes
+- [x] 4.2 Implement `createGridAverager` per design D4 (flat span arrays, column accumulator, 256-entry linear table) and remove `resizeToGrid`. Verify `node --test tests/unit/core/stitch-grid.test.js` passes
 
 ## 5. Reservoir sampling (core)
 

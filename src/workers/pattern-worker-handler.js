@@ -4,7 +4,7 @@
 //
 // Messages (plain data; every response echoes the request's id):
 //   request   { type: 'generate', id, settings: { targetWidth, maxColors }, image? }
-//             image is a pixel image { width, height, pixels } (see resizeToGrid in
+//             image is a pixel image { width, height, pixels } (see createGridAverager in
 //             ../core/stitch-grid.js). It is sent with the first request for a new image,
 //             with pixels.buffer transferred, and remembered for later requests.
 //   response  { type: 'pattern', id, pattern }   pattern.cells.buffer is transferred

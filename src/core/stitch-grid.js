@@ -48,7 +48,7 @@ const CHANNELS = 4;
 // Linear-light value of every sRGB byte, computed once instead of per pixel.
 const LINEAR_OF_BYTE = buildLinearTable();
 
-// Averages the pixels of an image into a stitch grid (area averaging, one cell = one stitch).
+// Prepares row-by-row area averaging of an image into a stitch grid (one cell = one stitch).
 // image  pixel image { width, height, pixels }: pixels is a Uint8ClampedArray (or Uint8Array)
 //        of width × height × 4 bytes, RGBA, row-major, sRGB, straight (not premultiplied)
 //        alpha. Created by readImagePixels in src/io/image-pixels.js.
@@ -56,78 +56,114 @@ const LINEAR_OF_BYTE = buildLinearTable();
 // Cell (c, r) covers the image rectangle x from c × imageWidth / width to (c + 1) × imageWidth
 // / width (and likewise for y); every pixel counts with the area it shares with the cell, so
 // fractional pixels at cell edges count partly.
-// Returns StitchGrid { width, height, linearRgb, alpha }:
-//   linearRgb  Float64Array of 3 × width × height linear-light values 0–1 (r, g, b per cell,
-//              row-major): the alpha-weighted mean, so the color of transparent pixels does
-//              not tint the cell; 0 for a cell without any alpha.
-//   alpha      Float64Array of width × height mean alpha values 0–1 over the cell area.
+// Returns averageRow(row, out): writes the cell averages of grid row `row` (0-based) into
+// `out`, a Float64Array of at least 4 × size.width numbers owned by the caller, and returns
+// nothing. Per cell in turn:
+//   linear r, g, b  0–1, the alpha-weighted mean, so the color of transparent pixels does not
+//                   tint the cell; 0 for a cell without any alpha
+//   alpha           0–1, the mean alpha over the cell area
+// Rows may be averaged in any order and as often as needed; nothing per cell is kept, so the
+// memory used is independent of the grid height (a column accumulator of 4 × image width).
 // Averaging happens in linear RGB because light mixes linearly; averaging sRGB values
 // would make every mixed cell too dark.
-// Does not modify the input. Throws TypeError if pixels is not a byte array, RangeError for
+// Does not modify the image. Throws TypeError if pixels is not a byte array, RangeError for
 // invalid sizes or a pixel buffer whose length is not width × height × 4.
-export function resizeToGrid(image, size) {
+export function createGridAverager(image, size) {
   checkPixelImage(image);
   checkPositiveInteger('grid width', size.width);
   checkPositiveInteger('grid height', size.height);
   const columnSpans = overlapSpans(image.width, size.width);
   const rowSpans = overlapSpans(image.height, size.height);
-  const cellCount = size.width * size.height;
-  const linearRgb = new Float64Array(cellCount * 3);
-  const alpha = new Float64Array(cellCount);
-  for (let row = 0; row < size.height; row++) {
+  const columnSums = new Float64Array(image.width * CHANNELS);
+
+  return function averageRow(row, out) {
+    sumRowSpanPerColumn(image, rowSpans, row, columnSums);
+    const rowExtent = rowSpans.extent[row];
     for (let column = 0; column < size.width; column++) {
-      averageCell(image, rowSpans[row], columnSpans[column], row * size.width + column, linearRgb, alpha);
+      averageCellFromColumns(columnSums, columnSpans, column, rowExtent, out);
     }
-  }
-  return { width: size.width, height: size.height, linearRgb, alpha };
+  };
 }
 
-// Writes the averages of one cell into the output arrays linearRgbOut and alphaOut.
-function averageCell(image, rowSpan, columnSpan, cell, linearRgbOut, alphaOut) {
+// The separable first step: for every image column, the sums over the source rows that grid
+// row `row` overlaps, each pixel weighted by its row overlap and its alpha. Writes
+// columnSumsOut as alpha-weighted linear r, g, b and the weighted alpha per column.
+function sumRowSpanPerColumn(image, rowSpans, row, columnSumsOut) {
   const { pixels, width: imageWidth } = image;
-  let areaSum = 0;
-  let alphaSum = 0;
+  columnSumsOut.fill(0);
+  const first = rowSpans.first[row];
+  const start = rowSpans.offset[row];
+  const end = rowSpans.offset[row + 1];
+  for (let j = start; j < end; j++) {
+    const rowWeight = rowSpans.weights[j];
+    let offset = (first + j - start) * imageWidth * CHANNELS;
+    for (let x = 0; x < imageWidth; x++, offset += CHANNELS) {
+      const weight = rowWeight * (pixels[offset + 3] / MAX_BYTE);
+      const sum = x * CHANNELS;
+      columnSumsOut[sum] += weight * LINEAR_OF_BYTE[pixels[offset]];
+      columnSumsOut[sum + 1] += weight * LINEAR_OF_BYTE[pixels[offset + 1]];
+      columnSumsOut[sum + 2] += weight * LINEAR_OF_BYTE[pixels[offset + 2]];
+      columnSumsOut[sum + 3] += weight;
+    }
+  }
+}
+
+// The second step: combines the column sums a cell overlaps and writes its 4 averages to out.
+function averageCellFromColumns(columnSums, columnSpans, column, rowExtent, out) {
+  const first = columnSpans.first[column];
+  const start = columnSpans.offset[column];
+  const end = columnSpans.offset[column + 1];
   let red = 0;
   let green = 0;
   let blue = 0;
-  for (let j = 0; j < rowSpan.weights.length; j++) {
-    const rowStart = (rowSpan.first + j) * imageWidth;
-    for (let i = 0; i < columnSpan.weights.length; i++) {
-      const area = rowSpan.weights[j] * columnSpan.weights[i];
-      const offset = (rowStart + columnSpan.first + i) * CHANNELS;
-      const weight = area * (pixels[offset + 3] / MAX_BYTE);
-      areaSum += area;
-      alphaSum += weight;
-      red += weight * LINEAR_OF_BYTE[pixels[offset]];
-      green += weight * LINEAR_OF_BYTE[pixels[offset + 1]];
-      blue += weight * LINEAR_OF_BYTE[pixels[offset + 2]];
-    }
+  let alphaSum = 0;
+  for (let i = start; i < end; i++) {
+    const columnWeight = columnSpans.weights[i];
+    const sum = (first + i - start) * CHANNELS;
+    red += columnWeight * columnSums[sum];
+    green += columnWeight * columnSums[sum + 1];
+    blue += columnWeight * columnSums[sum + 2];
+    alphaSum += columnWeight * columnSums[sum + 3];
   }
-  alphaOut[cell] = alphaSum / areaSum;
+  const cell = column * CHANNELS;
+  out[cell + 3] = alphaSum / (rowExtent * columnSpans.extent[column]);
   if (alphaSum > 0) {
-    linearRgbOut[cell * 3] = red / alphaSum;
-    linearRgbOut[cell * 3 + 1] = green / alphaSum;
-    linearRgbOut[cell * 3 + 2] = blue / alphaSum;
+    out[cell] = red / alphaSum;
+    out[cell + 1] = green / alphaSum;
+    out[cell + 2] = blue / alphaSum;
+    return;
   }
+  out[cell] = 0;
+  out[cell + 1] = 0;
+  out[cell + 2] = 0;
 }
 
-// For each of cellCount cells along one axis of sourceSize pixels: the first pixel the cell
-// touches and the length (in pixels, 0–1) of its overlap with each touched pixel.
-// The same spans serve every row (or column), which keeps the averaging separable.
+// For each of cellCount cells along one axis of sourceSize pixels: the first pixel it touches
+// (first[cell]), the lengths of its overlap with each touched pixel (weights[offset[cell]] to
+// weights[offset[cell + 1] − 1], in pixels, 0–1) and their sum, the cell's extent (extent[cell]).
+// Flat typed arrays instead of one object per cell keep 10000 cells cheap.
 function overlapSpans(sourceSize, cellCount) {
-  const spans = [];
+  const first = new Int32Array(cellCount);
+  const offset = new Int32Array(cellCount + 1);
+  const extent = new Float64Array(cellCount);
+  const weights = [];
   for (let cell = 0; cell < cellCount; cell++) {
     const start = (cell * sourceSize) / cellCount;
     const end = ((cell + 1) * sourceSize) / cellCount;
-    const first = Math.floor(start);
-    const last = Math.min(sourceSize, Math.ceil(end)) - 1;
-    const weights = new Float64Array(last - first + 1);
-    for (let pixel = first; pixel <= last; pixel++) {
-      weights[pixel - first] = Math.min(end, pixel + 1) - Math.max(start, pixel);
+    const firstPixel = Math.floor(start);
+    const lastPixel = Math.min(sourceSize, Math.ceil(end)) - 1;
+    first[cell] = firstPixel;
+    offset[cell] = weights.length;
+    let cellExtent = 0;
+    for (let pixel = firstPixel; pixel <= lastPixel; pixel++) {
+      const weight = Math.min(end, pixel + 1) - Math.max(start, pixel);
+      weights.push(weight);
+      cellExtent += weight;
     }
-    spans.push({ first, weights });
+    extent[cell] = cellExtent;
   }
-  return spans;
+  offset[cellCount] = weights.length;
+  return { first, offset, extent, weights: Float64Array.from(weights) };
 }
 
 function buildLinearTable() {
@@ -138,7 +174,7 @@ function buildLinearTable() {
   return table;
 }
 
-// Checks that image is a pixel image as described at resizeToGrid: positive integer width
+// Checks that image is a pixel image as described at createGridAverager: positive integer width
 // and height, and a Uint8ClampedArray or Uint8Array of exactly width × height × 4 bytes.
 // Returns nothing. Throws TypeError for a missing image or pixels that are not a byte array,
 // RangeError for invalid sizes or a buffer of the wrong length.

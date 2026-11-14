@@ -9,7 +9,7 @@ import { linearRgbToLab } from './color.js';
 import { nearestDmcColors, prepareLabPalette } from './dmc-match.js';
 import { kMeansLab } from './kmeans.js';
 import { EMPTY_CELL, MAX_PATTERN_COLORS, buildPattern } from './pattern.js';
-import { EMPTY_ALPHA_THRESHOLD, MAX_GRID_SIDE, maxTargetWidth, resizeToGrid, stitchGridSize } from './stitch-grid.js';
+import { EMPTY_ALPHA_THRESHOLD, MAX_GRID_SIDE, createGridAverager, maxTargetWidth, stitchGridSize } from './stitch-grid.js';
 
 // The full DMC palette with Lab values, prepared on first use and then reused.
 let preparedDmcPalette = null;
@@ -22,7 +22,7 @@ function dmcPalette() {
 }
 
 // Generates a cross-stitch pattern from an image.
-// image     pixel image { width, height, pixels } as described at resizeToGrid in
+// image     pixel image { width, height, pixels } as described at createGridAverager in
 //           ./stitch-grid.js (RGBA bytes, row-major).
 // settings  { targetWidth, maxColors }: stitches per row (whole number 1–MAX_GRID_SIDE) and the
 //           largest number of DMC colors (whole number 1–MAX_PATTERN_COLORS). Other fields (fabricCount) are ignored.
@@ -37,7 +37,7 @@ export function generatePattern(image, settings, palette = dmcPalette()) {
   checkSettings(settings);
   const size = stitchGridSize(image.width, image.height, settings.targetWidth);
   checkGridFits(image, size);
-  const grid = resizeToGrid(image, size);
+  const grid = averageGrid(image, size);
   const stitched = stitchedCells(grid.alpha);
   const cells = new Int16Array(size.width * size.height).fill(EMPTY_CELL);
   if (stitched.length === 0) {
@@ -102,4 +102,24 @@ function checkGridFits(image, size) {
     `the pattern would be ${size.height} stitches tall at target width ${size.width}, ` +
     `at most ${MAX_GRID_SIDE} are allowed; ${advice}`,
   );
+}
+
+// Averages every grid row into whole-grid arrays { linearRgb (3 per cell), alpha (1 per cell) }.
+// Temporary bridge until the two-pass pipeline (task 7.3) streams the rows instead.
+function averageGrid(image, size) {
+  const averageRow = createGridAverager(image, size);
+  const out = new Float64Array(size.width * 4);
+  const linearRgb = new Float64Array(size.width * size.height * 3);
+  const alpha = new Float64Array(size.width * size.height);
+  for (let row = 0; row < size.height; row++) {
+    averageRow(row, out);
+    for (let column = 0; column < size.width; column++) {
+      const cell = row * size.width + column;
+      linearRgb[cell * 3] = out[column * 4];
+      linearRgb[cell * 3 + 1] = out[column * 4 + 1];
+      linearRgb[cell * 3 + 2] = out[column * 4 + 2];
+      alpha[cell] = out[column * 4 + 3];
+    }
+  }
+  return { linearRgb, alpha };
 }
