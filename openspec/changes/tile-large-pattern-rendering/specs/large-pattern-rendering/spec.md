@@ -110,7 +110,7 @@ holds a different pattern, all pictures of the old pattern SHALL be released.
 - **THEN** every tile and the overview of the first pattern are released before the next redraw ends
 
 ### Requirement: Building is spread over frames
-A layer SHALL read at most 2,097,152 stitches per frame to build pictures (at least one picture
+A layer SHALL read at most 524,288 stitches per frame to build pictures (at least one picture
 row, if a single row is larger), building visible tiles first and then the overview. While a
 visible tile or the overview is incomplete, the layer SHALL ask for another frame; once all
 are complete it SHALL stop asking.
@@ -121,12 +121,12 @@ are complete it SHALL stop asking.
 
 #### Scenario: Huge pattern at Fit
 - **WHEN** a 10000 × 10000 pattern is first shown at Fit (overview level 3, 80,000 stitches per overview row)
-- **THEN** each frame builds 26 overview rows (2,080,000 stitches) and shows the rows built so far
-- **AND** the overview is complete after 49 frames and no further frame is requested
+- **THEN** each frame builds 6 overview rows (480,000 stitches) and shows the rows built so far
+- **AND** the overview is complete after 209 frames and no further frame is requested
 
 #### Scenario: Zoomed in on a new pattern
 - **WHEN** a new 10000 × 10000 pattern is shown with the 9 tiles of "Zoomed into the middle" visible
-- **THEN** the first frame builds 8 tiles (8 × 262,144 stitches) in row order and the second frame the ninth, then the overview continues in the following frames
+- **THEN** each of the first four frames builds 2 tiles (2 × 262,144 stitches) in row order, the fifth frame the ninth tile and 3 overview rows, then the overview continues in the following frames
 
 ### Requirement: Pending tiles show the overview
 While a visible tile is not yet built, the layer SHALL draw the overview's part for that tile

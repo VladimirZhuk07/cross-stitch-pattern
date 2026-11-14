@@ -14,9 +14,9 @@ far above the iOS Safari canvas limit (16.7 megapixels). At Fit the Chart's bold
   recently drawn evicted first), plus one averaged overview of at most 2048 × 2048 px.
   The detail level (1 pixel = 1, 2 × 2, 4 × 4, … stitches) follows the zoom; any pattern
   size works.
-- Building is spread over frames (at most 2,097,152 stitches read per frame): the view stays
-  responsive, a huge pattern appears row by row within about a second, and pending tiles
-  show the overview meanwhile.
+- Building is spread over frames (at most 524,288 stitches read per frame): the view stays
+  responsive, a huge pattern appears row by row (about 3.5 s for 10000 × 10000), and pending
+  tiles show the overview meanwhile.
 - Tiles meet without seams; hard block edges stay while a stitch is at least 1 device pixel.
   Chart cell colors follow the same sharpness rule as the DMC colors layer.
 - Chart: when 10 stitches are less than 8 CSS px apart, bold lines go every 100 (1000, …)

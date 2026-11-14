@@ -108,7 +108,7 @@ side) is the overview. For 10000 × 10000: M = 3, 1250 × 1250 px, 6.25 MiB.
 to phone limits); tiling everything (more paths and test churn for no benefit).
 
 ### D2. Tile size 512 × 512
-One tile = 1 MiB and 262,144 level-0 stitches, so 8 level-0 tiles fit one frame's build
+One tile = 1 MiB and 262,144 level-0 stitches, so 2 level-0 tiles fit one frame's build
 budget (D6). Worst-case visible tiles (D3: visible picture px ≤ 2 × frame device px, plus one
 partial tile per axis):
 
@@ -145,19 +145,23 @@ options are level-0 tiles scaled down up to 8 × (up to 64 × the device pixels:
 400 MB pattern) or the overview magnified up to 4 × (blurry). Levels 1 … M − 1 are tiled
 exactly like level 0, so they cost no extra code.
 
-### D6. Build budget: 2,097,152 stitches per frame, resumable jobs
+### D6. Build budget: 524,288 stitches per frame, resumable jobs
 Building is the only work that grows with the pattern. A **job** fills one tile (or the
-overview) row by row with `fillLevelRows`; each frame gets `BUILD_BUDGET_STITCHES = 2^21`
+overview) row by row with `fillLevelRows`; each frame gets `BUILD_BUDGET_STITCHES = 2^19`
 reads, shared out by `buildPlan` (at least one row for the job that starts with budget
 left, so building always progresses). Order:
 visible tiles of the current level in row-major order, then the overview. A tile is uploaded
 with one `putImageData` when complete; the overview uploads each new band
 (`putImageData` dirty rectangle) so it appears row by row. Jobs for tiles that left the view
-are dropped. Estimate: one Int16 read, one table lookup and four adds per stitch, about
-1-2 ns on desktop and 2-4 ns on phones, so 2-4 ms (desktop) and 4-8 ms (phone) per frame,
-leaving most of a 16.7 ms frame for drawing; the smoke step measures it, and the constant is
-the one knob. 10000²: overview in 49 frames (≈ 0.8 s at 60 fps); level-0 tiles 8 per frame;
-level-1 tiles 2 per frame; a level-2 tile takes 2 frames.
+are dropped. Measured in Node 22 (V8, as in Chrome) on the development machine after
+optimizing the loops: about 2-3 ns per stitch at level 0 (a 32-bit copy per stitch), 7-8 ns at
+level 1 (only 4 stitches per averaged pixel, so the per-pixel work dominates), 4-5 ns at
+level 2 and 3 ns at level 3. The first plan (2^21 stitches, from an estimate of 1-2 ns) would
+have cost up to 17 ms per frame on desktop; 2^19 costs at most about 4.5 ms on desktop and,
+assuming phones are 2-3 times slower, about 9-13 ms there. 10000²: overview in 209 frames
+(about 3.5 s at 60 fps, shown row by row); level-0 tiles 2 per frame; a level-1 tile takes
+2 frames, a level-2 tile 8. The browser smoke step re-checks the timing; the constant stays the
+one knob.
 *Alternatives:* building synchronously (simplest, but one frame would read up to 100 M
 stitches, 150-400 ms on desktop and more on phones, at Fit and whenever the level changes);
 a Web Worker (no main-thread cost, but needs a worker protocol, asynchronous bitmaps and the
@@ -209,7 +213,7 @@ are ≤ frame size / 4. `rulerLabelStep` continues 10, 20, 50, … × 10^n witho
 independent of the bold step (labels may sit between 1000-lines, e.g. at 1500).
 
 ### D12. Worst-case work per frame (10000 × 10000, any zoom)
-- Building: ≤ 2,097,152 stitches read (or one row more), ≤ 8 tile uploads of 1 MiB.
+- Building: ≤ 524,288 stitches read (or one row more), ≤ 2 tile uploads of 1 MiB.
 - DMC colors: ≤ 42 tile `drawImage` calls (desktop frame) + ≤ 42 overview stand-ins.
 - Chart: the same, plus numbers ≤ frame area / 14² (cells ≥ 14 px), hatch checks
   ≤ frame area / 6², thin lines ≤ frame / 4 per axis, bold lines ≤ frame / 8 + 2, labels
@@ -218,7 +222,7 @@ independent of the bold step (labels may sit between 1000-lines, e.g. at 1500).
 
 ### D13. Tests stay light
 No test allocates a large pattern. The big-size numbers of the specs (levels and tiles of
-10000², 9 visible tiles, 8 + 1 tiles in two frames, 49 overview frames, evicting T2 and
+10000², 9 visible tiles, 2 tiles per frame, 209 overview frames, evicting T2 and
 T3, seam positions) are checked in the pure core functions with sizes only: the geometry of
 `tile-pyramid.js` and a frame-by-frame simulation of `buildPlan`. Pixels are checked on
 small real patterns (2 × 2, 3 × 1, 2050 × 2). The ui picture code is exercised on small
@@ -230,7 +234,7 @@ tests extend `tests/helpers/recording-context.js` (the fake cell canvas records
 `putImageData` dirty rectangles and size resets); the DMC colors test moves from global
 `OffscreenCanvas`/`ImageData` stubs to `options.createCellCanvas`. A one-off script outside
 the repository (in the system temp directory, not committed) renders the real 10000² pattern
-through `pattern-picture.js` with fake canvases to confirm the 49 frames and 8 + 1 tiles and
+through `pattern-picture.js` with fake canvases to confirm the 209 frames and 2 tiles per frame and
 to time a frame's build in Node.
 
 ### D14. A left ruler wide enough for 5-digit row labels
@@ -251,8 +255,11 @@ user).
 
 ## Risks / Trade-offs
 
-- [Build speed estimate is not measured yet] → the smoke step times one frame with the
-  browser's performance panel; `BUILD_BUDGET_STITCHES` is the only knob.
+- [Build speed is measured in Node, not yet in browsers or on phones] → the smoke step
+  times frames with the browser's performance panel; `BUILD_BUDGET_STITCHES` is the only knob.
+- [A 10000² overview takes about 3.5 s to complete] → it appears row by row while the view
+  stays responsive; 2^20 would halve that at the cost of about 9 ms (desktop) to 25 ms
+  (phone) per frame while level-1 tiles are built.
 - [iOS memory limits vary by device] → budgets are constants; released canvases are shrunk
   to 0 × 0; two layers stay ≤ 128 MiB.
 - [Blur while tiles are pending] → at most one frame for a typical pan (≤ 8 new level-0
