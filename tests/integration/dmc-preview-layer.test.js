@@ -31,10 +31,10 @@ function createRecordingContext() {
   return ctx;
 }
 
-function frameFor(content, pixelRatio = 1) {
+function frameFor(content, pixelRatio = 1, frameSize = { width: 1000, height: 800 }) {
   return {
-    width: 1000,
-    height: 800,
+    width: frameSize.width,
+    height: frameSize.height,
     pixelRatio,
     viewport: { scale: 1, offsetX: content.x, offsetY: content.y },
     content,
@@ -105,7 +105,8 @@ describe('DMC colors layer', () => {
     const content = { x: 10, y: 20, width: 1024, height: 682.5 };
     const ctx = createRecordingContext();
     const { layer, canvases } = createTestLayer();
-    layer.render(ctx, frameFor(content), stateWith(pattern));
+    // A frame wide enough to show the whole grid, so its visible range is all 100 × 67 stitches.
+    layer.render(ctx, frameFor(content, 1, { width: 1100, height: 800 }), stateWith(pattern));
 
     const { image, args } = ctx.drawImageCalls[0];
     assert.deepEqual([image.width, image.height], [100, 67]);
