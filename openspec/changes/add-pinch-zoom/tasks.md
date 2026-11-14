@@ -24,7 +24,7 @@
 
 ## 5. Dev server reachable from a phone (scripts)
 
-- [ ] 5.1 Write failing cases in `tests/integration/serve.test.js` for an exported `parseCommandLine(args, env)`: no arguments → host `127.0.0.1`, port 8080, base `/`; `--host 0.0.0.0` → host `0.0.0.0`; `--host` without a value throws an `Error` mentioning `--host`; `--port 0 --base repo` unchanged behavior; the tests never start a server on `0.0.0.0`; verify they fail
+- [x] 5.1 Write failing cases in `tests/integration/serve.test.js` for an exported `parseCommandLine(args, env)`: no arguments → host `127.0.0.1`, port 8080, base `/`; `--host 0.0.0.0` → host `0.0.0.0`; `--host` without a value throws an `Error` mentioning `--host`; `--port 0 --base repo` unchanged behavior; the tests never start a server on `0.0.0.0`; verify they fail
 - [ ] 5.2 Implement `--host` in `scripts/serve.js` (export `parseCommandLine`, pass `host` to `startServer`, update the usage comment); when the host is not `127.0.0.1`, `::1` or `localhost`, print a warning that the server is reachable by every device on the network and list `http://<IPv4>:<port><base>` for each non-internal IPv4 address from `os.networkInterfaces()`; verify 5.1 passes and `node scripts/serve.js --host 0.0.0.0 --port 8090` prints the warning and at least one LAN URL (stop it with Ctrl+C)
 
 ## 6. Verification

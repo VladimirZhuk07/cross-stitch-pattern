@@ -6,7 +6,7 @@ import http from 'node:http';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { startServer } from '../../scripts/serve.js';
+import { startServer, parseCommandLine } from '../../scripts/serve.js';
 
 /**
  * Creates a throw-away site so the tests do not depend on the repository's files:
@@ -122,5 +122,28 @@ describe('dev server under a base path', () => {
   it('answers 404 for a path outside the base path', async () => {
     const response = await request(server.url, '/index.html');
     assert.equal(response.status, 404);
+  });
+});
+
+// Only parses arguments: these tests never start a server on 0.0.0.0, which would expose it
+// on the network (and open a firewall prompt on Windows).
+describe('dev server command line', () => {
+  it('defaults to 127.0.0.1, port 8080 and the root path', () => {
+    assert.deepEqual(parseCommandLine([], {}), { host: '127.0.0.1', port: 8080, basePath: '/' });
+  });
+
+  it('reads --host', () => {
+    assert.equal(parseCommandLine(['--host', '0.0.0.0'], {}).host, '0.0.0.0');
+  });
+
+  it('rejects --host without a value', () => {
+    assert.throws(() => parseCommandLine(['--host'], {}), /--host/);
+  });
+
+  it('still reads --port and --base', () => {
+    assert.deepEqual(
+      parseCommandLine(['--port', '0', '--base', 'repo'], {}),
+      { host: '127.0.0.1', port: 0, basePath: 'repo' },
+    );
   });
 });
