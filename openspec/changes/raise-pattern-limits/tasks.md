@@ -9,7 +9,7 @@
 
 - [ ] 2.1 Rewrite `tests/unit/core/image-size.test.js` for `capImageSize(width, height, { maxSide: 10000, maxPixels: 16777216 })`: 3200 × 4000 unchanged; 6000 × 4000 → 5016 × 3344 (area ≤ cap); 4096 × 4096 unchanged, `isDownscaled` false; 4097 × 4096 → 4096 × 4095; 8000 × 6000 → 4729 × 3547; 100 × 5000 unchanged; 100 × 20000 → 50 × 10000; 30000 × 3 → 10000 × 1; width 0 / 12.5, maxSide 0, maxPixels 0 → `RangeError` naming the value. Verify it fails
 - [ ] 2.2 Implement the area + side cap in `src/core/image-size.js` per design D3. Verify `node --test tests/unit/core/image-size.test.js` passes
-- [ ] 2.3 Replace `MAX_DECODE_SIDE` in `src/io/image-loader.js` with `DECODE_LIMITS = { maxSide: MAX_GRID_SIDE, maxPixels: 4096 * 4096 }` (comment: Safari canvas area limit, 64 MB per RGBA copy), default parameter `limits = DECODE_LIMITS`; update the example in `image-input.js`'s comment to `5016 × 3344`. Verify `npm run test:integration` passes (served-site still resolves every import); behavior is checked in 13.3
+- [ ] 2.3 Replace `MAX_DECODE_SIDE` in `src/io/image-loader.js` with `DECODE_LIMITS = { maxSide: MAX_GRID_SIDE, maxPixels: 4096 * 4096 }` (comment: Safari canvas area limit, 64 MB per RGBA copy), default parameter `limits = DECODE_LIMITS`; update the example in `image-input.js`'s comment to `5016 × 3344`. Verify `npm run test:integration` passes (served-site still resolves every import); behavior is checked in 14.3
 
 ## 3. Grid limit and settings texts (core)
 
@@ -56,8 +56,8 @@
 - [ ] 10.1 Document the generation kinds `idle`, `awaiting-confirmation`, `running`, `stopped`, `done`, `error` in `src/ui/app-state.js` (design data shapes). Verify `npm test` passes
 - [ ] 10.2 Update `tests/integration/settings-markup.test.js`: width `max` equals `MAX_GRID_SIDE` (10000), max colors `max` equals `MAX_PATTERN_COLORS` (489); the form contains `button[type="button"][data-action="generate"]` with text `Generate` and `[data-action="stop-generation"]` with text `Stop`, both `hidden`, after the status output. Verify it fails
 - [ ] 10.3 Edit `index.html` inside the settings form only (two `max` attributes, the two buttons with class `settings__button`) and add the `.settings__button` rule after `.settings__status` in `styles/main.css` (design D13). Verify the markup and served-site tests pass
-- [ ] 10.4 Show the "wider than the image" note in `src/ui/settings-form.js` (design D3). Verify `npm run test:integration` passes; text is checked in 13.3
-- [ ] 10.5 Rework `src/ui/pattern-generation.js` as `setupPatternGeneration(root, store, client)` per design D10/D11: auto-generate up to 4,000,000 stitches, otherwise `awaiting-confirmation`; `client.stop()` on every relevant change while running; progress text through `describeGenerationProgress`; Generate/Stop buttons shown by kind; Stop → `stopped` with `Generation stopped.`; `GenerationStoppedError` from a superseded request changes nothing. Verify `npm run test:integration` passes; behavior is checked in 13.3
+- [ ] 10.4 Show the "wider than the image" note in `src/ui/settings-form.js` (design D3). Verify `npm run test:integration` passes; text is checked in 14.3
+- [ ] 10.5 Rework `src/ui/pattern-generation.js` as `setupPatternGeneration(root, store, client)` per design D10/D11: auto-generate up to 4,000,000 stitches, otherwise `awaiting-confirmation`; `client.stop()` on every relevant change while running; progress text through `describeGenerationProgress`; Generate/Stop buttons shown by kind; Stop → `stopped` with `Generation stopped.`; `GenerationStoppedError` from a superseded request changes nothing. Verify `npm run test:integration` passes; behavior is checked in 14.3
 - [ ] 10.6 Update `src/main.js`: `createPatternWorkerClient(() => new Worker(new URL('./workers/pattern.worker.js', import.meta.url), { type: 'module' }))` and `setupPatternGeneration(document, store, client)`. Verify `npm test` passes and the served-site test still crawls `src/workers/pattern.worker.js`
 
 ## 11. Chart numbers for 3 digits (core, ui)
@@ -65,25 +65,32 @@
 - [ ] 11.1 Update `numberFontSize` tests in `tests/unit/core/chart-layout.test.js`: 20 → 9, 50 → 22.5, 19 → 8.55, 18.9 → `null`, 18.359375 → `null`, 22.94921875 → 10.3271484375, 7.52 → `null`; `NUMBER_FONT_FRACTION` 0.45, `MIN_NUMBERED_CELL_SIZE` 19. Verify they fail
 - [ ] 11.2 Change the two constants and their comments in `src/core/chart-layout.js` (design D12; signatures unchanged). Verify the chart-layout tests pass
 - [ ] 11.3 Update the number expectations in `tests/integration/chart-layer.test.js`: 3 × 2 pattern in 20 px cells at font 9; no numbers at 18.9 px; 5 numbers at 8.55 px in 19 px cells (first at x 9.5). Verify `node --test tests/integration/chart-layer.test.js` passes
-- [ ] 11.4 Set `.legend__number { min-width: calc(3ch + 0.5rem) }` in `styles/main.css` (design D12). Verify `npm run test:integration` passes; widths are checked in 13.3
+- [ ] 11.4 Set `.legend__number { min-width: calc(3ch + 0.5rem) }` in `styles/main.css` (design D12). Verify `npm run test:integration` passes; widths are checked in 14.3
 
-## 12. Project rules
+## 12. Max zoom follows the cell size (core, ui)
 
-- [ ] 12.1 In `.claude/rules/domain.md` replace "At most 99 colors per pattern, so a number never needs more than 2 digits in a cell." with "At most as many colors as the DMC palette has (489); chart numbers are always sized for 3 digits." Verify `grep -n "99 colors" .claude/rules/domain.md` finds nothing
+- [ ] 12.1 Add `zoomLimits` tests in `tests/unit/core/viewport.test.js`: content 1000 × 800 with grid 10000 × 8000 → maxScale 640; grid 100 × 80 → 64; no grid, `null` or `undefined` → 64 as before; a grid whose 64 px scale is below the fit scale → the fit scale; `MAX_ZOOM_CELL_SIZE` is 64; a grid with width 0 → `RangeError`; existing tests unchanged. Verify the new tests fail
+- [ ] 12.2 Implement the optional `grid` parameter and `MAX_ZOOM_CELL_SIZE` in `src/core/viewport.js` (design D14). Verify `node --test tests/unit/core/viewport.test.js` passes
+- [ ] 12.3 Change the one `zoomLimits(state.image, state.frame)` call in `src/ui/viewer-input.js` to pass `state.pattern` (one line, design D13/D14). Verify `npm test` passes; behavior is checked in 14.3
 
-## 13. Verification
+## 13. Project rules
 
-- [ ] 13.1 Run `npm run test:unit` and confirm all unit tests pass
-- [ ] 13.2 Run `npm run test:integration` and confirm all integration tests pass
-- [ ] 13.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/` (desktop Chrome; use the 3200 × 4000 reference JPEG from outside the repository, never commit it):
+- [ ] 13.1 In `.claude/rules/domain.md` replace "At most 99 colors per pattern, so a number never needs more than 2 digits in a cell." with "At most as many colors as the DMC palette has (489); chart numbers are always sized for 3 digits." Verify `grep -n "99 colors" .claude/rules/domain.md` finds nothing
+
+## 14. Verification
+
+- [ ] 14.1 Run `npm run test:unit` and confirm all unit tests pass
+- [ ] 14.2 Run `npm run test:integration` and confirm all integration tests pass
+- [ ] 14.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/` (desktop Chrome; use the 3200 × 4000 reference JPEG from outside the repository, never commit it):
   - form: type width `10000` and colors `489` → accepted; `10001` → `Width must be a whole number from 10 to 10000.`; `490` → `Max colors must be a whole number from 1 to 489.`; reset to `100` / `24`
   - load the 3200 × 4000 JPEG → status `… — 3200 × 4000 px` (no downscale); a 6000 × 4000 photo → `… — 5016 × 3344 px (downscaled from 6000 × 4000 px)`
   - with the reference image: width 400, colors 250 → 400 × 500 generated automatically, status shows `step 1 of 3` … `step 3 of 3` then `Pattern ready: 400 × 500 stitches, N DMC colors.`; colors 489 → N ≤ 489; then set colors back to 250
   - legend: rows `1`, `10` and a 3-digit number (if N ≥ 100) have equal-width number boxes, 3 digits fit
   - Chart layer: zoom in until numbers appear at cell size ≥ 19 px; 3-digit numbers stay inside their cells and clear the bold lines
-  - width 2000 → `This pattern has 5,000,000 stitches. …` and a Generate button, no generation; press Generate → Stop appears, progress runs, pattern ready within about 10 s
+  - width 2000 → `This pattern has 5,000,000 stitches. …` and a Generate button, no generation; press Generate → Stop appears, progress runs, pattern ready within about 10 s; repeat with colors 489 (2000 × 2500 @ 489) and note the time
   - width 5000 → size ends with `Wider than the image (3200 px), so the extra stitches add no detail.` (not red); press Generate, then Stop mid-way → `Generation stopped.`, Generate shown, previous pattern still visible, `aria-busy="false"` on the workspace
   - width 1000 (auto) and change colors while it is generating → the old job stops (DevTools: a new worker appears), only the new result is shown
   - load a 41 × 2048 px image, width 250 → `250 × 12488 stitches is too large: at most 10000 stitches per side. Choose a width of at most 200.`
+  - zoom: with a 400-wide pattern of a 3200 px image, zoom in until it stops → 6400 %; set a grid more than 3.37 × wider than a small image (e.g. a 1000 px image at width 5000, Generate) → zoom continues to 32000 %, where chart cells are 64 px and numbers show
   - largest pattern: a square image of at least 4096 × 4096 px (used at 4096 × 4096), width 10000 and 489 colors, stay on the Original layer → Generate → all 3 steps, pattern ready within about 1 minute, the tab survives; note worker memory in the DevTools Memory panel (expect ≤ 600 MB)
-- [ ] 13.4 Run `openspec validate raise-pattern-limits --strict` and confirm it passes
+- [ ] 14.4 Run `openspec validate raise-pattern-limits --strict` and confirm it passes

@@ -32,7 +32,6 @@ desktop and several times more on phones.
 **Non-Goals:**
 - Fast drawing of huge patterns in the DMC colors / Chart layers, ruler labels with 5 digits
   (`tile-large-pattern-rendering`).
-- A higher maximum zoom for grids much wider than the image (follow-up, see Risks).
 - Confetti cleanup, dithering, export, printing.
 
 ## Module map
@@ -48,6 +47,7 @@ desktop and several times more on phones.
 | `src/core/pattern-generator.js` | core | two-pass pipeline, options `{ palette, onProgress }` (D7, D8) |
 | `src/core/generation-settings.js` | core | new ranges and texts, large-pattern threshold, progress text (D2, D3, D11) |
 | `src/core/chart-layout.js` | core | two constants only (D12) |
+| `src/core/viewport.js` | core | `zoomLimits(content, frame, grid)`: optional pattern grid raises the max zoom (D14) |
 | `src/core/legend-rows.js` | core | comment `'1'..'489'` |
 | `src/workers/pattern-worker-handler.js`, `pattern.worker.js` | workers | progress messages (D9) |
 | `src/io/image-loader.js` | io | `DECODE_LIMITS` (D3) |
@@ -55,6 +55,7 @@ desktop and several times more on phones.
 | `src/ui/pattern-generation.js` | ui | large-pattern confirmation, Generate/Stop buttons, progress, stop on supersede (D10, D11) |
 | `src/ui/settings-form.js` | ui | "wider than the image" note (D3) |
 | `src/ui/app-state.js` | ui | documents the new generation kinds (D11) |
+| `src/ui/viewer-input.js` | ui | one line: passes `state.pattern` to `zoomLimits` (D14) |
 | `src/main.js` | — | passes a worker factory and `document` to `setupPatternGeneration` |
 | `index.html` | — | settings form only: `max` attributes, Generate and Stop buttons |
 | `styles/main.css` | — | `.legend__number` width, `.settings__button` (D12, D13) |
@@ -303,10 +304,24 @@ the width of 3 tabular digits plus padding, equal in every row.
   changed declaration in `.legend__number` and a new `.settings__button` rule placed right
   after `.settings__status` (styled like `.zoom-controls__button`, no `display`, so `hidden`
   works).
-- `add-pinch-zoom` owns `src/ui/viewer-input.js`; untouched. `zoomLimits` is unchanged.
+- `add-pinch-zoom` owns `src/ui/viewer-input.js`; this change edits only the existing `zoomLimits(state.image, state.frame)` call (one line, adds `state.pattern`). New pinch call sites should pass `state.pattern` too when that change rebases; without it they keep the old 6400 % cap, nothing breaks.
 - `.claude/rules/domain.md`: the line "At most 99 colors per pattern, so a number never needs
   more than 2 digits in a cell." becomes "At most as many colors as the DMC palette has (489);
   chart numbers are always sized for 3 digits."
+
+### D14. Max zoom follows the pattern's cell size
+
+With the fixed 6400 % cap a stitch is at most `64 × imageWidth / gridWidth` CSS px, below the
+19 px number threshold (D12) as soon as the grid is more than 3.37 × wider than the image —
+e.g. 10000 stitches from a 1000 px image give 6.4 px cells, and the chart numbers could never
+be shown. `zoomLimits(content, frame, grid)` gets an optional third parameter, the pattern
+(`{ width, height }` in stitches, or null/undefined): `maxScale = max(MAX_SCALE, fit,
+MAX_ZOOM_CELL_SIZE × grid.width / content.width)` with `MAX_ZOOM_CELL_SIZE = 64` CSS px. The
+cell width is used, as the viewer aligns columns exactly (`chartCellGeometry`); rows differ only
+by rounding. Calls without a pattern behave exactly as today, so `add-pinch-zoom`'s calls keep
+working. Alternatives: a new helper beside `zoomLimits` (two functions for one rule, and the
+call site would still need the pattern); raising `MAX_SCALE` globally (6400 % × 10 makes no
+sense for a plain image and does not cover every ratio).
 
 ## Risks / Trade-offs
 
@@ -320,11 +335,7 @@ the width of 3 tabular digits plus padding, equal in every row.
   worker plus 200 MB + 64 MB on the main thread] → Confirmation text mentions memory, progress
   and Stop are always available, a worker crash shows `Could not generate the pattern: The
   pattern worker stopped: …` and the next request uses a fresh worker.
-- [Chart numbers cannot appear when the grid is more than 3.37 × wider than the image:
-  at the 6400 % zoom cap a cell is at most `64 × imageWidth / gridWidth` px, below 19 px]
-  → Follow-up: let `zoomLimits` also allow a zoom where a cell is at least 32 px (needs the
-  grid in `zoomLimits` and `viewer-input.js`, owned by `add-pinch-zoom`). Until then the
-  "adds no detail" note discourages such grids.
+- [At 64000 % the Original layer draws a 1000 px image as 640,000 CSS px] → The browser clips `drawImage` to the canvas; only the scale grows, not the work. Lowering the pattern later leaves a too-large zoom until the next zoom step clamps it (no error).
 - [Until `tile-large-pattern-rendering` lands, the DMC colors layer allocates a W × H RGBA
   image (400 MB at 10000 × 10000)] → The smoke check for the largest pattern stays on the
   Original layer; rendering is that change's job.
@@ -347,4 +358,4 @@ commits.
 4. Chart numbers 0.45 × cell, shown from 19 px cells (8.55 px font).
 5. k-means sample of 65,536 cells.
 6. Small CSS edits in `improve-mobile-layout`'s territory (legend number width, settings button).
-7. The zoom-cap issue for grids > 3.37 × the image width is a follow-up.
+7. Max zoom lets a stitch reach 64 CSS px (approved: fixed in this change, D14).
