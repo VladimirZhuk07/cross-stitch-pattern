@@ -301,7 +301,7 @@ the width of 3 tabular digits plus padding, equal in every row.
   cases). Whichever merges second rebases those few lines.
 - `improve-mobile-layout` owns CSS and layout markup. Here: `index.html` edits stay inside the
   settings form (two `max` attributes, two buttons after the status output); CSS gets one
-  changed declaration in `.legend__number` and a new `.settings__button` rule placed right
+  changed declaration in `.legend__number` and a new `.settings__button` rule placed in the settings block, right
   after `.settings__status` (styled like `.zoom-controls__button`, no `display`, so `hidden`
   works).
 - `add-pinch-zoom` owns `src/ui/viewer-input.js`; this change edits only the existing `zoomLimits(state.image, state.frame)` call (one line, adds `state.pattern`). New pinch call sites should pass `state.pattern` too when that change rebases; without it they keep the old 6400 % cap, nothing breaks.

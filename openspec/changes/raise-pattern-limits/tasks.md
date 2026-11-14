@@ -93,4 +93,4 @@
   - load a 41 × 2048 px image, width 250 → `250 × 12488 stitches is too large: at most 10000 stitches per side. Choose a width of at most 200.`
   - zoom: with a 400-wide pattern of a 3200 px image, zoom in until it stops → 6400 %; set a grid more than 3.37 × wider than a small image (e.g. a 1000 px image at width 5000, Generate) → zoom continues to 32000 %, where chart cells are 64 px and numbers show
   - largest pattern: a square image of at least 4096 × 4096 px (used at 4096 × 4096), width 10000 and 489 colors, stay on the Original layer → Generate → all 3 steps, pattern ready within about 1 minute, the tab survives; note worker memory in the DevTools Memory panel (expect ≤ 600 MB)
-- [ ] 14.4 Run `openspec validate raise-pattern-limits --strict` and confirm it passes
+- [x] 14.4 Run `openspec validate raise-pattern-limits --strict` and confirm it passes
