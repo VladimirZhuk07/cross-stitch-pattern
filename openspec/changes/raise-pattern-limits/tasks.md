@@ -48,7 +48,7 @@
 
 ## 9. Worker client: factory, progress, stop (io)
 
-- [ ] 9.1 Update `tests/integration/pattern-worker-client.test.js` with a fake-worker factory (fake gets `terminate()` and forwards progress): the first `generate` creates the worker; `readImage` is called once for two requests with the same `imageKey` and again for a new key; progress messages reach the matching request's `onProgress` only; `stop()` with a pending request calls `terminate()` once, rejects it with `GenerationStoppedError`, and the next `generate` creates a new worker and calls `readImage` again; `stop()` while idle terminates nothing; a crash rejects pending requests with `The pattern worker stopped` and the next request uses a new worker. Verify the new tests fail
+- [x] 9.1 Update `tests/integration/pattern-worker-client.test.js` with a fake-worker factory (fake gets `terminate()` and forwards progress): the first `generate` creates the worker; `readImage` is called once for two requests with the same `imageKey` and again for a new key; progress messages reach the matching request's `onProgress` only; `stop()` with a pending request calls `terminate()` once, rejects it with `GenerationStoppedError`, and the next `generate` creates a new worker and calls `readImage` again; `stop()` while idle terminates nothing; a crash rejects pending requests with `The pattern worker stopped` and the next request uses a new worker. Verify the new tests fail
 - [ ] 9.2 Implement `createPatternWorkerClient(createWorker)` per design D10 in `src/io/pattern-worker-client.js`. Verify the client test passes
 
 ## 10. Settings form, Generate and Stop (ui)
