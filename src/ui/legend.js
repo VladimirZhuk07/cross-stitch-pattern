@@ -46,6 +46,7 @@ function createRow(rowTemplate, row) {
   const fragment = rowTemplate.content.cloneNode(true);
   const field = (name) => fragment.querySelector(`[data-field="${name}"]`);
   field('number').textContent = row.number;
+  field('number').style.setProperty('--tint', row.tint);
   field('code').textContent = row.code;
   field('name').textContent = row.name;
   field('stitchCount').textContent = row.stitchCount;
