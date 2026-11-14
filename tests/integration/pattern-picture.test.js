@@ -237,6 +237,18 @@ describe('pattern picture: tiles and overview', () => {
     assert.equal(liveTiles(picture.canvases).length, 25);
   });
 
+  it('releases every tile and the overview of the old pattern when the pattern changes', () => {
+    const picture = createTestPicture({ ...SMALL_LIMITS, buildBudgetStitches: 4096 });
+    const frame = zoomedAt(8, 8, { width: 24, height: 24 });
+    picture.draw(stripes(40, 40), frame);
+    const oldCanvases = [...picture.canvases];
+    assert.equal(oldCanvases.length, 10, '9 tiles and the overview');
+
+    picture.draw(stripes(40, 40), frame);
+    assert.ok(oldCanvases.every((canvas) => canvas.width === 0 && canvas.height === 0));
+    assert.equal(liveTiles(picture.canvases).length, 9);
+  });
+
   it('keeps blocks of empty cells transparent in the overview', () => {
     const cells = new Int16Array(40 * 40);
     for (let i = 0; i < cells.length; i++) {
