@@ -12,6 +12,8 @@ import {
   tileCount,
   tileRegion,
   regionCells,
+  detailLevel,
+  visibleTiles,
 } from '../../../src/core/tile-pyramid.js';
 
 const HUGE = { width: 10000, height: 10000 };
@@ -114,5 +116,62 @@ describe('regionCells', () => {
   it('maps level-1 tile (9, 0) of 10000 × 10000 to stitch columns 9216 to 9999', () => {
     const cells = regionCells(HUGE, 1, tileRegion(HUGE, 1, 9, 0));
     assert.deepEqual(cells, { x: 9216, y: 0, width: 784, height: 1024 });
+  });
+});
+
+describe('detailLevel', () => {
+  it('draws the level-3 overview of 10000 × 10000 at Fit on a high-DPI screen (0.1504 px per stitch)', () => {
+    assert.equal(detailLevel(0.1504, 3), 3);
+  });
+
+  it('stops at the overview level when the ideal level is coarser (0.0752 → 4 → 3)', () => {
+    assert.equal(detailLevel(0.0752, 3), 3);
+  });
+
+  it('picks levels 2, 1, 0 and 0 at 0.3, 0.6, 0.75 and 2 device px per stitch', () => {
+    assert.deepEqual([0.3, 0.6, 0.75, 2].map((pixels) => detailLevel(pixels, 3)), [2, 1, 0, 0]);
+  });
+
+  it('stays at level 0 for a single-picture pattern', () => {
+    assert.equal(detailLevel(0.3, 0), 0);
+  });
+
+  it('rejects 0, −1 and NaN device px per stitch', () => {
+    for (const value of [0, -1, NaN]) {
+      assertThrowsWith(() => detailLevel(value, 3), RangeError, String(value));
+    }
+  });
+});
+
+describe('visibleTiles', () => {
+  const middle = { columnStart: 5000, columnEnd: 6000, rowStart: 5000, rowEnd: 5800 };
+
+  it('returns the 9 level-0 tiles around the middle of 10000 × 10000 in row-major order', () => {
+    const expected = [];
+    for (let row = 9; row <= 11; row++) {
+      for (let column = 9; column <= 11; column++) {
+        expected.push({ column, row });
+      }
+    }
+    assert.deepEqual(visibleTiles(HUGE, 0, middle), expected);
+  });
+
+  it('returns 4 level-1 tiles for the same range', () => {
+    assert.deepEqual(visibleTiles(HUGE, 1, middle), [
+      { column: 4, row: 4 },
+      { column: 5, row: 4 },
+      { column: 4, row: 5 },
+      { column: 5, row: 5 },
+    ]);
+  });
+
+  it('returns all 25 level-2 tiles for the whole grid', () => {
+    const whole = { columnStart: 0, columnEnd: 10000, rowStart: 0, rowEnd: 10000 };
+    assert.equal(visibleTiles(HUGE, 2, whole).length, 25);
+  });
+
+  it('returns no tile for an empty range', () => {
+    const empty = { columnStart: 10000, columnEnd: 10000, rowStart: 0, rowEnd: 800 };
+    assert.deepEqual(visibleTiles(HUGE, 0, empty), []);
   });
 });
