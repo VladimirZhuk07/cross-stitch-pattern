@@ -4,6 +4,10 @@
 // ("Pale tint of a DMC color"); the choice of formula is explained in the change's design D9.
 
 import { hexToRgb, rgbToLab, labToLinearRgb, srgbToLinear, linearToSrgb } from './color.js';
+import { EMPTY_CELL } from './pattern.js';
+
+/** Fill of empty (no-stitch) chart cells: a light grey outside the meaning of any floss. */
+export const EMPTY_CELL_COLOR = '#E0E0E0';
 
 /**
  * Tint lightness: L' = TINT_LIGHTNESS_BASE + TINT_LIGHTNESS_RANGE × L*, i.e. 72…97.
@@ -22,6 +26,8 @@ const GAMUT_SEARCH_STEPS = 20;
 // WCAG 2.x relative luminance weights (from the sRGB primaries) and the flare term.
 const LUMINANCE_WEIGHTS = { r: 0.2126, g: 0.7152, b: 0.0722 };
 const CONTRAST_FLARE = 0.05;
+
+const OPAQUE_ALPHA = 255;
 
 /**
  * Returns the pale tint of a color as uppercase '#RRGGBB': the same CIELAB hue, lightness
@@ -54,6 +60,28 @@ export function contrastRatio(hexA, hexB) {
   const lighter = Math.max(luminanceA, luminanceB);
   const darker = Math.min(luminanceA, luminanceB);
   return (lighter + CONTRAST_FLARE) / (darker + CONTRAST_FLARE);
+}
+
+/**
+ * Returns the colors of a Pattern (see ./pattern.js) as an image with one pixel per cell:
+ * a new Uint8ClampedArray of width × height × 4 bytes, RGBA, row-major (cell x, y starts at
+ * byte (y × width + x) × 4). A stitched cell gets the pale tint of its legend color, an empty
+ * cell EMPTY_CELL_COLOR; alpha is always 255. Ready to be put into an ImageData.
+ * Does not modify the pattern.
+ */
+export function tintedCellPixels(pattern) {
+  const tints = pattern.legend.map((entry) => hexToRgb(paleTint(entry.hex)));
+  const empty = hexToRgb(EMPTY_CELL_COLOR);
+  const out = new Uint8ClampedArray(pattern.cells.length * 4);
+  for (let i = 0; i < pattern.cells.length; i++) {
+    const legendIndex = pattern.cells[i];
+    const color = legendIndex === EMPTY_CELL ? empty : tints[legendIndex];
+    out[i * 4] = color.r;
+    out[i * 4 + 1] = color.g;
+    out[i * 4 + 2] = color.b;
+    out[i * 4 + 3] = OPAQUE_ALPHA;
+  }
+  return out;
 }
 
 // Binary search for the largest chroma factor in 0…TINT_CHROMA_FACTOR that stays in sRGB.
