@@ -131,3 +131,24 @@ export function describeGenerationError(reason) {
 function round(value) {
   return value.toFixed(SIZE_DECIMALS);
 }
+
+// One-line summary of the settings in use, shown on the collapsed Settings button on phones.
+// size      the stitch grid { width, height } for the loaded image, or null without an image.
+// settings  the Settings described above (always valid values, never a typed invalid one).
+// Parts are joined by ' · ', e.g. '100 × 67 · max 24 colors · 14 ct · 7.1 × 4.8 in'.
+// Without an image: 'Width 100 · max 24 colors · 14 ct'. A side above MAX_GRID_SIDE reads
+// 'too large' instead of the finished size. Inches are rounded like formatPatternSize.
+export function formatSettingsSummary(size, settings) {
+  const colors = settings.maxColors === 1 ? 'max 1 color' : `max ${settings.maxColors} colors`;
+  const fabric = `${settings.fabricCount} ct`;
+  if (size === null) {
+    return [`Width ${settings.targetWidth}`, colors, fabric].join(' · ');
+  }
+  const stitches = `${size.width} × ${size.height}`;
+  if (size.width > MAX_GRID_SIDE || size.height > MAX_GRID_SIDE) {
+    return [stitches, 'too large', colors, fabric].join(' · ');
+  }
+  const finished = finishedSize(size, settings.fabricCount);
+  const inches = `${round(finished.widthInches)} × ${round(finished.heightInches)} in`;
+  return [stitches, colors, fabric, inches].join(' · ');
+}
