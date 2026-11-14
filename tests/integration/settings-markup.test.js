@@ -30,9 +30,9 @@ describe('settings form markup', () => {
     form = match[0];
   });
 
-  it('replaces the settings marker and keeps the legend marker', () => {
+  // The legend marker is replaced by add-stitch-chart-layer (see legend-markup.test.js).
+  it('replaces the settings marker', () => {
     assert.ok(!html.includes('Settings form: added here by add-pattern-generation.'));
-    assert.ok(html.includes('<!-- Legend: added here by add-stitch-chart-layer. -->'));
   });
 
   it('groups the settings under the legend "Pattern settings"', () => {
