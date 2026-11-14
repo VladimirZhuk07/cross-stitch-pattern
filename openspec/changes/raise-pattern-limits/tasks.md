@@ -25,7 +25,7 @@
 
 ## 5. Reservoir sampling (core)
 
-- [ ] 5.1 Write `tests/unit/core/reservoir-sample.test.js`: the first `capacity` calls return 0…capacity−1 in order; later calls return −1 or a slot below capacity; the same seed gives the same 10,000-call sequence; after 1000 offers into 10 slots over 200 seeds each item's inclusion rate is 1 % ± 0.5 %; capacity 0 or 1.5 and a non-integer seed → `RangeError`. Verify it fails
+- [x] 5.1 Write `tests/unit/core/reservoir-sample.test.js`: the first `capacity` calls return 0…capacity−1 in order; later calls return −1 or a slot below capacity; the same seed gives the same 10,000-call sequence; after 1000 offers into 10 slots over 200 seeds each item's inclusion rate is 1 % ± 0.5 %; capacity 0 or 1.5 and a non-integer seed → `RangeError`. Verify it fails
 - [ ] 5.2 Implement `createReservoirSampler(capacity, seed)` in `src/core/reservoir-sample.js` (Algorithm R, source cited, uses `createSeededRandom`), design D5. Verify the test passes
 
 ## 6. Exact nearest-centre search and faster k-means (core)
