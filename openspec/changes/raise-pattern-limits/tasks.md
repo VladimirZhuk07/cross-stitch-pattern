@@ -64,7 +64,7 @@
 
 - [x] 11.1 Update `numberFontSize` tests in `tests/unit/core/chart-layout.test.js`: 20 → 9, 50 → 22.5, 19 → 8.55, 18.9 → `null`, 18.359375 → `null`, 22.94921875 → 10.3271484375, 7.52 → `null`; `NUMBER_FONT_FRACTION` 0.45, `MIN_NUMBERED_CELL_SIZE` 19. Verify they fail
 - [x] 11.2 Change the two constants and their comments in `src/core/chart-layout.js` (design D12; signatures unchanged). Verify the chart-layout tests pass
-- [ ] 11.3 Update the number expectations in `tests/integration/chart-layer.test.js`: 3 × 2 pattern in 20 px cells at font 9; no numbers at 18.9 px; 5 numbers at 8.55 px in 19 px cells (first at x 9.5). Verify `node --test tests/integration/chart-layer.test.js` passes
+- [x] 11.3 Update the number expectations in `tests/integration/chart-layer.test.js`: 3 × 2 pattern in 20 px cells at font 9; no numbers at 18.9 px; 5 numbers at 8.55 px in 19 px cells (first at x 9.5). Verify `node --test tests/integration/chart-layer.test.js` passes
 - [ ] 11.4 Set `.legend__number { min-width: calc(3ch + 0.5rem) }` in `styles/main.css` (design D12). Verify `npm run test:integration` passes; widths are checked in 14.3
 
 ## 12. Max zoom follows the cell size (core, ui)

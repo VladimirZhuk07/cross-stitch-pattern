@@ -58,7 +58,7 @@ function cellNumbers(recording, fontSize) {
 describe('chart layer: cells and numbers', () => {
   it('draws the numbers of the 3 × 2 pattern centred in their 20 px cells', () => {
     const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 60, height: 40 });
-    const numbers = cellNumbers(recording, 12).map(({ text, x, y }) => ({ text, x, y }));
+    const numbers = cellNumbers(recording, 9).map(({ text, x, y }) => ({ text, x, y }));
     assert.deepEqual(numbers, [
       { text: '2', x: 10, y: 10 },
       { text: '1', x: 30, y: 10 },
@@ -70,7 +70,7 @@ describe('chart layer: cells and numbers', () => {
 
   it('draws the numbers in black, centred horizontally and vertically', () => {
     const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 60, height: 40 });
-    for (const number of cellNumbers(recording, 12)) {
+    for (const number of cellNumbers(recording, 9)) {
       assert.equal(number.fillStyle, '#000000');
       assert.equal(number.textAlign, 'center');
       assert.equal(number.textBaseline, 'middle');
@@ -104,7 +104,7 @@ describe('chart layer: cells and numbers', () => {
   it('tells an empty cell from white floss', () => {
     const pattern = buildPattern({ width: 2, height: 1, cells: [0, -1], colors: [BLANC] });
     const recording = render(pattern, { x: 0, y: 0, width: 40, height: 20 });
-    assert.deepEqual(cellNumbers(recording, 12).map(({ text, x, y }) => ({ text, x, y })), [{ text: '1', x: 10, y: 10 }]);
+    assert.deepEqual(cellNumbers(recording, 9).map(({ text, x, y }) => ({ text, x, y })), [{ text: '1', x: 10, y: 10 }]);
     assert.deepEqual(hatchSegments(recording), [{ x1: 20, y1: 20, x2: 40, y2: 0 }]);
   });
 
@@ -112,7 +112,7 @@ describe('chart layer: cells and numbers', () => {
     const pattern = buildPattern({ width: 2, height: 2, cells: [-1, -1, -1, -1], colors: [] });
     const recording = render(pattern, { x: 0, y: 0, width: 40, height: 40 });
     assert.equal(hatchSegments(recording).length, 4);
-    assert.equal(cellNumbers(recording, 12).length, 0);
+    assert.equal(cellNumbers(recording, 9).length, 0);
   });
 
   it('hatches empty cells of 6 px but not of 5.9 px', () => {
@@ -132,26 +132,26 @@ describe('chart layer: cells and numbers', () => {
 
   it('uses the smaller side of non-square cells for the number size', () => {
     const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 72, height: 40 });
-    assert.equal(cellNumbers(recording, 12).length, 5);
+    assert.equal(cellNumbers(recording, 9).length, 5);
   });
 
-  it('draws no cell numbers when cells are 13.9 px', () => {
-    const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 3 * 13.9, height: 2 * 13.9 });
+  it('draws no cell numbers when cells are 18.9 px', () => {
+    const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 3 * 18.9, height: 2 * 18.9 });
     assert.equal(recording.texts.length, 0);
   });
 
-  it('draws numbers at 8.4 px in 14 px cells', () => {
-    const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 42, height: 28 });
-    const numbers = recording.texts.filter((text) => Math.abs(text.fontSize - 8.4) < 1e-9);
+  it('draws numbers at 8.55 px in 19 px cells', () => {
+    const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 57, height: 38 });
+    const numbers = recording.texts.filter((text) => Math.abs(text.fontSize - 8.55) < 1e-9);
     assert.equal(numbers.length, 5);
-    assertClose(numbers[0].x, 7, POSITION_TOLERANCE, 'x of the first number');
+    assertClose(numbers[0].x, 9.5, POSITION_TOLERANCE, 'x of the first number');
   });
 });
 
 describe('chart layer: visible range', () => {
   it('draws exactly the 300 visible numbers of a zoomed 300 × 300 pattern', () => {
     const recording = render(solidPattern(300, 300), { x: 0, y: 0, width: 6000, height: 6000 });
-    assert.equal(cellNumbers(recording, 12).length, 300);
+    assert.equal(cellNumbers(recording, 9).length, 300);
   });
 
   it('draws only the visible part of the cell image of a panned 100 × 100 pattern', () => {
