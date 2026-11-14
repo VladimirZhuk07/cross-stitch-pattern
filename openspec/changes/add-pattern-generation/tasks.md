@@ -54,7 +54,7 @@
 
 - [x] 9.1 Run `npm run test:unit` and confirm all unit tests pass
 - [x] 9.2 Run `npm run test:integration` and confirm all integration tests pass
-- [ ] 9.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/`:
+- [x] 9.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/`:
   - start: the form shows width `100`, max colors `24`, fabric `14 ct`; size reads `Load an image to see the pattern size.`; `DMC colors` and `Chart` disabled
   - pick a ~1200 × 800 JPG: size reads `100 × 67 stitches — 7.1 × 4.8 in (18.1 × 12.2 cm) on 14 ct`; status shows `Generating pattern…` then `Pattern ready: 100 × 67 stitches, N DMC colors.` with N ≤ 24; `DMC colors` and `Chart` become enabled; Original stays active; in DevTools the workspace has `aria-busy="true"` only while generating
   - select fabric `18 ct`: size reads `… 5.6 × 3.7 in (14.1 × 9.5 cm) on 18 ct`; no `Generating pattern…`
@@ -67,4 +67,5 @@
   - load a fully transparent PNG: `Pattern ready: the image is fully transparent, so there is nothing to stitch.`
   - load a large photo and immediately a small PNG: the status and the pattern belong to the small PNG
   - DevTools Network: `pattern.worker.js` and its modules load from the app's own path, no external requests; Console: no errors
+  - Result (user, browser): app loaded from `http://127.0.0.1:8080/cross-stitch-pattern/`; `processed.jpeg` (1080 × 903 px) loaded; the screenshot shows the Pattern settings panel with Width 100, Max colors 24, Fabric 14 ct; size `100 × 84 stitches — 7.1 × 6.0 in (18.1 × 15.2 cm) on 14 ct` (round(100 × 903 / 1080) = 84); status `Pattern ready: 100 × 84 stitches, 19 DMC colors.`; DMC colors and Chart enabled (Chart selected, showing the stub note expected on this branch); no layout problems. The user approved without itemizing the other points above (invalid values, debounce, fabric change, large image, tall image, transparent PNG, latest-image-wins, Network/Console).
 - [x] 9.4 Run `openspec validate add-pattern-generation --strict` and confirm it passes
