@@ -29,6 +29,12 @@ export const NUMBER_FONT_FRACTION = 0.6;
 /** Smallest cell size in CSS px that shows numbers; below it they would be under 8.4 px. */
 export const MIN_NUMBERED_CELL_SIZE = 14;
 
+/**
+ * Smallest cell size in CSS px at which empty cells get a diagonal hatch line. Smaller cells
+ * would turn the lines into grey noise (and many segments), so they keep only their fill.
+ */
+export const MIN_HATCH_CELL_SIZE = 6;
+
 /** Every MAJOR_LINE_STEP stitches the chart has a bold line, as on printed charts. */
 export const MAJOR_LINE_STEP = 10;
 
@@ -111,6 +117,17 @@ export function numberFontSize(cellSize) {
     return null;
   }
   return NUMBER_FONT_FRACTION * cellSize;
+}
+
+/**
+ * Returns true when empty cells of this size get their diagonal hatch line, i.e. from
+ * MIN_HATCH_CELL_SIZE CSS px up. The hatch tells "no stitch" apart from grey floss tints.
+ * cellSize  CellGeometry.cellSize, CSS px (≥ 0)
+ * Throws RangeError if cellSize is negative or not a finite number.
+ */
+export function isEmptyHatchVisible(cellSize) {
+  assertNonNegativeNumber('cellSize', cellSize);
+  return cellSize >= MIN_HATCH_CELL_SIZE;
 }
 
 /**
