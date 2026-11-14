@@ -8,6 +8,11 @@
   display: none;
 }
 
+/* The phone panel toggles (main.css applies the folding to screens only). */
+.collapsible__toggle {
+  display: none;
+}
+
 body {
   background: #FFFFFF;
 }
