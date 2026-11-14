@@ -22,7 +22,9 @@
 //                  state  the app state (read only)
 //                  render must be synchronous, must not change state, and must not add DOM
 //                  listeners. It may cache drawings in its factory closure, keyed by the
-//                  identity of state.pattern.
+//                  identity of state.pattern. It may return true when its picture is still
+//                  being built (spread over frames): the viewer then paints once more in the
+//                  next animation frame; any other return value means "done".
 
 import { fitViewport, recenterOnResize, contentRect, canvasBufferSize } from '../core/viewport.js';
 
@@ -51,7 +53,10 @@ export function setupViewer(root, store, layers) {
     isPaintScheduled = true;
     requestAnimationFrame(() => {
       isPaintScheduled = false;
-      paint(ctx, canvas, store.getState(), layersById);
+      const needsAnotherFrame = paint(ctx, canvas, store.getState(), layersById);
+      if (needsAnotherFrame) {
+        schedulePaint();
+      }
     });
   }
 
@@ -100,6 +105,7 @@ function resizedFrameState(state, newFrame) {
   return { frame: newFrame, viewport };
 }
 
+// Paints the active layer; returns true when the layer asked for another frame.
 function paint(ctx, canvas, state, layersById) {
   const { frame, image, viewport } = state;
   const pixelRatio = window.devicePixelRatio || 1;
@@ -113,7 +119,7 @@ function paint(ctx, canvas, state, layersById) {
 
   const layer = layersById.get(state.activeLayer);
   if (image === null || viewport === null || frame.width === 0 || frame.height === 0 || !layer) {
-    return;
+    return false;
   }
   ctx.save();
   ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
@@ -124,8 +130,9 @@ function paint(ctx, canvas, state, layersById) {
     viewport,
     content: contentRect(viewport, image),
   };
-  layer.render(ctx, layerFrame, state);
+  const needsAnotherFrame = layer.render(ctx, layerFrame, state) === true;
   ctx.restore();
+  return needsAnotherFrame;
 }
 
 /**
