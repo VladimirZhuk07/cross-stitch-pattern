@@ -1,6 +1,8 @@
 // Turns a pattern's legend into the texts shown in the legend panel. Pure: no DOM.
 // The authoritative description is openspec/specs/stitch-chart/spec.md.
 
+import { paleTint } from './chart-tint.js';
+
 // The UI is in English; a fixed locale keeps the output the same in every browser.
 const STITCH_COUNT_FORMAT = new Intl.NumberFormat('en-US');
 
@@ -9,6 +11,8 @@ const STITCH_COUNT_FORMAT = new Intl.NumberFormat('en-US');
 //   number       the legend number as printed in the chart cells, '1'..'99'.
 //   code, name   DMC code and name, unchanged.
 //   hex          '#RRGGBB', for the swatch.
+//   tint         '#RRGGBB', the pale tint the chart fills this color's cells with
+//                (see ./chart-tint.js), for the number box.
 //   stitchCount  the stitch count with thousands separators, e.g. '12,345'.
 // Returns an empty list for a pattern without stitches. Does not modify the pattern.
 export function legendRows(pattern) {
@@ -19,6 +23,7 @@ export function legendRows(pattern) {
       code: entry.code,
       name: entry.name,
       hex: entry.hex,
+      tint: paleTint(entry.hex),
       stitchCount: STITCH_COUNT_FORMAT.format(entry.stitchCount),
     });
   }
