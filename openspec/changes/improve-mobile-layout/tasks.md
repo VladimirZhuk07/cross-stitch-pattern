@@ -51,4 +51,4 @@
   - Once add-pinch-zoom is on `main` (it adds `node scripts/serve.js --host 0.0.0.0`): open `http://<computer-ip>:8080/` on any phone on the same Wi-Fi, iPhone included; same checks, plus the notch: in landscape nothing sits under the notch or the home indicator
   - After rebasing onto raise-pattern-limits: the Generate/Stop buttons (`.settings__button`) next to the generation status stay visible with collapsed settings, are ≥ 44 × 44 px at 375 px, and fit the 256 px side column in landscape; the 3-digit legend numbers still fit the landscape legend without sideways scrolling
   - DevTools Console has no errors; Network shows only the app's own files
-- [ ] 6.4 Run `openspec validate improve-mobile-layout --strict`; it reports the change is valid
+- [x] 6.4 Run `openspec validate improve-mobile-layout --strict`; it reports the change is valid
