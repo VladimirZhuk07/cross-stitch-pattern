@@ -75,7 +75,7 @@
 
 ## 13. Project rules
 
-- [ ] 13.1 In `.claude/rules/domain.md` replace "At most 99 colors per pattern, so a number never needs more than 2 digits in a cell." with "At most as many colors as the DMC palette has (489); chart numbers are always sized for 3 digits." Verify `grep -n "99 colors" .claude/rules/domain.md` finds nothing
+- [x] 13.1 In `.claude/rules/domain.md` replace "At most 99 colors per pattern, so a number never needs more than 2 digits in a cell." with "At most as many colors as the DMC palette has (489); chart numbers are always sized for 3 digits." Verify `grep -n "99 colors" .claude/rules/domain.md` finds nothing
 
 ## 14. Verification
 

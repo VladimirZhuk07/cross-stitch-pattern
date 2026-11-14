@@ -49,7 +49,7 @@
 - Number 1 is the color with the most stitches. Equal stitch counts are ordered by DMC code:
   digit-only codes by numeric value first (`310` before `3865`), then all other codes in
   ordinal string order (`B5200`, `BLANC`, `ECRU`). The order must not depend on the locale.
-- At most 99 colors per pattern, so a number never needs more than 2 digits in a cell.
+- At most as many colors as the DMC palette has (489); chart numbers are always sized for 3 digits.
 - Chart cells are white with the number in black; never depend on color to read the chart.
 
 ## Physical size
