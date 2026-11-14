@@ -10,6 +10,8 @@ import {
   MIN_NUMBERED_CELL_SIZE,
   isEmptyHatchVisible,
   gridLines,
+  majorLineStep,
+  MIN_MAJOR_LINE_SPACING,
   chartLineWidths,
   snapLine,
   RULER_SIZE,
@@ -213,6 +215,53 @@ describe('gridLines', () => {
   it('rejects a line count of 0', () => {
     assert.throws(() => gridLines(0, 0, 0, 10), { name: 'RangeError', message: /count.*0/ });
   });
+
+  it('draws bold lines every 100 stitches of a fitted 1000 × 1000 pattern (0.752 px cells)', () => {
+    const lines = gridLines(0, 1000, 1000, 0.752);
+    assert.deepEqual(boldIndexes(lines), [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]);
+    assert.equal(thinIndexes(lines).length, 0);
+  });
+
+  it('draws bold lines every 1000 stitches plus the far border at 0.0752 px cells', () => {
+    const lines = gridLines(0, 10050, 10050, 0.0752);
+    assert.deepEqual(boldIndexes(lines), [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 10050]);
+    assert.equal(lines.length, 12);
+  });
+
+  it('returns only the 1000-stitch lines inside a visible range', () => {
+    assert.deepEqual(gridLines(1500, 4200, 10000, 0.0752), [
+      { index: 2000, isBold: true },
+      { index: 3000, isBold: true },
+      { index: 4000, isBold: true },
+    ]);
+  });
+});
+
+describe('majorLineStep', () => {
+  it('keeps bold lines at least 8 px apart', () => {
+    assert.equal(MIN_MAJOR_LINE_SPACING, 8);
+  });
+
+  it('uses every 10 stitches at 0.8 px cells and every 100 at 0.79 px', () => {
+    assert.equal(majorLineStep(0.8), 10);
+    assert.equal(majorLineStep(0.79), 100);
+  });
+
+  it('uses 100 for a fitted 1000-stitch and 1000 for a fitted 10000-stitch pattern', () => {
+    assert.equal(majorLineStep(0.752), 100);
+    assert.equal(majorLineStep(0.0752), 1000);
+  });
+
+  it('uses 10 for large cells and keeps growing for tiny ones', () => {
+    assert.equal(majorLineStep(10), 10);
+    assert.equal(majorLineStep(0.00001), 1000000);
+  });
+
+  it('rejects a cell size of 0, −1 or NaN', () => {
+    for (const value of [0, -1, NaN]) {
+      assert.throws(() => majorLineStep(value), { name: 'RangeError', message: new RegExp(`cellSize.*${value}`) });
+    }
+  });
 });
 
 describe('chartLineWidths', () => {
@@ -323,8 +372,16 @@ describe('rulerLabelStep', () => {
     assert.equal(rulerLabelStep(0.5, 17), 50);
   });
 
-  it('falls back to 500 when no step is long enough', () => {
-    assert.equal(rulerLabelStep(0.01, 17), 500);
+  it('continues past 500: every 5000 stitches in 0.01 px cells', () => {
+    assert.equal(rulerLabelStep(0.01, 17), 5000);
+  });
+
+  it('labels every 1000 stitches of a 10000-stitch pattern on a phone (0.0342 px cells)', () => {
+    assert.equal(rulerLabelStep(0.0342, 19.25), 1000);
+  });
+
+  it('rejects a cell size of 0, which no step could satisfy', () => {
+    assert.throws(() => rulerLabelStep(0, 17), { name: 'RangeError', message: /cellSize.*0/ });
   });
 
   it('labels every 10 stitches in 10 px cells', () => {
