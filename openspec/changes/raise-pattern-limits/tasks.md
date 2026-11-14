@@ -16,7 +16,7 @@
 - [x] 3.1 Update `tests/unit/core/stitch-grid.test.js` grid-size tests: `MAX_GRID_SIDE` is 10000; `maxTargetWidth(41, 2048)` 200 (height 9990, 201 too tall), `(1, 2048)` 4, `(1, 10001)` 0, `(1200, 800)` 10000; `stitchGridSize(41, 2048, 250).height` 12488. Verify they fail
 - [x] 3.2 Set `MAX_GRID_SIDE = 10000` with an updated comment (design D2). Verify the grid-size tests pass
 - [x] 3.3 Update `tests/unit/core/generation-settings.test.js`: ranges width 10–10000, colors 1–`MAX_PATTERN_COLORS` (489); invalid-field texts `… from 10 to 10000.` / `… from 1 to 489.`; `formatGridTooLarge` gives the 12488/200 and 204800 "too tall and narrow" texts; `formatNoExtraDetailNote(5000, 3200)` → `Wider than the image (3200 px), so the extra stitches add no detail.` and `(3200, 3200)` → `''`; `formatPatternSize({ 3200, 4000 }, 14)` and `({ 5000, 6250 }, 14)` match the spec; `LARGE_PATTERN_STITCHES` 4000000 and `isLargePattern` false for 2000 × 2000, true for 2001 × 2001; `describeLargePattern(4004001)` and `GENERATION_STOPPED_TEXT` match the spec; `describeGenerationProgress` gives the three spec texts (33 %, 20 %, 37 %). Verify it fails
-- [ ] 3.4 Implement those constants and functions in `src/core/generation-settings.js` (design D3, D11). Verify the settings tests pass
+- [x] 3.4 Implement those constants and functions in `src/core/generation-settings.js` (design D3, D11). Verify the settings tests pass
 
 ## 4. Streaming area averaging (core)
 

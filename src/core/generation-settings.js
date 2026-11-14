@@ -2,7 +2,7 @@
 // form shows (stitch size, finished size, generation status). Kept in core so they are
 // unit-tested; the form in src/ui/settings-form.js only displays them.
 
-import { DEFAULT_FABRIC_COUNT, finishedSize } from './pattern.js';
+import { DEFAULT_FABRIC_COUNT, MAX_PATTERN_COLORS, finishedSize } from './pattern.js';
 import { MAX_GRID_SIDE } from './stitch-grid.js';
 
 // Settings (state.settings in src/ui/app-state.js), a plain object:
@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
 // Ranges offered by the form. The pipeline itself accepts widths from 1 (for tiny tests);
 // below 10 stitches a pattern is not useful.
 export const TARGET_WIDTH_RANGE = Object.freeze({ min: 10, max: MAX_GRID_SIDE });
-export const MAX_COLORS_RANGE = Object.freeze({ min: 1, max: 99 });
+export const MAX_COLORS_RANGE = Object.freeze({ min: 1, max: MAX_PATTERN_COLORS });
 
 export const TARGET_WIDTH_INVALID_TEXT =
   `Width must be a whole number from ${TARGET_WIDTH_RANGE.min} to ${TARGET_WIDTH_RANGE.max}.`;
@@ -27,6 +27,23 @@ export const MAX_COLORS_INVALID_TEXT =
   `Max colors must be a whole number from ${MAX_COLORS_RANGE.min} to ${MAX_COLORS_RANGE.max}.`;
 export const NO_IMAGE_SIZE_TEXT = 'Load an image to see the pattern size.';
 export const GENERATING_TEXT = 'Generating pattern…';
+export const GENERATION_STOPPED_TEXT = 'Generation stopped.';
+
+// Patterns with more stitches than this are generated only when the user presses Generate:
+// up to 2000 × 2000 generation takes a few seconds and under 100 MB; above it time and memory
+// grow towards half a minute and half a gigabyte (see design D11 of raise-pattern-limits).
+export const LARGE_PATTERN_STITCHES = 4_000_000;
+
+// The UI is in English; a fixed locale keeps the output the same in every browser.
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+
+// The three steps of generation (phases of GenerationProgress in ./pattern-generator.js).
+const PROGRESS_STEPS = Object.freeze({
+  averaging: { step: 1, label: 'averaging stitches' },
+  clustering: { step: 2, label: 'reducing colors' },
+  assigning: { step: 3, label: 'assigning colors' },
+});
+const PROGRESS_STEP_COUNT = 3;
 
 const WHOLE_NUMBER = /^\d+$/;
 const SIZE_DECIMALS = 1;
@@ -53,6 +70,36 @@ export function formatPatternSize(size, fabricCount) {
   const inches = `${round(finished.widthInches)} × ${round(finished.heightInches)} in`;
   const centimetres = `${round(finished.widthCm)} × ${round(finished.heightCm)} cm`;
   return `${size.width} × ${size.height} stitches — ${inches} (${centimetres}) on ${fabricCount} ct`;
+}
+
+// Note for a grid wider than the image it comes from: more stitches than pixels only repeat
+// pixels. gridWidth in stitches, imageWidth in px. Returns the note, or '' when the grid is at
+// most as wide as the image.
+export function formatNoExtraDetailNote(gridWidth, imageWidth) {
+  if (gridWidth <= imageWidth) {
+    return '';
+  }
+  return `Wider than the image (${imageWidth} px), so the extra stitches add no detail.`;
+}
+
+// True when a grid size { width, height } has more than LARGE_PATTERN_STITCHES cells, so it
+// waits for the Generate button instead of being generated automatically.
+export function isLargePattern(size) {
+  return size.width * size.height > LARGE_PATTERN_STITCHES;
+}
+
+// Status text while a large pattern of stitchCount cells waits for the Generate button.
+export function describeLargePattern(stitchCount) {
+  return `This pattern has ${COUNT_FORMAT.format(stitchCount)} stitches. ` +
+    'Large patterns take longer to generate and need more memory. Press Generate to start.';
+}
+
+// Status text for a GenerationProgress { phase, done, total } (see ./pattern-generator.js),
+// e.g. 'Generating pattern… step 2 of 3: reducing colors, 20 %'. The percent is rounded down.
+export function describeGenerationProgress(progress) {
+  const { step, label } = PROGRESS_STEPS[progress.phase];
+  const percent = Math.floor((100 * progress.done) / progress.total);
+  return `${GENERATING_TEXT} step ${step} of ${PROGRESS_STEP_COUNT}: ${label}, ${percent} %`;
 }
 
 // Text for a grid size whose height exceeds MAX_GRID_SIDE. maxWidth is the largest target
