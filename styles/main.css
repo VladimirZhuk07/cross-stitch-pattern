@@ -70,14 +70,46 @@ body {
   font-size: 1.25rem;
 }
 
+/* The label looks like a button; clicking it opens the file chooser of the input inside. */
 .file-picker {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.file-picker:hover {
+  background: #234E8C;
+}
+
+/* The input keeps the keyboard focus (Tab, then Space or Enter), so the ring goes on the label. */
+.file-picker:has(.file-picker__input:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .file-picker__label {
   font-weight: 600;
+}
+
+/* Hidden from view but still focusable and announced: the browser's "No file chosen" box
+   is replaced by the button look of the label. */
+.file-picker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Main layout */
