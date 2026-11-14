@@ -52,8 +52,8 @@ largest target width that fits this image (or that no width fits).
 - **THEN** generation fails with a range error whose message contains `10001` and `no target width`
 
 #### Scenario: A 10000-stitch-wide pattern
-- **WHEN** a 2 × 1 px image of opaque black and opaque white is generated with target width 10000 and max colors 489
-- **THEN** the pattern is 10000 × 5000 stitches with legend 1 = `310` and 2 = `B5200`, 25,000,000 stitches each
+- **WHEN** a 200 × 1 px image whose left 100 pixels are opaque black and right 100 pixels opaque white is generated with target width 10000 and max colors 489
+- **THEN** the pattern is 10000 × 50 stitches with legend 1 = `310` and 2 = `B5200`, 250,000 stitches each
 - **AND** columns 0–4999 use entry 1 and columns 5000–9999 use entry 2 in every row
 
 ### Requirement: Colors are reduced to at most the chosen number

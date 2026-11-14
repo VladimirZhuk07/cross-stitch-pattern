@@ -6,6 +6,10 @@ import assert from 'node:assert/strict';
 import { generatePattern } from '../../src/core/pattern-generator.js';
 import { OPAQUE_BLACK, OPAQUE_WHITE, TRANSPARENT, opaqueImageFrom, pixelImage, solidImage } from '../helpers/pixel-image.js';
 
+function stitchTotal(pattern) {
+  return pattern.legend.reduce((sum, entry) => sum + entry.stitchCount, 0);
+}
+
 function legendSummary(pattern) {
   return pattern.legend.map((entry) => [entry.code, entry.stitchCount]);
 }
@@ -67,9 +71,46 @@ describe('pattern pipeline with the DMC palette', () => {
   });
 
   it('accepts the largest width that fits a tall image', () => {
-    const pattern = generatePattern(solidImage(41, 2048, OPAQUE_BLACK), { targetWidth: 10, maxColors: 24 });
-    assert.equal(pattern.width, 10);
+    const pattern = generatePattern(solidImage(1, 2048, OPAQUE_BLACK), { targetWidth: 4, maxColors: 24 });
+    assert.equal(pattern.width, 4);
+    assert.equal(pattern.height, 8192);
+  });
+
+  it('generates a 10000-stitch-wide pattern', () => {
+    const halves = pixelImage(200, 1, Array.from({ length: 200 }, (_, x) => (x < 100 ? OPAQUE_BLACK : OPAQUE_WHITE)));
+    const pattern = generatePattern(halves, { targetWidth: 10000, maxColors: 489 });
+    assert.equal(pattern.width, 10000);
+    assert.equal(pattern.height, 50);
+    assert.deepEqual(legendSummary(pattern), [['310', 250000], ['B5200', 250000]]);
+    for (let row = 0; row < 50; row++) {
+      const cells = pattern.cells.subarray(row * 10000, (row + 1) * 10000);
+      assert.ok(cells.subarray(0, 5000).every((cell) => cell === 0), `row ${row}, left half`);
+      assert.ok(cells.subarray(5000).every((cell) => cell === 1), `row ${row}, right half`);
+    }
+  });
+
+  it('clusters a grid with more than 65,536 stitches from a sample, deterministically', () => {
+    const image = opaqueImageFrom(300, 300, (x, y) => [Math.round(0.85 * x), Math.round(0.85 * y), 128]);
+    const pattern = generatePattern(image, { targetWidth: 300, maxColors: 8 });
+    assert.equal(pattern.width, 300);
+    assert.equal(pattern.height, 300);
+    assert.ok(pattern.legend.length >= 1 && pattern.legend.length <= 8, `got ${pattern.legend.length} colors`);
+    assert.equal(stitchTotal(pattern), 90000);
+    assert.deepEqual(generatePattern(image, { targetWidth: 300, maxColors: 8 }), pattern);
+  });
+
+  it('uses up to the whole DMC palette on a gold gradient', () => {
+    const image = opaqueImageFrom(400, 500, (x, y) => {
+      const t = (x + y) / 898;
+      return [40 + Math.round(210 * t), 25 + Math.round(207 * t * t), 10 + Math.round(150 * t * t * t)];
+    });
+    const pattern = generatePattern(image, { targetWidth: 400, maxColors: 489 });
+    assert.equal(pattern.width, 400);
     assert.equal(pattern.height, 500);
+    assert.ok(pattern.legend.length >= 1 && pattern.legend.length <= 489, `got ${pattern.legend.length} colors`);
+    assert.equal(new Set(pattern.legend.map((entry) => entry.code)).size, pattern.legend.length);
+    assert.equal(stitchTotal(pattern), 200000);
+    assert.deepEqual(generatePattern(image, { targetWidth: 400, maxColors: 489 }), pattern);
   });
 
   it('keeps a gradient within the color limit', () => {

@@ -175,7 +175,7 @@ examined). The result is exactly the brute-force answer with the same lowest-ind
   from brute force on 200,000 seeded random queries.
 - **Shortcut:** in pass 2 a cell whose averaged linear RGB equals its left neighbour's exactly
   reuses that neighbour's cluster. Exact; 13 % hits on an upscaled photo, nearly 100 % on
-  flat areas (backgrounds, pixel art, the 2-pixel 10000 × 5000 scenario).
+  flat areas (backgrounds, pixel art, the 10000 × 50 two-color scenario).
 - **Alternatives:** k-d tree (more code, little gain for k ≤ 489 in 3-D); a cache keyed by
   8-bit sRGB (fast but not exact: shifts colors by up to about 0.3 ΔE and changes today's
   results); ΔE00 for assignment (no mean, 10 × slower; ΔE00 stays for the DMC match).
