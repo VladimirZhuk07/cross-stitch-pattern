@@ -74,7 +74,7 @@ function zoomBy(store, factor, anchor) {
   if (!canNavigate(state)) {
     return;
   }
-  const limits = zoomLimits(state.image, state.frame);
+  const limits = zoomLimits(state.image, state.frame, state.pattern);
   store.setState({ viewport: zoomAt(state.viewport, factor, anchor, limits) });
 }
 
