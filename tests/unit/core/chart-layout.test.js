@@ -6,6 +6,8 @@ import {
   cellCenter,
   visibleCellRange,
   numberFontSize,
+  NUMBER_FONT_FRACTION,
+  MIN_NUMBERED_CELL_SIZE,
   isEmptyHatchVisible,
   gridLines,
   chartLineWidths,
@@ -115,28 +117,44 @@ describe('visibleCellRange', () => {
 });
 
 describe('numberFontSize', () => {
-  it('is 0.6 × the cell size: 12 px for 20 px cells', () => {
-    assertClose(numberFontSize(20), 12, TOLERANCE, 'font size');
+  it('is sized for 3 digits: 0.45 × the cell size, shown from 19 px cells', () => {
+    assert.equal(NUMBER_FONT_FRACTION, 0.45);
+    assert.equal(MIN_NUMBERED_CELL_SIZE, 19);
   });
 
-  it('is 30 px for 50 px cells', () => {
-    assertClose(numberFontSize(50), 30, TOLERANCE, 'font size');
+  it('is 9 px for 20 px cells', () => {
+    assertClose(numberFontSize(20), 9, TOLERANCE, 'font size');
   });
 
-  it('is 8.4 px at the 14 px threshold', () => {
-    assertClose(numberFontSize(14), 8.4, TOLERANCE, 'font size');
+  it('is 22.5 px for 50 px cells', () => {
+    assertClose(numberFontSize(50), 22.5, TOLERANCE, 'font size');
   });
 
-  it('hides numbers in cells just below 14 px', () => {
-    assert.equal(numberFontSize(13.9), null);
+  it('is 8.55 px at the 19 px threshold', () => {
+    assertClose(numberFontSize(19), 8.55, TOLERANCE, 'font size');
+  });
+
+  it('hides numbers in cells just below 19 px', () => {
+    assert.equal(numberFontSize(18.9), null);
+  });
+
+  it('fits a 3-digit number with room to the grid lines at the threshold', () => {
+    // Digits are about 0.55 em wide: 3 × 0.55 × 8.55 ≈ 14.1 px of a 19 px cell.
+    const textWidth = 3 * 0.55 * numberFontSize(19);
+    assertClose(textWidth, 14.1075, TOLERANCE, 'text width');
+    assert.ok((19 - textWidth) / 2 >= 2.4, `room per side ${(19 - textWidth) / 2}`);
   });
 
   it('hides numbers in a fitted 100 × 100 chart (7.52 px cells)', () => {
     assert.equal(numberFontSize(7.52), null);
   });
 
-  it('shows numbers at about 11.02 px after zooming in 4 steps (18.359375 px cells)', () => {
-    assertClose(numberFontSize(18.359375), 11.015625, TOLERANCE, 'font size');
+  it('still hides numbers after zooming in 4 steps (18.359375 px cells)', () => {
+    assert.equal(numberFontSize(18.359375), null);
+  });
+
+  it('shows numbers at about 10.33 px after zooming in 5 steps (22.94921875 px cells)', () => {
+    assertClose(numberFontSize(22.94921875), 10.3271484375, TOLERANCE, 'font size');
   });
 
   it('rejects a negative cell size', () => {
