@@ -20,7 +20,7 @@
 
 ## 4. Page-zoom guard (integration)
 
-- [ ] 4.1 Add `tests/integration/viewer-touch-action.test.js`: read `styles/main.css`, assert the `.viewer { … }` block contains `touch-action: none` and no `html`, `body` or `:root` rule sets `touch-action`; verify it passes, then temporarily delete the declaration to see it fail, and restore it (do not commit the deletion)
+- [x] 4.1 Add `tests/integration/viewer-touch-action.test.js`: read `styles/main.css`, assert the `.viewer { … }` block contains `touch-action: none` and no `html`, `body` or `:root` rule sets `touch-action`; verify it passes, then temporarily delete the declaration to see it fail, and restore it (do not commit the deletion)
 
 ## 5. Dev server reachable from a phone (scripts)
 
