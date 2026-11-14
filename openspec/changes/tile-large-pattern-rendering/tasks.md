@@ -9,7 +9,7 @@
 - [x] 1.5 Write failing tests for `detailLevel(devicePxPerStitch, maxLevel)`: (0.1504, 3) → 3; (0.0752, 3) → 3; (0.3, 3) → 2; (0.6, 3) → 1; (0.75, 3) → 0; (2, 3) → 0; (0.3, 0) → 0; 0, −1 and `NaN` → `RangeError`; and `visibleTiles(grid, level, range)` on 10000²: range columns 5000–6000, rows 5000–5800 at level 0 → the 9 tiles (9…11, 9…11) in row-major order; same range at level 1 → (4, 4), (5, 4), (4, 5), (5, 5); whole range at level 2 → 25 tiles; an empty range → `[]`; verify they fail
 - [x] 1.6 Implement `detailLevel` (round of log2, clamped; comment cites design D3) and `visibleTiles`; verify 1.5 passes
 - [x] 1.7 Write failing tests for `pictureDrawRects(content, grid, level, region, cellRect, pixelRatio)`: 10000² level 0, content x 0.3, y 0, 10000 × 10000, ratio 1: tile (0, 0) → destination x 0.3 to 512, source 0, 0, 512, 512; tile (1, 0) → destination x 512 to 1024; ratio 2 → the shared edge at 512.5; tile (19, 0) → right edge exactly 10000.3 and source width 272; a 3 × 1 grid at level 1 in content 0, 0, 300 × 100, region (0, 0, 2, 1) → source width 1.5, destination 0 to 300; the panned 100 × 100 single picture (content −95, −40, 1000 × 1000, range 9–50 × 4–34) → source (9, 4, 41, 30), destination (−5, 0, 410, 300); verify they fail
-- [ ] 1.8 Implement `pictureDrawRects` (DrawRects in plain words: inner edges rounded to device px, outer content edges exact, partial pixel trimmed); verify 1.7 passes and the module stays under ~300 lines
+- [x] 1.8 Implement `pictureDrawRects` (DrawRects in plain words: inner edges rounded to device px, outer content edges exact, partial pixel trimmed); verify 1.7 passes and the module stays under ~300 lines
 
 ## 2. Level pixels (core)
 

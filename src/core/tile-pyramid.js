@@ -12,8 +12,13 @@
 //         (a Pattern from ./pattern.js works as it is).
 //
 // Shapes created here:
-//   LevelSize  { width, height } from levelSize: the level-k picture in picture px,
-//              ceil(W / 2^k) × ceil(H / 2^k).
+//   LevelSize    { width, height } from levelSize: the level-k picture in picture px,
+//                ceil(W / 2^k) × ceil(H / 2^k).
+//   TileRegion   { x, y, width, height } from tileRegion: a tile's place in its level
+//                picture, picture px; the overview's region is its whole picture.
+//   CellRect     { x, y, width, height } from regionCells: stitches, clipped to the grid.
+//   TileAddress  { column, row } from visibleTiles.
+//   DrawRects    { source, destination } from pictureDrawRects (see there).
 
 /**
  * Patterns with both sides up to this many stitches are drawn from one level-0 picture.
@@ -144,6 +149,63 @@ export function visibleTiles(grid, level, range, tileSize = TILE_SIZE) {
     }
   }
   return tiles;
+}
+
+/**
+ * Returns the DrawRects for drawing the stitches `cellRect` from a picture of level `level`
+ * whose top-left is at `region` (a tile, or the whole overview/single picture):
+ *   source       { x, y, width, height } in picture px relative to the picture's top-left:
+ *                cellRect / 2^level − region origin. Fractional only where the last picture
+ *                pixel covers fewer than 2^level stitches, so that partial pixel is trimmed
+ *                and nothing is drawn outside the content rectangle.
+ *   destination  { x, y, width, height } in CSS px: where those stitches lie in `content`.
+ *                Edges on the content rectangle's outer border keep their exact position;
+ *                every other edge is rounded to the nearest device pixel, so neighbouring
+ *                tiles meet on the same device pixel edge and canvas anti-aliasing leaves no
+ *                seam between them (design D9).
+ * content     { x, y, width, height } the content rectangle, CSS px
+ * region      TileRegion of the picture, picture px of that level
+ * cellRect    CellRect { x, y, width, height } in stitches, inside the region's stitches
+ * pixelRatio  device px per CSS px (> 0)
+ */
+export function pictureDrawRects(content, grid, level, region, cellRect, pixelRatio) {
+  assertGridSize(grid);
+  assertLevel(level);
+  if (!Number.isFinite(pixelRatio) || pixelRatio <= 0) {
+    throw new RangeError(`pixelRatio must be a positive number, got ${String(pixelRatio)}`);
+  }
+  const blockSide = 2 ** level;
+  const xAt = (stitch) => snappedEdge(stitch, grid.width, content.x, content.width, pixelRatio);
+  const yAt = (stitch) => snappedEdge(stitch, grid.height, content.y, content.height, pixelRatio);
+  const left = xAt(cellRect.x);
+  const top = yAt(cellRect.y);
+  return {
+    source: {
+      x: cellRect.x / blockSide - region.x,
+      y: cellRect.y / blockSide - region.y,
+      width: cellRect.width / blockSide,
+      height: cellRect.height / blockSide,
+    },
+    destination: {
+      x: left,
+      y: top,
+      width: xAt(cellRect.x + cellRect.width) - left,
+      height: yAt(cellRect.y + cellRect.height) - top,
+    },
+  };
+}
+
+// The screen position of stitch boundary `index` (0 … count) along one axis: exact on the
+// content border, otherwise rounded to the nearest device pixel.
+function snappedEdge(index, count, contentStart, contentLength, pixelRatio) {
+  if (index === 0) {
+    return contentStart;
+  }
+  if (index === count) {
+    return contentStart + contentLength;
+  }
+  const exact = contentStart + (index * contentLength) / count;
+  return Math.round(exact * pixelRatio) / pixelRatio;
 }
 
 function assertIndex(name, value, count) {
