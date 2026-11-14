@@ -24,7 +24,7 @@ describe('stitchGridSize', () => {
   });
 
   it('reports heights above the limit instead of clamping them', () => {
-    assert.deepEqual(stitchGridSize(41, 2048, 100), { width: 100, height: 4995 });
+    assert.deepEqual(stitchGridSize(41, 2048, 250), { width: 250, height: 12488 });
   });
 
   it('allows a grid wider than the image', () => {
@@ -42,26 +42,26 @@ describe('stitchGridSize', () => {
 });
 
 describe('maxTargetWidth', () => {
-  it('is 500 stitches per side', () => {
-    assert.equal(MAX_GRID_SIDE, 500);
+  it('is 10000 stitches per side', () => {
+    assert.equal(MAX_GRID_SIDE, 10000);
   });
 
   it('finds the largest width whose height still fits', () => {
-    assert.equal(maxTargetWidth(41, 2048), 10);
-    assert.equal(stitchGridSize(41, 2048, 10).height, 500);
-    assert.ok(stitchGridSize(41, 2048, 11).height > MAX_GRID_SIDE);
+    assert.equal(maxTargetWidth(41, 2048), 200);
+    assert.equal(stitchGridSize(41, 2048, 200).height, 9990);
+    assert.ok(stitchGridSize(41, 2048, 201).height > MAX_GRID_SIDE);
   });
 
   it('can be below any sensible form width for a very narrow image', () => {
-    assert.equal(maxTargetWidth(10, 2048), 2);
+    assert.equal(maxTargetWidth(1, 2048), 4);
   });
 
   it('is 0 when not even one stitch of width fits', () => {
-    assert.equal(maxTargetWidth(1, 2048), 0);
+    assert.equal(maxTargetWidth(1, 10001), 0);
   });
 
   it('is capped at the grid side limit for landscape images', () => {
-    assert.equal(maxTargetWidth(1200, 800), 500);
+    assert.equal(maxTargetWidth(1200, 800), 10000);
   });
 
   it('rejects image sizes that are not positive integers', () => {
