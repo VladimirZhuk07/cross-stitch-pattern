@@ -9,6 +9,7 @@ import {
   movePointer,
   endPointer,
 } from '../../../src/core/pinch-zoom.js';
+import { zoomLimits } from '../../../src/core/viewport.js';
 
 const TOLERANCE = 1e-9;
 const LIMITS = { minScale: 0.5, maxScale: 64 };
@@ -41,6 +42,20 @@ describe('pinchViewport', () => {
 
   it('clamps at the upper limit and keeps the midpoint point in place', () => {
     const result = pinchViewport(viewport(40, 0, 0), START_POINTS, points(50, 100, 250, 100), LIMITS);
+    assertCloseFields(result, viewport(64, -90, -60), VIEWPORT_KEYS, TOLERANCE);
+  });
+
+  it('zooms past 6400 % up to the pattern-aware limit of a fine pattern', () => {
+    // 1000 × 800 image with a 10000 × 8000 pattern: one stitch may reach 64 CSS px (scale 640).
+    const image = { width: 1000, height: 800 };
+    const limits = zoomLimits(image, { width: 1000, height: 800 }, { width: 10000, height: 8000 });
+    const result = pinchViewport(viewport(400, 0, 0), START_POINTS, points(50, 100, 250, 100), limits);
+    assertCloseFields(result, viewport(640, -90, -60), VIEWPORT_KEYS, TOLERANCE);
+  });
+
+  it('stops at 6400 % for the same image without a pattern', () => {
+    const limits = zoomLimits({ width: 1000, height: 800 }, { width: 1000, height: 800 });
+    const result = pinchViewport(viewport(40, 0, 0), START_POINTS, points(50, 100, 250, 100), limits);
     assertCloseFields(result, viewport(64, -90, -60), VIEWPORT_KEYS, TOLERANCE);
   });
 
