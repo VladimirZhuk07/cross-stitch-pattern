@@ -23,9 +23,13 @@ function singleColorPattern(stitchCount, name = 'Red') {
 describe('legendRows', () => {
   it('returns one row of display texts per legend entry, in number order', () => {
     assert.deepEqual(legendRows(threeByTwoPattern()), [
-      { number: '1', code: '310', name: 'Black', hex: '#000000', stitchCount: '3' },
-      { number: '2', code: '321', name: 'Red', hex: '#C72B3B', stitchCount: '2' },
+      { number: '1', code: '310', name: 'Black', hex: '#000000', tint: '#B0B0B0', stitchCount: '3' },
+      { number: '2', code: '321', name: 'Red', hex: '#C72B3B', tint: '#FFC0BB', stitchCount: '2' },
     ]);
+  });
+
+  it('gives each row the pale tint its cells have in the chart', () => {
+    assert.deepEqual(legendRows(threeByTwoPattern()).map((row) => row.tint), ['#B0B0B0', '#FFC0BB']);
   });
 
   it('writes 12345 stitches as 12,345', () => {
