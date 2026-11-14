@@ -29,3 +29,16 @@ export function legendRows(pattern) {
   }
   return rows;
 }
+
+// Short text for the collapsed Legend button on phones: '18 colors', '1 color', or
+// 'no stitches' for a pattern without stitches. colorCount is the number of legend entries.
+// Throws RangeError for a count that is not a whole number of at least 0.
+export function formatLegendSummary(colorCount) {
+  if (!Number.isInteger(colorCount) || colorCount < 0) {
+    throw new RangeError(`colorCount must be a whole number of at least 0, got ${String(colorCount)}`);
+  }
+  if (colorCount === 0) {
+    return 'no stitches';
+  }
+  return colorCount === 1 ? '1 color' : `${colorCount} colors`;
+}
