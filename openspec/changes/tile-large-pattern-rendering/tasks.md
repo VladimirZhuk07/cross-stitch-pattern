@@ -46,7 +46,7 @@
 
 ## 6. DMC colors layer
 
-- [ ] 6.1 Rework `tests/integration/dmc-preview-layer.test.js`: inject `createCellCanvas` from the shared fake instead of the global `OffscreenCanvas`/`ImageData` stubs; change the expected `drawImage` arguments to the visible-range form (same destination pixels); move the far-zoom content partly into the frame; add: `render` returns a falsy value for small patterns; a 2050 × 2 pattern with cells `[310, 321 / 321, -1]` in its first block gives overview pixel `(133, 29, 39, 191)` and empty blocks stay transparent; verify the new and reworked cases fail
+- [x] 6.1 Rework `tests/integration/dmc-preview-layer.test.js`: inject `createCellCanvas` from the shared fake instead of the global `OffscreenCanvas`/`ImageData` stubs; change the expected `drawImage` arguments to the visible-range form (same destination pixels); move the far-zoom content partly into the frame; add: `render` returns a falsy value for small patterns; a 2050 × 2 pattern with cells `[310, 321 / 321, -1]` in its first block gives overview pixel `(133, 29, 39, 191)` and empty blocks stay transparent; verify the new and reworked cases fail
 - [ ] 6.2 Rewrite `src/ui/layers/dmc-layer.js` on `pattern-picture.js` (stitch colors, empty transparent, `options.createCellCanvas` defaulting to `OffscreenCanvas`, smoothing by `isStitchSmallerThanDevicePixel` with quality `high`, returns `true` while incomplete; header comment); verify `tests/integration/dmc-preview-layer.test.js` and `view-layers.test.js` pass
 
 ## 7. Chart layer
