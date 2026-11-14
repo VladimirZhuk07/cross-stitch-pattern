@@ -20,9 +20,50 @@ function tagWith(html, attribute) {
   return match[0];
 }
 
+// Returns the whole element (opening tag to its matching closing tag) with the given id.
+// Counts nested elements of the same name, so a <div> holding other <div>s is returned whole.
+function elementWithId(html, id) {
+  const start = html.search(new RegExp(`<[a-z]+\\b[^>]*\\bid="${id}"`));
+  assert.ok(start !== -1, `no element with id="${id}"`);
+  const name = html.slice(start + 1).match(/^[a-z]+/)[0];
+  const tags = new RegExp(`<(/?)${name}\\b[^>]*>`, 'g');
+  let depth = 0;
+  for (const match of html.slice(start).matchAll(tags)) {
+    depth += match[1] === '/' ? -1 : 1;
+    if (depth === 0) {
+      return html.slice(start, start + match.index + match[0].length);
+    }
+  }
+  assert.fail(`element with id="${id}" is not closed`);
+}
+
+// Returns the content of the first <button> carrying the attribute.
+function buttonContent(html, attribute) {
+  const match = html.match(new RegExp(`<button\\b[^>]*\\b${attribute}[^>]*>([\\s\\S]*?)</button>`));
+  assert.ok(match, `no button with ${attribute}`);
+  return match[1];
+}
+
+// Returns the visible text of a piece of markup, with tags removed and spaces collapsed.
+function textOf(markup) {
+  return markup.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function attributeOf(tag, name) {
   const match = tag.match(new RegExp(`\\b${name}="([^"]*)"`));
   return match === null ? null : match[1];
+}
+
+// Checks a collapsed toggle button: <button type="button" class="collapsible__toggle"
+// aria-expanded="false" aria-controls="<bodyId>"> placed before the body it controls.
+function assertCollapsedToggle(panel, action, bodyId) {
+  const toggle = tagWith(panel, `data-action="${action}"`);
+  assert.ok(toggle.startsWith('<button'), 'the toggle is a button');
+  assert.equal(attributeOf(toggle, 'type'), 'button');
+  assert.match(attributeOf(toggle, 'class'), /\bcollapsible__toggle\b/);
+  assert.equal(attributeOf(toggle, 'aria-expanded'), 'false');
+  assert.equal(attributeOf(toggle, 'aria-controls'), bodyId);
+  assert.ok(panel.indexOf(toggle) < panel.indexOf(`id="${bodyId}"`), 'the toggle comes before the body');
 }
 
 describe('mobile layout markup', () => {
@@ -54,10 +95,45 @@ describe('mobile layout markup', () => {
     });
 
     it('sits inside a label reading "Choose image"', () => {
-      const label = html.match(/<label\b[^>]*>([\s\S]*?)<\/label>/g).find((text) => text.includes('data-role="file-input"'));
+      const labels = html.match(/<label\b[^>]*>[\s\S]*?<\/label>/g);
+      const label = labels.find((markup) => markup.includes('data-role="file-input"'));
       assert.ok(label, 'the file input is inside a label');
-      const text = label.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      assert.equal(text, 'Choose image');
+      assert.equal(textOf(label), 'Choose image');
+    });
+  });
+
+  describe('settings panel', () => {
+    let form;
+
+    before(() => {
+      const match = html.match(/<form\b[^>]*data-role="settings"[^>]*>[\s\S]*?<\/form>/);
+      assert.ok(match, 'no settings form');
+      form = match[0];
+    });
+
+    it('marks the form as a collapsible panel', () => {
+      assert.match(attributeOf(tagWith(form, 'data-role="settings"'), 'class'), /\bcollapsible\b/);
+    });
+
+    it('starts with a collapsed Settings toggle that controls the panel body', () => {
+      assertCollapsedToggle(form, 'toggle-settings', 'settings-body');
+    });
+
+    it('shows Settings and the summary of the default settings on the toggle', () => {
+      const content = buttonContent(form, 'data-action="toggle-settings"');
+      assert.match(content, /<span\b[^>]*data-role="settings-summary"[^>]*>Width 100 · max 24 colors · 14 ct<\/span>/);
+      assert.equal(textOf(content), 'Settings Width 100 · max 24 colors · 14 ct');
+    });
+
+    it('folds the fields and the size text, but not the generation status', () => {
+      const body = elementWithId(form, 'settings-body');
+      assert.match(attributeOf(body, 'class'), /\bcollapsible__body\b/);
+      for (const setting of ['targetWidth', 'maxColors', 'fabricCount']) {
+        assert.ok(body.includes(`data-setting="${setting}"`), `${setting} is inside the body`);
+      }
+      assert.ok(body.includes('data-role="pattern-size"'), 'the size text is inside the body');
+      assert.ok(!body.includes('data-role="generation-status"'), 'the generation status stays visible');
+      assert.ok(form.includes('data-role="generation-status"'));
     });
   });
 });

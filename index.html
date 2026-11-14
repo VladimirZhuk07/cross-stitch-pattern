@@ -20,7 +20,15 @@
   </header>
 
   <main class="app-main">
-    <form class="settings" data-role="settings" novalidate>
+    <form class="settings collapsible" data-role="settings" novalidate>
+      <!-- On phones the fields fold behind this button; on wider screens it is hidden (styles/main.css). -->
+      <button class="collapsible__toggle" type="button" data-action="toggle-settings"
+              aria-expanded="false" aria-controls="settings-body">
+        <span class="collapsible__title">Settings</span>
+        <span class="collapsible__summary" data-role="settings-summary">Width 100 · max 24 colors · 14 ct</span>
+      </button>
+
+      <div class="collapsible__body settings__body" id="settings-body">
       <fieldset class="settings__group">
         <legend class="settings__legend">Pattern settings</legend>
 
@@ -50,6 +58,8 @@
       </fieldset>
 
       <output class="settings__size" data-role="pattern-size">Load an image to see the pattern size.</output>
+      </div>
+
       <output class="settings__status" data-role="generation-status" aria-live="polite"></output>
       <button class="settings__button" type="button" data-action="generate" hidden>Generate</button>
       <button class="settings__button" type="button" data-action="stop-generation" hidden>Stop</button>
