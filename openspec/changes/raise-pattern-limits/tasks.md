@@ -2,7 +2,7 @@
 
 ## 1. Color limit from the DMC palette (core)
 
-- [ ] 1.1 Update the color-limit tests in `tests/unit/core/pattern.test.js`: 99 and 489 synthetic codes accepted (numbers 1..N); the 489 colors of `DMC_COLORS`, one stitch each, give 489 entries with highest number 489; 490 codes → `RangeError` containing `490` and `489`; 600 input colors sharing 2 codes → 2 entries; `MAX_PATTERN_COLORS === DMC_COLORS.length`. Verify they fail
+- [x] 1.1 Update the color-limit tests in `tests/unit/core/pattern.test.js`: 99 and 489 synthetic codes accepted (numbers 1..N); the 489 colors of `DMC_COLORS`, one stitch each, give 489 entries with highest number 489; 490 codes → `RangeError` containing `490` and `489`; 600 input colors sharing 2 codes → 2 entries; `MAX_PATTERN_COLORS === DMC_COLORS.length`. Verify they fail
 - [ ] 1.2 Set `MAX_PATTERN_COLORS = DMC_COLORS.length` in `src/core/pattern.js` (import `../data/dmc.js`, comment: why the palette size and 3-digit numbers) and change the `legend-rows.js` comment to `'1'..'489'` (design D1). Verify `node --test tests/unit/core/pattern.test.js` passes
 
 ## 2. Decode cap (core, io)

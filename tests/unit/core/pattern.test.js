@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_FABRIC_COUNT, FABRIC_COUNTS, buildPattern, compareDmcCodes, finishedSize, legendEntryAt } from '../../../src/core/pattern.js';
+import { DEFAULT_FABRIC_COUNT, FABRIC_COUNTS, MAX_PATTERN_COLORS, buildPattern, compareDmcCodes, finishedSize, legendEntryAt } from '../../../src/core/pattern.js';
+import { DMC_COLORS } from '../../../src/data/dmc.js';
 
 // Hex values are test fixtures, not palette data.
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -272,17 +273,34 @@ describe('buildPattern: color limit', () => {
     assert.deepEqual(pattern.legend.map((entry) => entry.number), indexes(99).map((i) => i + 1));
   });
 
-  it('rejects 100 colors', () => {
+  it('allows as many colors as the DMC palette has (489)', () => {
+    assert.equal(MAX_PATTERN_COLORS, DMC_COLORS.length);
+    assert.equal(MAX_PATTERN_COLORS, 489);
+  });
+
+  it('accepts 489 colors, numbered 1 to 489', () => {
+    const pattern = buildPattern({ width: 489, height: 1, colors: syntheticColors(489), cells: indexes(489) });
+    assert.equal(pattern.legend.length, 489);
+    assert.deepEqual(pattern.legend.map((entry) => entry.number), indexes(489).map((i) => i + 1));
+  });
+
+  it('fits the whole DMC palette, highest number 489', () => {
+    const pattern = buildPattern({ width: 489, height: 1, colors: DMC_COLORS, cells: indexes(489) });
+    assert.equal(pattern.legend.length, 489);
+    assert.equal(String(pattern.legend.at(-1).number), '489');
+  });
+
+  it('rejects 490 colors', () => {
     assertThrowsWith(
-      () => buildPattern({ width: 100, height: 1, colors: syntheticColors(100), cells: indexes(100) }),
-      RangeError, '100', '99',
+      () => buildPattern({ width: 490, height: 1, colors: syntheticColors(490), cells: indexes(490) }),
+      RangeError, '490', '489',
     );
   });
 
   it('counts the limit after merging duplicate codes', () => {
-    const colors = Array.from({ length: 120 }, (_, i) => (i % 2 === 0 ? { ...BLACK } : { ...RED }));
-    const pattern = buildPattern({ width: 120, height: 1, colors, cells: indexes(120) });
-    assert.deepEqual(pattern.legend.map((entry) => [entry.code, entry.stitchCount]), [['310', 60], ['321', 60]]);
+    const colors = Array.from({ length: 600 }, (_, i) => (i % 2 === 0 ? { ...BLACK } : { ...RED }));
+    const pattern = buildPattern({ width: 600, height: 1, colors, cells: indexes(600) });
+    assert.deepEqual(pattern.legend.map((entry) => [entry.code, entry.stitchCount]), [['310', 300], ['321', 300]]);
   });
 });
 
