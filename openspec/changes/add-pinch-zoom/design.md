@@ -116,8 +116,9 @@ also does not zoom the page (specced).
 ### 8. `scripts/serve.js --host <address>` (dev tooling, not app behavior)
 
 `parseCommandLine` gains `--host` (default `127.0.0.1`) and is exported for tests. When the host
-is not a loopback address, the script prints a warning ("reachable by every device on this
-network") and the LAN URLs from `os.networkInterfaces()` (IPv4, non-internal). The served
+is not a loopback address (`localhost`, `::1`, `127.x.x.x`), the script prints a warning
+("reachable by every device on this network"); when it listens on all interfaces (`0.0.0.0`
+or `::`) it also lists the LAN URLs from `os.networkInterfaces()` (IPv4, non-internal). The served
 content is the repo's static files (dotfiles already blocked); images picked on the phone stay
 on the phone. Tests only parse arguments and never bind `0.0.0.0` (that would trigger a
 Windows firewall prompt). *Alternative:* Chrome DevTools device mode — useful for one-finger

@@ -1,8 +1,11 @@
 // Tiny static file server for local development and for the served-site tests.
 // ES modules do not load over file://, so the app needs an HTTP server even locally.
 //
-// Usage: node scripts/serve.js [--port 8080] [--base cross-stitch-pattern]
+// Usage: node scripts/serve.js [--port 8080] [--base cross-stitch-pattern] [--host 0.0.0.0]
 //   --port  port to listen on (also read from the PORT environment variable; 0 = any free port)
+//   --host  interface to listen on (default 127.0.0.1: this computer only). 0.0.0.0 makes the
+//           site reachable by every device on the network, e.g. a phone in the same Wi-Fi for
+//           testing touch gestures; stop the server with Ctrl+C when done.
 //   --base  URL prefix the site is served under, to mimic GitHub Pages sub-path hosting.
 //           Slashes are optional ('cross-stitch-pattern' = '/cross-stitch-pattern/'). Leave
 //           them out in Git Bash on Windows, which rewrites '/name/' into a Windows path.
@@ -10,10 +13,13 @@
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve, sep } from 'node:path';
+import { networkInterfaces } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_HOST = '127.0.0.1';
+/** Hosts that mean "every network interface" when listening. */
+const ALL_INTERFACES_HOSTS = ['0.0.0.0', '::'];
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 const CONTENT_TYPES = {
@@ -38,7 +44,7 @@ const FALLBACK_CONTENT_TYPE = 'application/octet-stream';
 /**
  * Starts the static server.
  * options.port      port number, 0 picks a free port (default 8080)
- * options.host      interface to bind (default 127.0.0.1, never exposed to the network)
+ * options.host      interface to bind (default 127.0.0.1: reachable from this computer only)
  * options.root      directory to serve (default: the repository root)
  * options.basePath  URL prefix such as '/repo/' (default '/'); requests outside it get 404
  * Resolves to { url, close }: url is the site's address including the base path,
@@ -154,11 +160,27 @@ function sendText(response, status, text) {
   response.end(text);
 }
 
-/** Reads --port and --base from the command line, falling back to the PORT variable. */
-function parseCommandLine(args, env) {
-  const options = { port: env.PORT === undefined ? DEFAULT_PORT : Number(env.PORT), basePath: '/' };
+/**
+ * Reads --host, --port and --base from the command line, falling back to the PORT variable.
+ * args  the arguments after the script name
+ * env   the environment variables (only PORT is read)
+ * Returns { host, port, basePath } for startServer.
+ * Throws Error for an unknown argument or --host without a value, RangeError for a bad port.
+ */
+export function parseCommandLine(args, env) {
+  const options = {
+    host: DEFAULT_HOST,
+    port: env.PORT === undefined ? DEFAULT_PORT : Number(env.PORT),
+    basePath: '/',
+  };
   for (let i = 0; i < args.length; i += 1) {
-    if (args[i] === '--port') {
+    if (args[i] === '--host') {
+      if (args[i + 1] === undefined) {
+        throw new Error('--host needs an address, e.g. --host 0.0.0.0');
+      }
+      options.host = args[i + 1];
+      i += 1;
+    } else if (args[i] === '--port') {
       options.port = Number(args[i + 1]);
       i += 1;
     } else if (args[i] === '--base') {
@@ -174,6 +196,32 @@ function parseCommandLine(args, env) {
   return options;
 }
 
+/** True for addresses only this computer can reach (localhost, ::1, 127.x.x.x). */
+function isLoopbackHost(host) {
+  return host === 'localhost' || host === '::1' || host.startsWith('127.');
+}
+
+/**
+ * Warns that the server is reachable from the network. When it listens on all interfaces,
+ * also lists this computer's LAN addresses, since 0.0.0.0 itself cannot be opened on a phone.
+ */
+function writeNetworkWarning(host, serverUrl) {
+  process.stdout.write(
+    'Warning: the server is reachable by every device on this network, not just this computer.\n',
+  );
+  if (!ALL_INTERFACES_HOSTS.includes(host)) {
+    return;
+  }
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) {
+        const lanUrl = `http://${address.address}:${serverUrl.port}${serverUrl.pathname}`;
+        process.stdout.write(`  On this network: ${lanUrl}\n`);
+      }
+    }
+  }
+}
+
 const isRunDirectly = process.argv[1] !== undefined
   && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
@@ -181,7 +229,11 @@ if (isRunDirectly) {
   try {
     const options = parseCommandLine(process.argv.slice(2), process.env);
     const { url } = await startServer(options);
-    process.stdout.write(`Serving ${REPO_ROOT} at ${url}\nPress Ctrl+C to stop.\n`);
+    process.stdout.write(`Serving ${REPO_ROOT} at ${url}\n`);
+    if (!isLoopbackHost(options.host)) {
+      writeNetworkWarning(options.host, new URL(url));
+    }
+    process.stdout.write('Press Ctrl+C to stop.\n');
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
     process.exitCode = 1;
