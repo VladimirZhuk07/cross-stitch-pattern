@@ -42,7 +42,7 @@ export function colorTable(hexes, emptyHex) {
  * mean alpha, and red, green and blue are weighted by alpha (premultiplied), so transparent
  * empty cells thin a block out instead of darkening it; a block without opaque stitches is
  * 0, 0, 0, 0. Averages are of the stored 8-bit sRGB values, like the browser's own smoothed
- * downscaling, and are rounded by the Uint8ClampedArray.
+ * downscaling, rounded to the nearest integer (halves up).
  * grid      a Pattern (./pattern.js): width, height, row-major cells (legend index or −1)
  * table     ColorTable from colorTable
  * level     detail level, integer ≥ 0
@@ -59,69 +59,108 @@ export function fillLevelRows(grid, table, level, region, rowStart, rowEnd, out)
     return copyStitchRows(grid, table, region, rowStart, rowEnd, out);
   }
   const blockSide = 2 ** level;
-  // Per output pixel of one row: premultiplied red, green, blue, alpha sums and stitch count.
+  const weighted = premultipliedTable(table);
+  // Per output pixel of one row: premultiplied red, green, blue and alpha sums.
   const sums = new Float64Array(region.width * 4);
-  const counts = new Float64Array(region.width);
   const firstColumn = region.x * blockSide;
   const endColumn = Math.min(grid.width, (region.x + region.width) * blockSide);
   let read = 0;
   for (let row = rowStart; row < rowEnd; row++) {
     sums.fill(0);
-    counts.fill(0);
     const firstCellRow = (region.y + row) * blockSide;
     const endCellRow = Math.min(grid.height, firstCellRow + blockSide);
-    // Walk the block band row by row in memory order; each stitch adds to its pixel's sums.
+    // Walk the band of stitch rows in memory order, one block-wide segment per pixel.
     for (let cellRow = firstCellRow; cellRow < endCellRow; cellRow++) {
-      const rowOffset = cellRow * grid.width;
-      for (let cellColumn = firstColumn; cellColumn < endColumn; cellColumn++) {
-        const color = (grid.cells[rowOffset + cellColumn] - EMPTY_CELL) * BYTES_PER_PIXEL;
-        const pixel = Math.floor((cellColumn - firstColumn) / blockSide);
-        const alpha = table[color + 3];
-        sums[pixel * 4] += table[color] * alpha;
-        sums[pixel * 4 + 1] += table[color + 1] * alpha;
-        sums[pixel * 4 + 2] += table[color + 2] * alpha;
-        sums[pixel * 4 + 3] += alpha;
-        counts[pixel] += 1;
-      }
+      addRowSegments(grid.cells, cellRow * grid.width, firstColumn, endColumn, blockSide, weighted, sums);
     }
-    read += (endCellRow - firstCellRow) * (endColumn - firstColumn);
-    writeAveragedRow(sums, counts, out, row * region.width * BYTES_PER_PIXEL);
+    const bandRows = endCellRow - firstCellRow;
+    read += bandRows * (endColumn - firstColumn);
+    writeAveragedRow(sums, bandRows, firstColumn, endColumn, blockSide, out, row * region.width * BYTES_PER_PIXEL);
   }
   return read;
 }
 
-// Level 0: one stitch per pixel, so each pixel is a straight copy of its table entry.
+// Adds the stitches firstColumn … endColumn − 1 of one stitch row to the sums of their pixels.
+// Hot loop: local accumulators per block-wide segment, no division or allocation per stitch.
+function addRowSegments(cells, rowOffset, firstColumn, endColumn, blockSide, weighted, sums) {
+  let pixel = 0;
+  let segmentStart = rowOffset + firstColumn;
+  const rowEnd = rowOffset + endColumn;
+  while (segmentStart < rowEnd) {
+    const segmentEnd = segmentStart + blockSide < rowEnd ? segmentStart + blockSide : rowEnd;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+    for (let index = segmentStart; index < segmentEnd; index++) {
+      const entry = (cells[index] - EMPTY_CELL) << 2;
+      red += weighted[entry];
+      green += weighted[entry + 1];
+      blue += weighted[entry + 2];
+      alpha += weighted[entry + 3];
+    }
+    sums[pixel] += red;
+    sums[pixel + 1] += green;
+    sums[pixel + 2] += blue;
+    sums[pixel + 3] += alpha;
+    pixel += 4;
+    segmentStart = segmentEnd;
+  }
+}
+
+// The ColorTable with red, green and blue multiplied by alpha, for opacity-weighted sums.
+function premultipliedTable(table) {
+  const weighted = new Float64Array(table.length);
+  for (let entry = 0; entry < table.length; entry += BYTES_PER_PIXEL) {
+    const alpha = table[entry + 3];
+    weighted[entry] = table[entry] * alpha;
+    weighted[entry + 1] = table[entry + 1] * alpha;
+    weighted[entry + 2] = table[entry + 2] * alpha;
+    weighted[entry + 3] = alpha;
+  }
+  return weighted;
+}
+
+// Level 0: one stitch per pixel, so each pixel is a straight copy of its table entry, done
+// four bytes at a time through 32-bit views of the same memory (byte order does not matter:
+// both views read and write the same bytes). ImageData.data always starts on a 4-byte boundary.
 function copyStitchRows(grid, table, region, rowStart, rowEnd, out) {
+  const colors = new Uint32Array(table.buffer, table.byteOffset, table.length / BYTES_PER_PIXEL);
+  const pixels = new Uint32Array(out.buffer, out.byteOffset, out.length / BYTES_PER_PIXEL);
   for (let row = rowStart; row < rowEnd; row++) {
     const cellOffset = (region.y + row) * grid.width + region.x;
-    let offset = row * region.width * BYTES_PER_PIXEL;
+    const pixelOffset = row * region.width;
     for (let column = 0; column < region.width; column++) {
-      const color = (grid.cells[cellOffset + column] - EMPTY_CELL) * BYTES_PER_PIXEL;
-      out[offset] = table[color];
-      out[offset + 1] = table[color + 1];
-      out[offset + 2] = table[color + 2];
-      out[offset + 3] = table[color + 3];
-      offset += BYTES_PER_PIXEL;
+      pixels[pixelOffset + column] = colors[grid.cells[cellOffset + column] - EMPTY_CELL];
     }
   }
   return (rowEnd - rowStart) * region.width;
 }
 
-function writeAveragedRow(sums, counts, out, rowOffset) {
-  for (let pixel = 0; pixel < counts.length; pixel++) {
-    const offset = rowOffset + pixel * BYTES_PER_PIXEL;
-    const alphaSum = sums[pixel * 4 + 3];
+// Turns one row of sums into averaged RGBA pixels; a block's stitch count is its width
+// (clipped at the pattern's right edge) times the rows of the band.
+function writeAveragedRow(sums, bandRows, firstColumn, endColumn, blockSide, out, rowOffset) {
+  let offset = rowOffset;
+  let pixel = 0;
+  for (let segmentStart = firstColumn; segmentStart < endColumn; segmentStart += blockSide) {
+    const stitchCount = (Math.min(endColumn, segmentStart + blockSide) - segmentStart) * bandRows;
+    const alphaSum = sums[pixel + 3];
     if (alphaSum === 0) {
       out[offset] = 0;
       out[offset + 1] = 0;
       out[offset + 2] = 0;
       out[offset + 3] = 0;
-      continue;
+    } else {
+      // Rounded here (half up) so the stores are plain integers, much faster than letting
+      // the Uint8ClampedArray round fractional values.
+      const toColor = 1 / alphaSum;
+      out[offset] = Math.round(sums[pixel] * toColor);
+      out[offset + 1] = Math.round(sums[pixel + 1] * toColor);
+      out[offset + 2] = Math.round(sums[pixel + 2] * toColor);
+      out[offset + 3] = Math.round(alphaSum / stitchCount);
     }
-    out[offset] = sums[pixel * 4] / alphaSum;
-    out[offset + 1] = sums[pixel * 4 + 1] / alphaSum;
-    out[offset + 2] = sums[pixel * 4 + 2] / alphaSum;
-    out[offset + 3] = alphaSum / counts[pixel];
+    offset += BYTES_PER_PIXEL;
+    pixel += 4;
   }
 }
 
