@@ -1,15 +1,20 @@
 // A fake CanvasRenderingContext2D for Node tests: it draws nothing and records what a view
 // layer asked for, so tests can check texts, fills and strokes without a browser.
 //
-// createRecordingContext() returns { ctx, texts, fills, strokes, drawCallCount }:
+// createRecordingContext() returns { ctx, texts, fills, strokes, images, drawCallCount }:
 //   ctx       pass it to layer.render(ctx, frame, state)
 //   texts     list of { text, x, y, font, fontSize, fillStyle, textAlign, textBaseline }
 //   fills     list of { fillStyle, rects, polygons }, one per fill() or fillRect():
 //             rects are { x, y, width, height }, polygons are lists of { x, y }
 //   strokes   list of { strokeStyle, lineWidth, segments }, one per stroke():
 //             segments are { x1, y1, x2, y2 }
-//   drawCallCount()  number of fill, fillRect, stroke and fillText calls
+//   images    list of { image, args, imageSmoothingEnabled }, one per drawImage(image, ...args)
+//   drawCallCount()  number of fill, fillRect, stroke, fillText and drawImage calls
 // measureText(text).width is 0.55 × font size per character (a typical digit width).
+//
+// createFakeCellCanvasFactory() returns { createCellCanvas, canvases }: pass createCellCanvas
+// to createChartLayer({ createCellCanvas }); every canvas it makes is listed in canvases as
+// { width, height, pixels }, where pixels is a copy of the data put with putImageData.
 
 const DIGIT_WIDTH_EM = 0.55;
 
@@ -17,6 +22,7 @@ export function createRecordingContext() {
   const texts = [];
   const fills = [];
   const strokes = [];
+  const images = [];
   const stateStack = [];
   let path = emptyPath();
   let current = null;
@@ -28,6 +34,7 @@ export function createRecordingContext() {
     lineWidth: 1,
     textAlign: 'start',
     textBaseline: 'alphabetic',
+    imageSmoothingEnabled: true,
     save() {
       stateStack.push(styleOf(ctx));
     },
@@ -77,15 +84,44 @@ export function createRecordingContext() {
     measureText(text) {
       return { width: String(text).length * DIGIT_WIDTH_EM * fontSizeOf(ctx.font) };
     },
+    drawImage(image, ...args) {
+      images.push({ image, args, imageSmoothingEnabled: ctx.imageSmoothingEnabled });
+    },
     clearRect() {},
     setTransform() {},
   };
 
   function drawCallCount() {
-    return texts.length + fills.length + strokes.length;
+    return texts.length + fills.length + strokes.length + images.length;
   }
 
-  return { ctx, texts, fills, strokes, drawCallCount };
+  return { ctx, texts, fills, strokes, images, drawCallCount };
+}
+
+export function createFakeCellCanvasFactory() {
+  const canvases = [];
+
+  function createCellCanvas(width, height) {
+    const canvas = {
+      width,
+      height,
+      pixels: null,
+      getContext() {
+        return {
+          createImageData(imageWidth, imageHeight) {
+            return { width: imageWidth, height: imageHeight, data: new Uint8ClampedArray(imageWidth * imageHeight * 4) };
+          },
+          putImageData(image) {
+            canvas.pixels = Uint8ClampedArray.from(image.data);
+          },
+        };
+      },
+    };
+    canvases.push(canvas);
+    return canvas;
+  }
+
+  return { createCellCanvas, canvases };
 }
 
 function emptyPath() {
@@ -93,8 +129,8 @@ function emptyPath() {
 }
 
 function styleOf(ctx) {
-  const { font, fillStyle, strokeStyle, lineWidth, textAlign, textBaseline } = ctx;
-  return { font, fillStyle, strokeStyle, lineWidth, textAlign, textBaseline };
+  const { font, fillStyle, strokeStyle, lineWidth, textAlign, textBaseline, imageSmoothingEnabled } = ctx;
+  return { font, fillStyle, strokeStyle, lineWidth, textAlign, textBaseline, imageSmoothingEnabled };
 }
 
 function fontSizeOf(font) {

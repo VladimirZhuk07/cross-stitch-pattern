@@ -1,19 +1,21 @@
 // Renders the Chart layer (src/ui/layers/chart-layer.js) with hand-built patterns into a
 // recording fake context and checks what it draws (see openspec/specs/stitch-chart/spec.md).
-// The layer uses only the context it is given, so this runs in Node.
+// The layer uses only the context it is given and a cell canvas from an injected factory,
+// so this runs in Node.
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../src/core/pattern.js';
 import { createChartLayer } from '../../src/ui/layers/chart-layer.js';
-import { createRecordingContext } from '../helpers/recording-context.js';
+import { tintedCellPixels } from '../../src/core/chart-tint.js';
+import { createRecordingContext, createFakeCellCanvasFactory } from '../helpers/recording-context.js';
 import { assertClose } from '../helpers/assert-close.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
 const RED = { code: '321', name: 'Red', hex: '#C72B3B' };
 const BLANC = { code: 'BLANC', name: 'White', hex: '#FFFFFF' };
-const EMPTY_FILL = '#E0E0E0';
+const HATCH_COLOR = '#909090';
 const POSITION_TOLERANCE = 1e-9;
 
 // Legend 1 = 310 (3 stitches), 2 = 321 (2 stitches); cells [1, 0, 0, -1, 0, 1].
@@ -25,25 +27,32 @@ function solidPattern(width, height) {
   return buildPattern({ width, height, cells: new Int16Array(width * height), colors: [BLACK] });
 }
 
-function render(pattern, content, frameSize = { width: 400, height: 300 }, pixelRatio = 1) {
-  const recording = createRecordingContext();
-  const frame = {
+function frameFor(content, frameSize, pixelRatio) {
+  return {
     width: frameSize.width,
     height: frameSize.height,
     pixelRatio,
     viewport: { scale: 1, offsetX: content.x, offsetY: content.y },
     content,
   };
-  createChartLayer().render(recording.ctx, frame, { pattern, activeLayer: 'chart' });
+}
+
+// Renders a pattern once with a fresh layer; returns the recording plus the cell canvases made.
+function render(pattern, content, frameSize = { width: 400, height: 300 }, pixelRatio = 1) {
+  const recording = createRecordingContext();
+  const factory = createFakeCellCanvasFactory();
+  const layer = createChartLayer({ createCellCanvas: factory.createCellCanvas });
+  layer.render(recording.ctx, frameFor(content, frameSize, pixelRatio), { pattern, activeLayer: 'chart' });
+  recording.canvases = factory.canvases;
   return recording;
+}
+
+function hatchSegments(recording) {
+  return recording.strokes.filter((stroke) => stroke.strokeStyle === HATCH_COLOR).flatMap((stroke) => stroke.segments);
 }
 
 function cellNumbers(recording, fontSize) {
   return recording.texts.filter((text) => Math.abs(text.fontSize - fontSize) < 1e-9);
-}
-
-function coversRect(rect, x, y, width, height) {
-  return rect.x <= x && rect.y <= y && rect.x + rect.width >= x + width && rect.y + rect.height >= y + height;
 }
 
 describe('chart layer: cells and numbers', () => {
@@ -68,17 +77,27 @@ describe('chart layer: cells and numbers', () => {
     }
   });
 
-  it('fills the grid white and never with a DMC color', () => {
+  it('draws the tinted cell image once, unsmoothed, over the whole 3 × 2 grid', () => {
+    const pattern = threeByTwoPattern();
+    const recording = render(pattern, { x: 0, y: 0, width: 60, height: 40 });
+    assert.equal(recording.images.length, 1);
+    const [drawn] = recording.images;
+    assert.equal(drawn.imageSmoothingEnabled, false);
+    assert.deepEqual(drawn.args, [0, 0, 3, 2, 0, 0, 60, 40]);
+    assert.equal(recording.canvases.length, 1);
+    assert.equal(drawn.image, recording.canvases[0]);
+    assert.deepEqual([...recording.canvases[0].pixels], [...tintedCellPixels(pattern)]);
+  });
+
+  it('fills no white grid area and no cell with a full DMC color', () => {
     const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 60, height: 40 });
-    const white = recording.fills.filter((fill) => fill.fillStyle === '#FFFFFF');
-    assert.ok(white.some((fill) => fill.rects.some((rect) => coversRect(rect, 0, 0, 60, 40))), 'white grid area');
+    assert.ok(!recording.fills.some((fill) => fill.fillStyle === '#FFFFFF'), 'no white fill');
     assert.ok(!recording.fills.some((fill) => fill.fillStyle === '#C72B3B'), 'no red fill');
   });
 
-  it('fills the empty cell light grey and puts no number in it', () => {
+  it('hatches the empty cell from its bottom-left to its top-right corner and puts no number in it', () => {
     const recording = render(threeByTwoPattern(), { x: 0, y: 0, width: 60, height: 40 });
-    const grey = recording.fills.filter((fill) => fill.fillStyle === EMPTY_FILL);
-    assert.ok(grey.some((fill) => fill.rects.some((rect) => coversRect(rect, 0, 20, 20, 20))), 'grey cell (0, 1)');
+    assert.deepEqual(hatchSegments(recording), [{ x1: 0, y1: 40, x2: 20, y2: 20 }]);
     assert.ok(!recording.texts.some((text) => text.x === 10 && text.y === 30), 'no number in cell (0, 1)');
   });
 
@@ -86,19 +105,28 @@ describe('chart layer: cells and numbers', () => {
     const pattern = buildPattern({ width: 2, height: 1, cells: [0, -1], colors: [BLANC] });
     const recording = render(pattern, { x: 0, y: 0, width: 40, height: 20 });
     assert.deepEqual(cellNumbers(recording, 12).map(({ text, x, y }) => ({ text, x, y })), [{ text: '1', x: 10, y: 10 }]);
-    const grey = recording.fills.filter((fill) => fill.fillStyle === EMPTY_FILL);
-    assert.ok(grey.some((fill) => fill.rects.some((rect) => coversRect(rect, 20, 0, 20, 20))), 'grey cell (1, 0)');
-    assert.ok(!grey.some((fill) => fill.rects.some((rect) => coversRect(rect, 0, 0, 20, 20))), 'BLANC cell not grey');
+    assert.deepEqual(hatchSegments(recording), [{ x1: 20, y1: 20, x2: 40, y2: 0 }]);
   });
 
-  it('fills every cell of a pattern without stitches grey and draws no number', () => {
+  it('hatches every cell of a pattern without stitches and draws no number', () => {
     const pattern = buildPattern({ width: 2, height: 2, cells: [-1, -1, -1, -1], colors: [] });
     const recording = render(pattern, { x: 0, y: 0, width: 40, height: 40 });
-    const greyRects = recording.fills.filter((fill) => fill.fillStyle === EMPTY_FILL).flatMap((fill) => fill.rects);
-    for (const [x, y] of [[0, 0], [20, 0], [0, 20], [20, 20]]) {
-      assert.ok(greyRects.some((rect) => coversRect(rect, x, y, 20, 20)), `grey cell at ${x}, ${y}`);
-    }
+    assert.equal(hatchSegments(recording).length, 4);
     assert.equal(cellNumbers(recording, 12).length, 0);
+  });
+
+  it('hatches empty cells of 6 px but not of 5.9 px', () => {
+    const at6 = render(threeByTwoPattern(), { x: 0, y: 0, width: 18, height: 12 });
+    const below = render(threeByTwoPattern(), { x: 0, y: 0, width: 3 * 5.9, height: 2 * 5.9 });
+    assert.equal(hatchSegments(at6).length, 1);
+    assert.equal(hatchSegments(below).length, 0);
+  });
+
+  it('shows tints but no numbers in a fitted 100 × 100 pattern (7.52 px cells)', () => {
+    const recording = render(solidPattern(100, 100), { x: 124, y: 24, width: 752, height: 752 }, { width: 1000, height: 800 });
+    assert.equal(recording.images.length, 1);
+    assert.deepEqual(recording.images[0].args, [0, 0, 100, 100, 124, 24, 752, 752]);
+    assert.ok(recording.texts.every((text) => text.fontSize === 10), 'only 10 px ruler labels');
   });
 
   it('uses the smaller side of non-square cells for the number size', () => {
@@ -123,6 +151,24 @@ describe('chart layer: visible range', () => {
   it('draws exactly the 300 visible numbers of a zoomed 300 × 300 pattern', () => {
     const recording = render(solidPattern(300, 300), { x: 0, y: 0, width: 6000, height: 6000 });
     assert.equal(cellNumbers(recording, 12).length, 300);
+  });
+
+  it('draws only the visible part of the cell image of a panned 100 × 100 pattern', () => {
+    const recording = render(solidPattern(100, 100), { x: -95, y: -40, width: 1000, height: 1000 });
+    assert.deepEqual(recording.images[0].args, [9, 4, 41, 30, -5, 0, 410, 300]);
+  });
+
+  it('builds the cell image once per pattern', () => {
+    const recording = createRecordingContext();
+    const factory = createFakeCellCanvasFactory();
+    const layer = createChartLayer({ createCellCanvas: factory.createCellCanvas });
+    const content = { x: 0, y: 0, width: 60, height: 40 };
+    const first = threeByTwoPattern();
+    layer.render(recording.ctx, frameFor(content, { width: 400, height: 300 }, 1), { pattern: first });
+    layer.render(recording.ctx, frameFor(content, { width: 400, height: 300 }, 1), { pattern: first });
+    assert.equal(factory.canvases.length, 1);
+    layer.render(recording.ctx, frameFor(content, { width: 400, height: 300 }, 1), { pattern: threeByTwoPattern() });
+    assert.equal(factory.canvases.length, 2);
   });
 
   it('draws nothing when the grid is right of the frame', () => {
