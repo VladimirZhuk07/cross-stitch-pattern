@@ -56,12 +56,12 @@ describe('pattern worker handler', () => {
   it('turns invalid settings into an error response and keeps working', () => {
     const handleMessage = createPatternWorkerHandler();
     const { response } = handleMessage({
-      type: 'generate', id: 4, image: solidImage(2, 2, OPAQUE_BLACK), settings: { targetWidth: 2, maxColors: 100 },
+      type: 'generate', id: 4, image: solidImage(2, 2, OPAQUE_BLACK), settings: { targetWidth: 2, maxColors: 490 },
     });
     assert.equal(response.type, 'error');
     assert.equal(response.id, 4);
-    assert.match(response.message, /100/);
-    assert.match(response.message, /99/);
+    assert.match(response.message, /490/);
+    assert.match(response.message, /489/);
     const next = handleMessage({ type: 'generate', id: 5, settings: SETTINGS });
     assert.equal(next.response.type, 'pattern');
     assert.equal(next.response.id, 5);

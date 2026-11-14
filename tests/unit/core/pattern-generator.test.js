@@ -65,9 +65,9 @@ describe('generatePattern', () => {
     }
   });
 
-  it('rejects color limits outside 1–99 or not whole', () => {
+  it('rejects color limits outside 1–489 or not whole', () => {
     assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 0 }, TEST_PALETTE), RangeError, 'maxColors', '0');
-    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 100 }, TEST_PALETTE), RangeError, '100', '99');
+    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 490 }, TEST_PALETTE), RangeError, '490', '489');
   });
 
   it('rejects a grid taller than 500 stitches and names the largest width that fits', () => {

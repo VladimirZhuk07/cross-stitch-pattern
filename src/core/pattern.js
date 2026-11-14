@@ -2,11 +2,15 @@
 // colors, plus small lookups that the preview and chart layers need.
 // The authoritative description is openspec/specs/pattern-model/spec.md.
 
+import { DMC_COLORS } from '../data/dmc.js';
+
 // Marks a cell with no stitch (a transparent area). Distinct from every color, including white.
 export const EMPTY_CELL = -1;
 
-// At most 99 colors, so a legend number never needs more than 2 digits in a chart cell.
-export const MAX_PATTERN_COLORS = 99;
+// Clusters merge by DMC code, so a pattern can never use more colors than the palette has;
+// the limit follows the palette (489 colors) and keeps every legend number at 3 digits.
+// Synthetic input (tests) is checked against the same limit.
+export const MAX_PATTERN_COLORS = DMC_COLORS.length;
 
 // Stitches per inch of the default fabric (Aida 14 ct) and the counts offered to users.
 export const DEFAULT_FABRIC_COUNT = 14;

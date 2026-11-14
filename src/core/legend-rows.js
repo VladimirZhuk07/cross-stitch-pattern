@@ -8,7 +8,7 @@ const STITCH_COUNT_FORMAT = new Intl.NumberFormat('en-US');
 
 // Returns one LegendRow per legend entry of a Pattern (see ./pattern.js), in number order.
 // LegendRow, all fields strings, to be inserted as text (never as markup):
-//   number       the legend number as printed in the chart cells, '1'..'99'.
+//   number       the legend number as printed in the chart cells, '1'..'489'.
 //   code, name   DMC code and name, unchanged.
 //   hex          '#RRGGBB', for the swatch.
 //   tint         '#RRGGBB', the pale tint the chart fills this color's cells with
