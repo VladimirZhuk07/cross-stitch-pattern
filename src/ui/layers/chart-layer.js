@@ -6,7 +6,9 @@
 // ../../core/chart-layout.js and ../../core/chart-tint.js; this module only draws them.
 //
 // Paint order, each step limited to the cells visible in the frame:
-//   1. the cell image: one pixel per cell (tints and empty grey), scaled up unsmoothed
+//   1. the cell colors: pictures with one pixel per cell (tints and empty grey), or one
+//      averaged pixel per block of cells when a large pattern is zoomed out, built and cached
+//      by ./pattern-picture.js; hard edges from one device pixel per cell up, smoothed below
 //   2. the empty-cell hatch: one diagonal per visible empty cell, in one path
 //   3. numbers: one font for all, one fillText per visible stitched cell (skipped when the
 //      cells are too small to read them)
@@ -14,10 +16,13 @@
 //      crossings)
 //   5. rulers with row/column labels, the centre triangles, and the corner square
 //      (./chart-rulers.js)
-// Cached per pattern (by object identity): the cell image and the number texts.
+// Cached per pattern (by object identity): the cell pictures and the number texts.
+// render returns true while the cell pictures are still being built (see ../viewer.js).
 
 import { EMPTY_CELL } from '../../core/pattern.js';
-import { tintedCellPixels } from '../../core/chart-tint.js';
+import { paleTint, EMPTY_CELL_COLOR } from '../../core/chart-tint.js';
+import { colorTable } from '../../core/level-pixels.js';
+import { isStitchSmallerThanDevicePixel } from '../../core/pattern-image.js';
 import {
   chartCellGeometry,
   visibleCellRange,
@@ -29,6 +34,7 @@ import {
   snapLine,
 } from '../../core/chart-layout.js';
 import { drawRulers } from './chart-rulers.js';
+import { createPatternPicture } from './pattern-picture.js';
 
 const HATCH_COLOR = '#909090';
 const NUMBER_COLOR = '#000000';
@@ -38,24 +44,25 @@ const FONT_FAMILY = 'system-ui, sans-serif';
 
 /**
  * Creates the Chart layer. It is available once a pattern exists (state.pattern is not null).
- * options.createCellCanvas(width, height)  makes the small canvas that holds one pixel per
- *   cell; defaults to an OffscreenCanvas. Tests pass a fake.
+ * options.createCellCanvas(width, height)  makes the canvases that hold the cell colors;
+ *   defaults to an OffscreenCanvas. Tests pass a fake.
  * Returns a view layer { id: 'chart', isAvailable, render }.
  */
 export function createChartLayer(options = {}) {
-  const createCellCanvas = options.createCellCanvas ?? createOffscreenCanvas;
+  const cellPicture = createPatternPicture({
+    createCellCanvas: options.createCellCanvas ?? createOffscreenCanvas,
+    colorTableOf: chartColors,
+  });
   let cachedPattern = null;
-  let cachedCellImage = null;
   let cachedNumberTexts = [];
 
-  // The cell image and the number texts '1'..'N' (indexed like pattern.legend) of a pattern.
-  function cachedDrawingsOf(pattern) {
+  // The number texts '1'..'N' (indexed like pattern.legend) of a pattern.
+  function numberTextsOf(pattern) {
     if (pattern !== cachedPattern) {
       cachedPattern = pattern;
-      cachedCellImage = createCellImage(createCellCanvas, pattern);
       cachedNumberTexts = pattern.legend.map((entry) => String(entry.number));
     }
-    return { cellImage: cachedCellImage, numberTexts: cachedNumberTexts };
+    return cachedNumberTexts;
   }
 
   return {
@@ -66,15 +73,15 @@ export function createChartLayer(options = {}) {
       const { content } = frame;
       const range = visibleCellRange(content, frame, pattern);
       if (range.columnStart === range.columnEnd || range.rowStart === range.rowEnd) {
-        return;
+        return false;
       }
       const geometry = chartCellGeometry(content, pattern);
-      const { cellImage, numberTexts } = cachedDrawingsOf(pattern);
-      drawCellImage(ctx, cellImage, content, geometry, range);
+      const isComplete = drawCellColors(ctx, cellPicture, frame, pattern, range);
       drawEmptyHatch(ctx, frame.pixelRatio, pattern, content, geometry, range);
-      drawNumbers(ctx, pattern, content, geometry, range, numberTexts);
+      drawNumbers(ctx, pattern, content, geometry, range, numberTextsOf(pattern));
       drawGridLines(ctx, frame.pixelRatio, pattern, content, geometry, range);
       drawRulers(ctx, frame, pattern, content, geometry, range);
+      return !isComplete;
     },
   };
 }
@@ -83,33 +90,21 @@ function createOffscreenCanvas(width, height) {
   return new OffscreenCanvas(width, height);
 }
 
-// A width × height canvas with one pixel per cell in its chart color.
-function createCellImage(createCellCanvas, pattern) {
-  const canvas = createCellCanvas(pattern.width, pattern.height);
-  const cellCtx = canvas.getContext('2d');
-  const image = cellCtx.createImageData(pattern.width, pattern.height);
-  image.data.set(tintedCellPixels(pattern));
-  cellCtx.putImageData(image, 0, 0);
-  return canvas;
+// The pale tint of each legend color; empty cells light grey.
+function chartColors(pattern) {
+  return colorTable(pattern.legend.map((entry) => paleTint(entry.hex)), EMPTY_CELL_COLOR);
 }
 
-// Scales the visible part of the cell image onto the matching part of the content rectangle.
-// Without smoothing every image pixel becomes exactly one cell, aligned like the other layers.
-function drawCellImage(ctx, cellImage, content, geometry, range) {
-  const columns = range.columnEnd - range.columnStart;
-  const rows = range.rowEnd - range.rowStart;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(
-    cellImage,
-    range.columnStart,
-    range.rowStart,
-    columns,
-    rows,
-    content.x + range.columnStart * geometry.cellWidth,
-    content.y + range.rowStart * geometry.cellHeight,
-    columns * geometry.cellWidth,
-    rows * geometry.cellHeight,
-  );
+// Draws the cell colors of the visible cells; returns true when their pictures are complete.
+// Hard cell edges from one device pixel per cell up, like the DMC colors layer; below that,
+// nearest-neighbor scaling would drop whole cells, so the picture is smoothed.
+function drawCellColors(ctx, cellPicture, frame, pattern, range) {
+  const isSmoothing = isStitchSmallerThanDevicePixel(pattern, frame.content, frame.pixelRatio);
+  ctx.imageSmoothingEnabled = isSmoothing;
+  if (isSmoothing) {
+    ctx.imageSmoothingQuality = 'high';
+  }
+  return cellPicture.draw(ctx, frame, pattern, range);
 }
 
 // One diagonal from the bottom-left to the top-right corner of every visible empty cell, so
