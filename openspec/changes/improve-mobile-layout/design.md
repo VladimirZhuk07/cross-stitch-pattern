@@ -206,9 +206,12 @@ prefix) to stop iOS enlarging text in landscape. Page zoom is never disabled
 
 ### 10. Text wrapping and print
 
-`.status`, `.settings__size`, `.settings__status` and `.legend__cell--name` get
-`overflow-wrap: anywhere` so file names without spaces wrap. `.settings__status:empty` is
-hidden in compact layouts to save a line. `print.css` hides `.collapsible__toggle`.
+`.status`, `.settings__size` and `.settings__status` get `overflow-wrap: anywhere` so file
+names without spaces wrap; `.legend__cell--name` gets `overflow-wrap: break-word`, because
+`anywhere` inside a table lets the Name column shrink to one letter. The empty generation
+status is not hidden with `display: none`: it is a polite live region, and a region that
+appears together with its first text is not reliably announced (it costs one 8 px gap).
+`print.css` hides `.collapsible__toggle`.
 
 ## Risks / Trade-offs
 

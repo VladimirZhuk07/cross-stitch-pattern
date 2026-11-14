@@ -563,3 +563,99 @@ body {
     max-height: none;
   }
 }
+
+/* Compact layout, panels: the settings and the legend fold behind their toggle buttons.
+   A collapsed panel (toggle aria-expanded="false") hides its body; the toggle shows a
+   summary, so the frame keeps its room. */
+@media screen and (width < 48rem), screen and (height < 30rem) and (width < 60rem) {
+  .collapsible__toggle {
+    display: grid;
+    grid-template-areas:
+      "title chevron"
+      "summary chevron";
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-2);
+    width: 100%;
+    min-height: var(--touch-target);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .collapsible__toggle::after {
+    content: "▾";
+    grid-area: chevron;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .collapsible__toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+  }
+
+  .collapsible__title {
+    grid-area: title;
+    font-weight: 600;
+  }
+
+  .collapsible__summary {
+    grid-area: summary;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+  }
+
+  .collapsible__summary--error {
+    color: var(--color-error);
+  }
+
+  .collapsible:has(> .collapsible__toggle[aria-expanded="false"]) > .collapsible__body {
+    display: none;
+  }
+
+  /* The legend toggle fits on one line: "Legend · 18 colors". */
+  .legend .collapsible__toggle {
+    grid-template-areas: "title summary chevron";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .legend .collapsible__summary::before {
+    content: "· ";
+  }
+
+  /* The toggle replaces the panel border; the heading stays for screen readers only. */
+  .legend {
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .legend__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Expanded, the rows scroll inside at most 40 % of the visible height; the sticky column
+     headers stay on top of this scroll box. */
+  .legend__body {
+    max-height: 40vh;
+    max-height: 40dvh;
+    overflow: auto;
+    padding: 0 var(--space-2) var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+  }
+}
