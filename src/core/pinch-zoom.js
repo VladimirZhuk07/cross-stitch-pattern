@@ -19,6 +19,19 @@ export const MIN_PINCH_DISTANCE = 1;
 const POINTS_PER_PINCH = 2;
 
 /**
+ * Chromium reports a trackpad pinch as Ctrl + wheel events whose vertical delta is about
+ * 100 · ln(scale change) CSS px (sign: spreading the fingers gives a negative delta), so
+ * e^(−delta / 100) recovers the scale the fingers made.
+ */
+const TRACKPAD_PINCH_PIXELS = 100;
+
+/**
+ * Largest delta (CSS px) one Ctrl + wheel event may count for. Pinch events are a few px each;
+ * a Ctrl + mouse-wheel notch (~100 px) would otherwise zoom ×2.7 at once (now ×1.65).
+ */
+const MAX_TRACKPAD_PINCH_DELTA = 50;
+
+/**
  * Returns the viewport after two fingers moved from previousPoints to currentPoints.
  * The zoom changes by the ratio current distance / previous distance (clamped to limits) around
  * the previous midpoint, and the view then moves by the shift of the midpoint, so the world point
@@ -48,6 +61,20 @@ export function pinchViewport(viewport, previousPoints, currentPoints, limits) {
     currentMidpoint.x - previousMidpoint.x,
     currentMidpoint.y - previousMidpoint.y,
   );
+}
+
+/**
+ * Converts the vertical delta of a Ctrl + wheel event (a trackpad pinch, or Ctrl + mouse wheel)
+ * into a zoom factor e^(−delta / 100), with the delta limited to ±MAX_TRACKPAD_PINCH_DELTA.
+ * deltaPixels  vertical wheel delta in CSS px (negative = fingers spread = zoom in)
+ * Returns a factor > 0 (1 = no zoom).
+ */
+export function trackpadPinchFactor(deltaPixels) {
+  const limitedDelta = Math.min(
+    MAX_TRACKPAD_PINCH_DELTA,
+    Math.max(-MAX_TRACKPAD_PINCH_DELTA, deltaPixels),
+  );
+  return Math.exp(-limitedDelta / TRACKPAD_PINCH_PIXELS);
 }
 
 function midpoint([first, second]) {
