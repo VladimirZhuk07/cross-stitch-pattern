@@ -4,7 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPatternWorkerHandler } from '../../src/workers/pattern-worker-handler.js';
-import { OPAQUE_BLACK, solidImage } from '../helpers/pixel-image.js';
+import { OPAQUE_BLACK, OPAQUE_WHITE, pixelImage, solidImage } from '../helpers/pixel-image.js';
 
 const SETTINGS = { targetWidth: 2, maxColors: 24 };
 
@@ -72,6 +72,40 @@ describe('pattern worker handler', () => {
     const { response } = createPatternWorkerHandler()({ type: 'generate', id: 6, image, settings: SETTINGS });
     assert.equal(response.type, 'error');
     assert.match(response.message, /16/);
+  });
+
+  it('posts throttled progress for each phase before answering', () => {
+    const posted = [];
+    const handleMessage = createPatternWorkerHandler((message) => posted.push(message));
+    const image = pixelImage(2, 200, Array.from({ length: 400 }, (_, index) => (index % 2 === 0 ? OPAQUE_BLACK : OPAQUE_WHITE)));
+    const { response } = handleMessage({ type: 'generate', id: 5, image, settings: SETTINGS });
+    const postedBeforeAnswer = posted.length;
+    assert.equal(response.type, 'pattern');
+    assert.equal(response.id, 5);
+    assert.ok(postedBeforeAnswer > 0);
+    assert.ok(posted.every((message) => message.type === 'progress' && message.id === 5));
+    assert.deepEqual([...new Set(posted.map((message) => message.phase))], ['averaging', 'clustering', 'assigning']);
+    for (const phase of ['averaging', 'clustering', 'assigning']) {
+      const messages = posted.filter((message) => message.phase === phase);
+      assert.ok(messages.length >= 1 && messages.length <= 101, `${phase}: ${messages.length} messages`);
+      assert.ok(messages.every((message, index) => message.done <= message.total && (index === 0 || message.done > messages[index - 1].done)), phase);
+    }
+    const lastOf = (phase) => posted.filter((message) => message.phase === phase).at(-1);
+    assert.deepEqual(lastOf('averaging'), { type: 'progress', id: 5, phase: 'averaging', done: 200, total: 200 });
+    assert.deepEqual(lastOf('clustering'), { type: 'progress', id: 5, phase: 'clustering', done: 30, total: 30 });
+    assert.deepEqual(lastOf('assigning'), { type: 'progress', id: 5, phase: 'assigning', done: 200, total: 200 });
+  });
+
+  it('posts no progress for a request with invalid settings', () => {
+    const posted = [];
+    const handleMessage = createPatternWorkerHandler((message) => posted.push(message));
+    const { response } = handleMessage({
+      type: 'generate', id: 6, image: solidImage(2, 2, OPAQUE_BLACK), settings: { targetWidth: 2, maxColors: 490 },
+    });
+    assert.equal(response.type, 'error');
+    assert.match(response.message, /490/);
+    assert.match(response.message, /489/);
+    assert.deepEqual(posted, []);
   });
 
   it('produces responses that survive structured cloning with transfer', () => {
