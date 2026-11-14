@@ -20,14 +20,18 @@
 import { FIT_MARGIN } from './viewport.js';
 
 /**
- * Cell numbers are drawn at this fraction of the cell size. Two digits of about 0.55 em
- * then take about 66 % of the cell width and their height (about 0.7 em) about 42 % of the
- * cell height, so numbers 1…99 never touch the grid lines.
+ * Cell numbers are drawn at this fraction of the cell size, sized for 3 digits in every
+ * pattern (up to 489 colors), so the size does not jump when a pattern passes 99 colors.
+ * Three digits of about 0.55 em then take about 74 % of the cell width and their height
+ * (about 0.7 em) about 32 % of the cell height, so numbers 1…489 never touch the grid lines.
  */
-export const NUMBER_FONT_FRACTION = 0.6;
+export const NUMBER_FONT_FRACTION = 0.45;
 
-/** Smallest cell size in CSS px that shows numbers; below it they would be under 8.4 px. */
-export const MIN_NUMBERED_CELL_SIZE = 14;
+/**
+ * Smallest cell size in CSS px that shows numbers: 8.55 px text, no smaller than the earlier
+ * 8.4 px floor, with about 2.4 px between a 3-digit number and each cell edge.
+ */
+export const MIN_NUMBERED_CELL_SIZE = 19;
 
 /**
  * Smallest cell size in CSS px at which empty cells get a diagonal hatch line. Smaller cells
@@ -106,7 +110,7 @@ export function visibleCellRange(content, frame, grid) {
 
 /**
  * Returns the font size in CSS px for the cell numbers, the same for every cell and for
- * one- and two-digit numbers: NUMBER_FONT_FRACTION × cellSize. Returns null when the cell
+ * one- to three-digit numbers: NUMBER_FONT_FRACTION × cellSize. Returns null when the cell
  * size is below MIN_NUMBERED_CELL_SIZE, meaning "draw no numbers, only the grid".
  * cellSize  CellGeometry.cellSize, CSS px (≥ 0)
  * Throws RangeError if cellSize is negative or not a finite number.
