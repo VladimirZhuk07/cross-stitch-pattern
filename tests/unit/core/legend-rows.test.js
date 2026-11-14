@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { legendRows } from '../../../src/core/legend-rows.js';
+import { formatLegendSummary, legendRows } from '../../../src/core/legend-rows.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -54,5 +54,25 @@ describe('legendRows', () => {
     const before = structuredClone(pattern);
     legendRows(pattern);
     assert.deepEqual(pattern, before);
+  });
+});
+
+describe('formatLegendSummary', () => {
+  it('counts the colors', () => {
+    assert.equal(formatLegendSummary(18), '18 colors');
+    assert.equal(formatLegendSummary(99), '99 colors');
+  });
+
+  it('uses the singular for one color', () => {
+    assert.equal(formatLegendSummary(1), '1 color');
+  });
+
+  it('says there are no stitches for an empty legend', () => {
+    assert.equal(formatLegendSummary(0), 'no stitches');
+  });
+
+  it('rejects a count that is not a whole number of at least 0', () => {
+    assert.throws(() => formatLegendSummary(-1), RangeError);
+    assert.throws(() => formatLegendSummary(1.5), RangeError);
   });
 });
