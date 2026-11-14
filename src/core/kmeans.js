@@ -7,6 +7,7 @@
 // more per comparison. The final choice of a DMC floss for each centre still uses ΔE00
 // (see ./pattern-generator.js).
 
+import { createNearestCentreSearch } from './nearest-centre.js';
 import { createSeededRandom } from './random.js';
 
 // Fixed seed of the k-means++ start; not a user setting.
@@ -19,6 +20,8 @@ export const MAX_KMEANS_ITERATIONS = 30;
 // points       Float64Array (or array) of 3 × n numbers: L, a, b of each point in turn
 // maxClusters  positive integer; fewer clusters are used when there are fewer distinct points
 // seed         integer seed of the k-means++ start (default KMEANS_SEED)
+// onIteration  optional function called after each assignment step with its number
+//              (1, 2, …, at most MAX_KMEANS_ITERATIONS), e.g. to report progress
 // Returns KMeansResult { centres, assignments }:
 //   centres      list of Lab colors { L, a, b }, between 1 and maxClusters ([] when n = 0);
 //                each centre that has points is the mean of its points
@@ -26,12 +29,12 @@ export const MAX_KMEANS_ITERATIONS = 30;
 // Steps: k-means++ start (Arthur & Vassilvitskii 2007): first centre a random point, each
 // next centre a point drawn with probability proportional to its squared distance to the
 // nearest centre so far; then Lloyd iterations (assign each point to the nearest centre, ties
-// to the lowest index; move each centre to the mean of its points; a centre without points
+// to the lowest index, found by the exact search in ./nearest-centre.js; move each centre to the mean of its points; a centre without points
 // stays where it is) until no point changes cluster or MAX_KMEANS_ITERATIONS is reached.
 // Deterministic for equal input. Does not modify points.
 // Throws RangeError if maxClusters is not a positive integer or points.length is not a
 // multiple of 3.
-export function kMeansLab(points, maxClusters, seed = KMEANS_SEED) {
+export function kMeansLab(points, maxClusters, seed = KMEANS_SEED, onIteration = undefined) {
   if (!Number.isInteger(maxClusters) || maxClusters <= 0) {
     throw new RangeError(`maxClusters must be a positive integer, got ${String(maxClusters)}`);
   }
@@ -46,6 +49,7 @@ export function kMeansLab(points, maxClusters, seed = KMEANS_SEED) {
   const assignments = new Int32Array(pointCount).fill(-1);
   for (let iteration = 0; iteration < MAX_KMEANS_ITERATIONS; iteration++) {
     const hasChanged = assignToNearestCentres(points, centres, assignments);
+    onIteration?.(iteration + 1);
     if (!hasChanged) {
       break; // the centres are already the means of these assignments
     }
@@ -121,24 +125,10 @@ function drawProportionalToDistance(distances, random) {
 // Writes the nearest centre of every point into assignmentsOut (ties: lowest centre index).
 // Returns true if any assignment changed.
 function assignToNearestCentres(points, centres, assignmentsOut) {
-  const centreCount = centres.length / 3;
+  const nearestCentre = createNearestCentreSearch(centres);
   let hasChanged = false;
   for (let i = 0; i < assignmentsOut.length; i++) {
-    const L = points[i * 3];
-    const a = points[i * 3 + 1];
-    const b = points[i * 3 + 2];
-    let nearest = 0;
-    let nearestDistance = Infinity;
-    for (let c = 0; c < centreCount; c++) {
-      const dL = L - centres[c * 3];
-      const da = a - centres[c * 3 + 1];
-      const db = b - centres[c * 3 + 2];
-      const distance = dL * dL + da * da + db * db;
-      if (distance < nearestDistance) {
-        nearest = c;
-        nearestDistance = distance;
-      }
-    }
+    const nearest = nearestCentre(points[i * 3], points[i * 3 + 1], points[i * 3 + 2]);
     if (assignmentsOut[i] !== nearest) {
       assignmentsOut[i] = nearest;
       hasChanged = true;
