@@ -21,6 +21,8 @@ import {
   parseWholeNumber,
 } from '../../../src/core/generation-settings.js';
 import { MAX_PATTERN_COLORS } from '../../../src/core/pattern.js';
+import { formatSettingsSummary } from '../../../src/core/generation-settings.js';
+import { MAX_GRID_SIDE } from '../../../src/core/stitch-grid.js';
 
 describe('generation settings defaults', () => {
   it('starts with width 100, 24 colors and 14 ct fabric', () => {
@@ -194,5 +196,46 @@ describe('generation status texts', () => {
 
   it('prefixes the reason of a failure', () => {
     assert.equal(describeGenerationError('boom'), 'Could not generate the pattern: boom');
+  });
+});
+
+describe('formatSettingsSummary', () => {
+  const defaults = { targetWidth: 100, maxColors: 24, fabricCount: 14 };
+
+  it('shows stitches, colors, fabric and finished inches for a loaded image', () => {
+    assert.equal(formatSettingsSummary({ width: 100, height: 67 }, defaults), '100 × 67 · max 24 colors · 14 ct · 7.1 × 4.8 in');
+  });
+
+  it('shows the width setting without an image', () => {
+    assert.equal(formatSettingsSummary(null, defaults), 'Width 100 · max 24 colors · 14 ct');
+  });
+
+  it('uses the singular for one color and follows the fabric count', () => {
+    const settings = { targetWidth: 100, maxColors: 1, fabricCount: 18 };
+    assert.equal(formatSettingsSummary({ width: 100, height: 67 }, settings), '100 × 67 · max 1 color · 18 ct · 5.6 × 3.7 in');
+  });
+
+  it('says too large instead of a size when the height exceeds the limit', () => {
+    const height = MAX_GRID_SIDE + 1;
+    assert.equal(
+      formatSettingsSummary({ width: 100, height }, defaults),
+      `100 × ${height} · too large · max 24 colors · 14 ct`,
+    );
+  });
+
+  it('says too large when the width exceeds the limit', () => {
+    const width = MAX_GRID_SIDE + 1;
+    assert.equal(
+      formatSettingsSummary({ width, height: 10 }, { ...defaults, targetWidth: width }),
+      `${width} × 10 · too large · max 24 colors · 14 ct`,
+    );
+  });
+
+  it('does not modify its arguments', () => {
+    const size = { width: 100, height: 67 };
+    const settings = { ...defaults };
+    formatSettingsSummary(size, settings);
+    assert.deepEqual(size, { width: 100, height: 67 });
+    assert.deepEqual(settings, defaults);
   });
 });
