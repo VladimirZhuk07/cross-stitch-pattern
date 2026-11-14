@@ -9,6 +9,7 @@ import {
   TARGET_WIDTH_INVALID_TEXT,
   TARGET_WIDTH_RANGE,
   formatGridTooLarge,
+  formatNoExtraDetailNote,
   formatPatternSize,
   parseWholeNumber,
 } from '../core/generation-settings.js';
@@ -93,7 +94,10 @@ function showFieldError(input, message, text) {
   message.hidden = !isInvalid;
 }
 
-/** The size text for an image (or null) and settings, and whether the grid is too large. */
+/**
+ * The size text for an image (or null) and settings, and whether the grid is too large.
+ * A grid wider than the image gets a note that the extra stitches add no detail.
+ */
 function describeSize(image, settings) {
   if (image === null) {
     return { text: NO_IMAGE_SIZE_TEXT, isTooLarge: false };
@@ -102,5 +106,7 @@ function describeSize(image, settings) {
   if (size.height > MAX_GRID_SIDE) {
     return { text: formatGridTooLarge(size, maxTargetWidth(image.width, image.height)), isTooLarge: true };
   }
-  return { text: formatPatternSize(size, settings.fabricCount), isTooLarge: false };
+  const sizeText = formatPatternSize(size, settings.fabricCount);
+  const note = formatNoExtraDetailNote(size.width, image.width);
+  return { text: note === '' ? sizeText : `${sizeText}. ${note}`, isTooLarge: false };
 }
