@@ -134,6 +134,31 @@ describe('DMC colors layer', () => {
     assert.equal(ctx.imageSmoothingQuality, 'high');
   });
 
+  it('stretches a 100 × 67 grid over the whole content rectangle, aligned with the other layers', () => {
+    createdCanvases.length = 0;
+    const pattern = buildPattern({ width: 100, height: 67, cells: new Int16Array(100 * 67), colors: [BLACK] });
+    const content = { x: 10, y: 20, width: 1024, height: 682.5 };
+    const ctx = createRecordingContext();
+    createDmcLayer().render(ctx, frameFor(content), stateWith(pattern));
+
+    const [bitmap, x, y, width, height] = ctx.drawImageCalls[0].args;
+    assert.equal(bitmap.width, 100);
+    assert.equal(bitmap.height, 67);
+    assert.deepEqual([x, y, width, height], [10, 20, 1024, 682.5]);
+    // One bitmap pixel per stitch, so stitch (0, 0) and (99, 66) span these CSS px:
+    assert.ok(Math.abs(x + width / bitmap.width - 20.24) < 1e-9);
+    assert.ok(Math.abs(y + height / bitmap.height - 30.19) < 0.01);
+    assert.equal(x + width, 1034);
+    assert.equal(y + height, 702.5);
+  });
+
+  it('keeps hard edges far zoomed in (64 × 64 CSS px per stitch)', () => {
+    const ctx = createRecordingContext();
+    createDmcLayer().render(ctx, frameFor({ x: -500, y: -300, width: 128, height: 64 }), stateWith(TWO_STITCHES));
+    assert.equal(ctx.drawImageCalls[0].isSmoothing, false);
+    assert.deepEqual(ctx.drawImageCalls[0].args.slice(1), [-500, -300, 128, 64]);
+  });
+
   it('reuses the stitch image while zooming and panning the same pattern', () => {
     createdCanvases.length = 0;
     const layer = createDmcLayer();
