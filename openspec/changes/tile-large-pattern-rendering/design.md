@@ -16,7 +16,7 @@ behavior.
 - **Chart layer** (`chart-layer.js`): builds one W × H cell canvas of tints
   (`tintedCellPixels`) through the injected `options.createCellCanvas`, and draws only the
   visible sub-rectangle (`visibleCellRange`) with smoothing always off. Hatches (cells ≥ 6 px),
-  numbers (cells ≥ 14 px) and thin lines (cells ≥ 4 px) loop over visible cells only, so they
+  numbers (cells ≥ 19 px since `raise-pattern-limits`) and thin lines (cells ≥ 4 px) loop over visible cells only, so they
   are bounded by the frame area. `gridLines` loops over every visible boundary (10001 per axis
   at Fit of 10000 × 10000) and makes every 10th bold: 1000 bold lines 0.75 px apart.
 - **Browser limits** (approximate; vendors do not publish exact values): iOS Safari refuses
@@ -216,7 +216,7 @@ independent of the bold step (labels may sit between 1000-lines, e.g. at 1500).
 ### D12. Worst-case work per frame (10000 × 10000, any zoom)
 - Building: ≤ 524,288 stitches read (or one row more), ≤ 2 tile uploads of 1 MiB.
 - DMC colors: ≤ 42 tile `drawImage` calls (desktop frame) + ≤ 42 overview stand-ins.
-- Chart: the same, plus numbers ≤ frame area / 14² (cells ≥ 14 px), hatch checks
+- Chart: the same, plus numbers ≤ frame area / 19² (cells ≥ 19 px), hatch checks
   ≤ frame area / 6², thin lines ≤ frame / 4 per axis, bold lines ≤ frame / 8 + 2, labels
   ≤ frame / (label width + 4). At Fit: one overview `drawImage`, 22 bold lines, ~20 labels, no
   cell read once the overview is complete.

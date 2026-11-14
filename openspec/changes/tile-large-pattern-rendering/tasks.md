@@ -63,7 +63,7 @@
 - [ ] 8.3 Browser smoke check via `node scripts/serve.js` (the user runs it). Small patterns need only this change; the large-pattern part needs `raise-pattern-limits` on `main` (rebase first). Check:
   - A pattern of at most 500 × 500: `DMC colors` and `Chart` look as before at Fit, zoomed in and panned; switching layers keeps cells aligned
   - The largest allowed pattern (ideally 10000 × 10000): `DMC colors` at Fit appears top to bottom within about 1 s while the zoom buttons still respond; zooming in step by step goes from soft to sharp without stalls; at 100 %, 125 % and 200 % browser zoom no hairline or seam shows between tiles; panning at 1 stitch per pixel sharpens new areas within a frame or two
-  - `Chart` at Fit of the same pattern: bold lines every 1000 stitches, non-overlapping ruler labels, no black mass; zooming in brings back 100- and 10-stitch lines, thin lines from 4 px cells and numbers from 14 px cells
+  - `Chart` at Fit of the same pattern: bold lines every 1000 stitches, non-overlapping ruler labels, no black mass; zooming in brings back 100- and 10-stitch lines, thin lines from 4 px cells and numbers from 19 px cells
   - With 10000 rows: the left ruler is slightly wider (28 px), every row label (`10000` too) is fully inside it and readable, the centre triangle points at the grid; with up to 9999 rows the ruler looks as before
   - DevTools Performance while the overview builds: no frame with more than about 10 ms of scripting (otherwise lower `BUILD_BUDGET_STITCHES` via `/opsx:update`); Memory after a minute of panning in both layers: canvas memory stays below about 130 MB
   - On a phone (iOS Safari if available): both layers show the large pattern, no blank canvas or page reload
