@@ -17,6 +17,7 @@
   --space-4: 1.5rem;
 
   --radius: 6px;
+  --touch-target: 2.75rem; /* 44 CSS px, the smallest comfortable tap target */
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -39,6 +40,11 @@ body {
   color: var(--color-text);
   font-family: var(--font-body);
   line-height: 1.4;
+  /* Keeps content clear of a notch or home indicator (viewport-fit=cover); 0 on desktop. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* iOS would otherwise enlarge the text when a phone is turned to landscape. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 :focus-visible {
@@ -429,4 +435,37 @@ body {
   .legend {
     flex: 0 0 auto;
   }
+}
+
+/* Collapsible panels (settings, legend). The toggle buttons exist only for the compact layout
+   below; on wider screens the panels are always open. See src/ui/collapsible.js. */
+
+.collapsible__toggle {
+  display: none;
+}
+
+/* The bodies keep the spacing their content had as direct children of the panel. */
+.settings__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.legend__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Long texts without spaces (phone file names) wrap instead of widening the page. */
+.status,
+.settings__size,
+.settings__status {
+  overflow-wrap: anywhere;
+}
+
+/* break-word, not anywhere: inside a table, anywhere would let the Name column shrink to a
+   single letter. */
+.legend__cell--name {
+  overflow-wrap: break-word;
 }
