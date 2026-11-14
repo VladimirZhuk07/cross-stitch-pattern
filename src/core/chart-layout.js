@@ -42,6 +42,16 @@ export const MIN_HATCH_CELL_SIZE = 6;
 /** Every MAJOR_LINE_STEP stitches the chart has a bold line, as on printed charts. */
 export const MAJOR_LINE_STEP = 10;
 
+/**
+ * Smallest distance between bold lines in CSS px. A 2 CSS px bold line every 8 px covers at
+ * most 25 % of the grid, the same density as a 1 px thin line at MIN_THIN_LINE_CELL_SIZE;
+ * closer bold lines would merge into a black mass when a large pattern is zoomed out.
+ */
+export const MIN_MAJOR_LINE_SPACING = 8;
+
+// Bold line steps grow by this factor (10, 100, 1000, …) so they stay on the 10-stitch grid.
+const MAJOR_STEP_GROWTH = 10;
+
 /** Smallest cell size in CSS px with thin lines; below it they would merge into grey. */
 export const MIN_THIN_LINE_CELL_SIZE = 4;
 
@@ -66,7 +76,10 @@ export const RULER_MARKER_GAP = 2;
 /** Room for a row label across the left ruler: 24 − 5 − 2 − 1 = 16 CSS px. */
 export const RULER_LABEL_ROOM = RULER_SIZE - CENTER_MARKER_DEPTH - RULER_MARKER_GAP - RULER_PADDING;
 
-/** Label every n stitches, n being the first of these steps that leaves labels apart. */
+/**
+ * Label every n stitches, n being the first step that leaves labels apart: these steps, then
+ * the same 1, 2, 5 pattern for every further power of ten (1000, 2000, 5000, 10000, …).
+ */
 export const RULER_LABEL_STEPS = Object.freeze([10, 20, 50, 100, 200, 500]);
 
 /** Smallest free space between two neighbouring ruler labels, CSS px. */
@@ -135,25 +148,54 @@ export function isEmptyHatchVisible(cellSize) {
 }
 
 /**
+ * Returns the step of the bold lines in stitches for a cell size: the first of 10, 100,
+ * 1000, … whose lines are at least MIN_MAJOR_LINE_SPACING CSS px apart (10 for cells of
+ * 0.8 px and more).
+ * cellSize  CellGeometry.cellSize, CSS px (> 0)
+ * Throws RangeError if cellSize is not a positive number.
+ */
+export function majorLineStep(cellSize) {
+  assertPositiveNumber('cellSize', cellSize);
+  let step = MAJOR_LINE_STEP;
+  while (step * cellSize < MIN_MAJOR_LINE_SPACING) {
+    step *= MAJOR_STEP_GROWTH;
+  }
+  return step;
+}
+
+/**
  * Returns the grid lines (stitch boundaries) start … end inclusive along one axis, in order,
- * as a list of { index, isBold }. A line is bold when its index is a multiple of
- * MAJOR_LINE_STEP or equals count (the far border); line 0 is the near border. Thin lines
- * are left out when cellSize is below MIN_THIN_LINE_CELL_SIZE.
+ * as a list of { index, isBold }. A line is bold when its index is a multiple of the bold
+ * step (majorLineStep(cellSize): 10, or 100, 1000, … for small cells) or equals count (the
+ * far border); line 0 is the near border. Thin lines are left out when cellSize is below
+ * MIN_THIN_LINE_CELL_SIZE; then only bold lines are visited, so the work follows the number
+ * of lines, not the number of stitches.
  * start, end  boundary indexes, 0 ≤ start ≤ end ≤ count (e.g. columnStart, columnEnd)
  * count       number of cells along the axis (grid width or height), positive integer
- * cellSize    CellGeometry.cellSize, CSS px
- * Throws RangeError if count is not a positive integer or cellSize is negative.
+ * cellSize    CellGeometry.cellSize, CSS px (> 0)
+ * Throws RangeError if count is not a positive integer or cellSize is not positive.
  */
 export function gridLines(start, end, count, cellSize) {
   assertPositiveInteger('count', count);
-  assertNonNegativeNumber('cellSize', cellSize);
-  const hasThinLines = cellSize >= MIN_THIN_LINE_CELL_SIZE;
+  const majorStep = majorLineStep(cellSize);
+  if (cellSize < MIN_THIN_LINE_CELL_SIZE) {
+    return boldGridLines(start, end, count, majorStep);
+  }
   const lines = [];
   for (let index = start; index <= end; index++) {
-    const isBold = index % MAJOR_LINE_STEP === 0 || index === count;
-    if (isBold || hasThinLines) {
-      lines.push({ index, isBold });
-    }
+    lines.push({ index, isBold: index % majorStep === 0 || index === count });
+  }
+  return lines;
+}
+
+// The bold lines start … end: multiples of majorStep, plus the far border.
+function boldGridLines(start, end, count, majorStep) {
+  const lines = [];
+  for (let index = Math.ceil(start / majorStep) * majorStep; index <= end; index += majorStep) {
+    lines.push({ index, isBold: true });
+  }
+  if (end === count && count % majorStep !== 0) {
+    lines.push({ index: count, isBold: true });
   }
   return lines;
 }
@@ -219,20 +261,27 @@ export function rulerLabels(start, end, step) {
 }
 
 /**
- * Returns how many stitches apart ruler labels are: the first of RULER_LABEL_STEPS whose
- * length on screen is at least the widest label plus RULER_LABEL_GAP, or the last step if
- * none is. Both rulers use the same step so the counts line up.
- * cellSize           CellGeometry.cellSize, CSS px
+ * Returns how many stitches apart ruler labels are: the first step of 10, 20, 50, 100, 200,
+ * 500, 1000, 2000, 5000, … (RULER_LABEL_STEPS, continued without end) whose length on screen
+ * is at least the widest label plus RULER_LABEL_GAP. Both rulers use the same step so the
+ * counts line up.
+ * cellSize           CellGeometry.cellSize, CSS px (> 0)
  * widestLabelWidth   measured width of the widest label text, CSS px
+ * Throws RangeError if cellSize is not a positive number (no step would ever be long enough).
  */
 export function rulerLabelStep(cellSize, widestLabelWidth) {
+  assertPositiveNumber('cellSize', cellSize);
   const neededLength = widestLabelWidth + RULER_LABEL_GAP;
-  for (const step of RULER_LABEL_STEPS) {
-    if (step * cellSize >= neededLength) {
-      return step;
+  let steps = RULER_LABEL_STEPS;
+  for (;;) {
+    for (const step of steps) {
+      if (step * cellSize >= neededLength) {
+        return step;
+      }
     }
+    // The next decade of the 1, 2, 5 pattern: 1000, 2000, 5000, then 10000, 20000, 50000, …
+    steps = steps.slice(-3).map((step) => step * MAJOR_STEP_GROWTH);
   }
-  return RULER_LABEL_STEPS[RULER_LABEL_STEPS.length - 1];
 }
 
 /**
