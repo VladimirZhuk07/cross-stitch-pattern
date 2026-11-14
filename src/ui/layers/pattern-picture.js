@@ -9,9 +9,19 @@
 // stitches, and each new band of rows is uploaded with putImageData, so pictures appear
 // progressively and draw() reports whether everything visible is complete.
 
-import { overviewLevel, levelSize, regionCells, pictureDrawRects, SINGLE_PICTURE_MAX_SIDE, TILE_SIZE } from '../../core/tile-pyramid.js';
+import {
+  overviewLevel,
+  levelSize,
+  tileRegion,
+  regionCells,
+  detailLevel,
+  visibleTiles,
+  pictureDrawRects,
+  SINGLE_PICTURE_MAX_SIDE,
+  TILE_SIZE,
+} from '../../core/tile-pyramid.js';
 import { fillLevelRows } from '../../core/level-pixels.js';
-import { buildPlan, BUILD_BUDGET_STITCHES, TILE_CACHE_BUDGET_BYTES } from '../../core/tile-budget.js';
+import { buildPlan, tilesToEvict, BUILD_BUDGET_STITCHES, TILE_CACHE_BUDGET_BYTES } from '../../core/tile-budget.js';
 
 const BYTES_PER_PIXEL = 4;
 const OVERVIEW_KEY = 'overview';
@@ -52,6 +62,7 @@ export function createPatternPicture(options) {
         table: colorTableOf(pattern),
         maxLevel: overviewLevel(pattern, limits.singlePictureMaxSide),
         built: new Map(),
+        frameNumber: 0,
       };
     }
     return current;
@@ -62,13 +73,46 @@ export function createPatternPicture(options) {
     if (range.columnStart >= range.columnEnd || range.rowStart >= range.rowEnd) {
       return true;
     }
-    const overview = overviewTarget(pattern, pictures.maxLevel);
-    runBuildPlan(pictures, [overview], limits.buildBudgetStitches, createCellCanvas);
-    drawPart(ctx, frame, pattern, pictures.built.get(OVERVIEW_KEY), rangeCells(range));
-    return isComplete(pictures, OVERVIEW_KEY);
+    pictures.frameNumber += 1;
+    const level = detailLevel(devicePxPerStitch(frame, pattern), pictures.maxLevel);
+    const tiles = level === pictures.maxLevel ? [] : visibleTileTargets(pattern, level, range, limits.tileSize);
+    // Visible tiles first, then the overview: it is what pending tiles show meanwhile.
+    runBuildPlan(pictures, [...tiles, overviewTarget(pattern, pictures.maxLevel)], limits.buildBudgetStitches, createCellCanvas);
+
+    const overview = pictures.built.get(OVERVIEW_KEY);
+    if (tiles.length === 0) {
+      drawPart(ctx, frame, pattern, overview, rangeCells(range));
+    }
+    for (const tile of tiles) {
+      const picture = pictures.built.get(tile.key);
+      const cells = regionCells(pattern, tile.level, tile.region);
+      if (picture !== undefined && picture.image === null) {
+        drawPart(ctx, frame, pattern, picture, cells);
+        picture.lastDrawn = pictures.frameNumber;
+      } else {
+        drawPart(ctx, frame, pattern, overview, cells);
+      }
+    }
+    releaseUnneededTiles(pictures, tiles, limits.cacheBudgetBytes);
+    return isComplete(pictures, OVERVIEW_KEY) && tiles.every((tile) => isComplete(pictures, tile.key));
   }
 
   return { draw };
+}
+
+// The smaller on-screen side of a stitch in device px.
+function devicePxPerStitch(frame, pattern) {
+  const { content, pixelRatio } = frame;
+  return Math.min(content.width / pattern.width, content.height / pattern.height) * pixelRatio;
+}
+
+// The visible tiles of a level as pictures to build, keyed 'level:column:row'.
+function visibleTileTargets(pattern, level, range, tileSize) {
+  return visibleTiles(pattern, level, range, tileSize).map(({ column, row }) => ({
+    key: `${level}:${column}:${row}`,
+    level,
+    region: tileRegion(pattern, level, column, row, tileSize),
+  }));
 }
 
 // A picture to build: its key, level and TileRegion (../../core/tile-pyramid.js).
@@ -166,6 +210,32 @@ function rangeCells(range) {
     width: range.columnEnd - range.columnStart,
     height: range.rowEnd - range.rowStart,
   };
+}
+
+// After drawing: drops unfinished tiles that left the view, then releases complete tiles
+// beyond the memory budget, least recently drawn first, never one visible in this frame.
+function releaseUnneededTiles(pictures, visibleTargets, budgetBytes) {
+  const visibleKeys = visibleTargets.map((target) => target.key);
+  const isVisible = new Set(visibleKeys);
+  const tiles = [];
+  for (const picture of pictures.built.values()) {
+    if (picture.key === OVERVIEW_KEY) {
+      continue;
+    }
+    if (picture.image !== null && !isVisible.has(picture.key)) {
+      release(pictures, picture.key);
+      continue;
+    }
+    tiles.push(picture);
+  }
+  for (const key of tilesToEvict(tiles, budgetBytes, visibleKeys)) {
+    release(pictures, key);
+  }
+}
+
+function release(pictures, key) {
+  releaseCanvas(pictures.built.get(key));
+  pictures.built.delete(key);
 }
 
 function releaseAll(pictures) {
