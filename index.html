@@ -26,14 +26,14 @@
 
         <div class="settings__field">
           <label class="settings__label" for="setting-target-width">Width (stitches)</label>
-          <input class="settings__input" id="setting-target-width" type="number" min="10" max="500" step="1" value="100"
+          <input class="settings__input" id="setting-target-width" type="number" min="10" max="10000" step="1" value="100"
                  inputmode="numeric" data-setting="targetWidth" aria-describedby="setting-target-width-error">
           <span class="settings__error" id="setting-target-width-error" data-error-for="targetWidth" hidden></span>
         </div>
 
         <div class="settings__field">
           <label class="settings__label" for="setting-max-colors">Max colors</label>
-          <input class="settings__input" id="setting-max-colors" type="number" min="1" max="99" step="1" value="24"
+          <input class="settings__input" id="setting-max-colors" type="number" min="1" max="489" step="1" value="24"
                  inputmode="numeric" data-setting="maxColors" aria-describedby="setting-max-colors-error">
           <span class="settings__error" id="setting-max-colors-error" data-error-for="maxColors" hidden></span>
         </div>
@@ -51,6 +51,8 @@
 
       <output class="settings__size" data-role="pattern-size">Load an image to see the pattern size.</output>
       <output class="settings__status" data-role="generation-status" aria-live="polite"></output>
+      <button class="settings__button" type="button" data-action="generate" hidden>Generate</button>
+      <button class="settings__button" type="button" data-action="stop-generation" hidden>Stop</button>
     </form>
 
     <section class="workspace" data-role="workspace" aria-label="Pattern view">
