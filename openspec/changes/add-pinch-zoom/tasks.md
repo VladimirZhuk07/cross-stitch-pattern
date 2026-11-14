@@ -29,7 +29,7 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Run `npm run test:unit`; all tests pass (show output)
+- [x] 6.1 Run `npm run test:unit`; all tests pass (show output)
 - [ ] 6.2 Run `npm run test:integration`; all tests pass (show output)
 - [ ] 6.3 Browser smoke check (the user runs it; record anything not checked as "not verified", not as passed):
   - **Desktop (Chrome or Edge, Windows):** `node scripts/serve.js`, open `http://127.0.0.1:8080/`, load a photo, generate a pattern. Mouse drag pans; plain wheel zooms ×1.25 per notch around the cursor; `+`, `−`, `0`, arrow keys and Fit behave as before. Ctrl + mouse wheel over the frame zooms the view around the cursor (about ×1.65 per notch) and the browser's page zoom does not change; over the settings panel Ctrl + wheel zooms the page as usual. Touchpad pinch over the frame: the content under the fingers roughly follows them, the page does not zoom, zoom stops at 6400 % and at half the fit zoom. Repeat the touchpad pinch in Firefox. On a Mac with Safari, if available: trackpad pinch zooms the view, not the page.
