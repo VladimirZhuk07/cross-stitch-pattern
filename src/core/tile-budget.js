@@ -13,11 +13,13 @@ const MIB = 1024 * 1024;
 export const TILE_CACHE_BUDGET_BYTES = 48 * MIB;
 
 /**
- * Stitches a layer may read per frame to build pictures: 2^21. At about 1–2 ns per stitch on
- * desktop and 2–4 ns on phones that is 2–4 ms or 4–8 ms, leaving most of a 16.7 ms frame for
- * drawing; exactly 8 level-0 tiles of 512 × 512.
+ * Stitches a layer may read per frame to build pictures: 2^19 = 524,288, exactly 2 level-0
+ * tiles of 512 × 512. Measured in Node 22 (V8): about 2–3 ns per stitch at level 0 and up to
+ * 7–8 ns at level 1, where only 4 stitches share an averaged pixel. So a frame spends at most
+ * about 4.5 ms on desktop and, with phones 2–3 times slower, about 9–13 ms there, leaving
+ * room in a 16.7 ms frame for drawing (design D6).
  */
-export const BUILD_BUDGET_STITCHES = 2 ** 21;
+export const BUILD_BUDGET_STITCHES = 2 ** 19;
 
 // EvictionEntry (input of tilesToEvict):
 //   key        the tile's cache key, any string

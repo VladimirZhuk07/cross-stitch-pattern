@@ -25,7 +25,7 @@
 - [x] 3.3 Write failing tests for `buildPlan(jobs, budgetStitches)` that pin the 10000² schedule with sizes only: nine level-0 tile jobs (512 stitches per row, 512 rows) then the overview job (80,000 per row, 1250 rows) → frame 1 gives 512 rows to tiles 1–8 and nothing else; simulating frame 2 (tile 9 left) → tile 9 512 rows, overview 22 rows; the overview job alone simulated frame by frame → 26 rows per frame and complete after 49 frames; a job whose single row exceeds the budget gets 1 row and no later job gets any; no jobs → `[]`; the jobs are not modified; verify they fail
 - [x] 3.4 Implement `buildPlan` with `rowsWithinBudget` (BuildJob / BuildStep in plain words); verify 3.3 passes
 - [x] 3.5 Measurement during 5.7 showed 2^21 stitches cost up to about 17 ms per frame (level 1): change the tests to `BUILD_BUDGET_STITCHES` = 524,288 and the 10000² schedule to frames 1–4 building tiles in pairs, frame 5 the ninth tile and 3 overview rows, and the overview alone 6 rows per frame, complete after 209 frames; verify they fail
-- [ ] 3.6 Set `BUILD_BUDGET_STITCHES = 2 ** 19` with the measured costs in its comment (design D6); verify `npm run test:unit` passes
+- [x] 3.6 Set `BUILD_BUDGET_STITCHES = 2 ** 19` with the measured costs in its comment (design D6); verify `npm run test:unit` passes
 
 ## 4. Chart lines and ruler steps (core, `chart-layout.js`)
 
