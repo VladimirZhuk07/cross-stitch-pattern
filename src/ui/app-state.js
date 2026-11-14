@@ -15,8 +15,14 @@
 //                values (see DEFAULT_SETTINGS in ../core/generation-settings.js). Written only
 //                by ./settings-form.js.
 //   generation   { kind, text }: the pattern generation status shown in the settings form.
-//                kind is 'idle', 'running', 'done' or 'error'; text is shown as is.
-//                Written only by ./pattern-generation.js.
+//                kind is one of:
+//                  'idle'                   nothing to report
+//                  'awaiting-confirmation'  a large pattern waits for the Generate button
+//                  'running'                a pattern is being generated (Stop is offered)
+//                  'stopped'                the user pressed Stop (Generate is offered)
+//                  'done'                   the newest pattern is ready
+//                  'error'                  generation failed
+//                text is shown as is. Written only by ./pattern-generation.js.
 
 import { DEFAULT_SETTINGS } from '../core/generation-settings.js';
 

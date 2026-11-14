@@ -53,7 +53,7 @@
 
 ## 10. Settings form, Generate and Stop (ui)
 
-- [ ] 10.1 Document the generation kinds `idle`, `awaiting-confirmation`, `running`, `stopped`, `done`, `error` in `src/ui/app-state.js` (design data shapes). Verify `npm test` passes
+- [x] 10.1 Document the generation kinds `idle`, `awaiting-confirmation`, `running`, `stopped`, `done`, `error` in `src/ui/app-state.js` (design data shapes). Verify `npm test` passes
 - [ ] 10.2 Update `tests/integration/settings-markup.test.js`: width `max` equals `MAX_GRID_SIDE` (10000), max colors `max` equals `MAX_PATTERN_COLORS` (489); the form contains `button[type="button"][data-action="generate"]` with text `Generate` and `[data-action="stop-generation"]` with text `Stop`, both `hidden`, after the status output. Verify it fails
 - [ ] 10.3 Edit `index.html` inside the settings form only (two `max` attributes, the two buttons with class `settings__button`) and add the `.settings__button` rule after `.settings__status` in `styles/main.css` (design D13). Verify the markup and served-site tests pass
 - [ ] 10.4 Show the "wider than the image" note in `src/ui/settings-form.js` (design D3). Verify `npm run test:integration` passes; text is checked in 14.3
