@@ -44,4 +44,20 @@ describe('mobile layout markup', () => {
       assert.doesNotMatch(viewport, /maximum-scale|minimum-scale|user-scalable/);
     });
   });
+
+  describe('image chooser', () => {
+    it('accepts any image and lets phones offer the gallery as well as the camera', () => {
+      const input = tagWith(html, 'data-role="file-input"');
+      assert.equal(attributeOf(input, 'type'), 'file');
+      assert.equal(attributeOf(input, 'accept'), 'image/*');
+      assert.doesNotMatch(input, /\bcapture\b/);
+    });
+
+    it('sits inside a label reading "Choose image"', () => {
+      const label = html.match(/<label\b[^>]*>([\s\S]*?)<\/label>/g).find((text) => text.includes('data-role="file-input"'));
+      assert.ok(label, 'the file input is inside a label');
+      const text = label.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      assert.equal(text, 'Choose image');
+    });
+  });
 });
