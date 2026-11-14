@@ -4,6 +4,8 @@
 import { describe, it, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { MAX_PATTERN_COLORS } from '../../src/core/pattern.js';
+import { MAX_GRID_SIDE } from '../../src/core/stitch-grid.js';
 
 const INDEX_URL = new URL('../../index.html', import.meta.url);
 
@@ -39,20 +41,22 @@ describe('settings form markup', () => {
     assert.match(form, /<fieldset\b[^>]*>\s*<legend\b[^>]*>Pattern settings<\/legend>/);
   });
 
-  it('offers a whole-number width from 10 to 500, default 100', () => {
+  it('offers a whole-number width from 10 to MAX_GRID_SIDE (10000), default 100', () => {
     const input = tagWith(form, 'data-setting="targetWidth"');
     assert.equal(attributeOf(input, 'type'), 'number');
     assert.equal(attributeOf(input, 'min'), '10');
-    assert.equal(attributeOf(input, 'max'), '500');
+    assert.equal(attributeOf(input, 'max'), String(MAX_GRID_SIDE));
+    assert.equal(attributeOf(input, 'max'), '10000');
     assert.equal(attributeOf(input, 'step'), '1');
     assert.equal(attributeOf(input, 'value'), '100');
   });
 
-  it('offers 1 to 99 colors, default 24', () => {
+  it('offers 1 to MAX_PATTERN_COLORS (489) colors, default 24', () => {
     const input = tagWith(form, 'data-setting="maxColors"');
     assert.equal(attributeOf(input, 'type'), 'number');
     assert.equal(attributeOf(input, 'min'), '1');
-    assert.equal(attributeOf(input, 'max'), '99');
+    assert.equal(attributeOf(input, 'max'), String(MAX_PATTERN_COLORS));
+    assert.equal(attributeOf(input, 'max'), '489');
     assert.equal(attributeOf(input, 'value'), '24');
   });
 
@@ -86,5 +90,16 @@ describe('settings form markup', () => {
     const status = tagWith(form, 'data-role="generation-status"');
     assert.ok(status.startsWith('<output'));
     assert.equal(attributeOf(status, 'aria-live'), 'polite');
+  });
+
+  it('has hidden Generate and Stop buttons after the generation status', () => {
+    for (const [action, text] of [['generate', 'Generate'], ['stop-generation', 'Stop']]) {
+      const button = form.match(new RegExp(`<button\\b[^>]*data-action="${action}"[^>]*>([^<]*)</button>`));
+      assert.ok(button, `no ${action} button`);
+      assert.equal(attributeOf(button[0], 'type'), 'button');
+      assert.match(button[0], /\bhidden\b/);
+      assert.equal(button[1].trim(), text);
+      assert.ok(form.indexOf(button[0]) > form.indexOf('data-role="generation-status"'), `${action} comes after the status`);
+    }
   });
 });
