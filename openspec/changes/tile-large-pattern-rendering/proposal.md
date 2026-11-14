@@ -4,8 +4,8 @@
 
 Patterns of up to 10000 × 10000 stitches are coming (`raise-pattern-limits`). The DMC colors
 and Chart layers paint from one bitmap with a pixel per stitch: at that size it is 400 MB and
-far above the iOS Safari canvas limit (16.7 megapixels). At Fit the Chart also draws bold
-lines every 10 stitches less than 1 px apart, turning the grid black.
+far above the iOS Safari canvas limit (16.7 megapixels). At Fit the Chart's bold lines
+(every 10 stitches) are under 1 px apart and turn the grid black.
 
 ## What Changes
 
@@ -20,16 +20,16 @@ lines every 10 stitches less than 1 px apart, turning the grid black.
 - Tiles meet without seams; hard block edges stay while a stitch is at least 1 device pixel.
   Chart cell colors follow the same sharpness rule as the DMC colors layer.
 - Chart: when 10 stitches are less than 8 CSS px apart, bold lines go every 100 (1000, …)
-  stitches; ruler label steps continue past 500 (1000, 2000, 5000, …).
+  stitches; ruler label steps continue past 500 (1000, 2000, 5000, …); the left ruler
+  widens when 5-digit row labels (`10000`) would not fit its 24 px.
 
-User-visible: very large patterns show in both layers on desktop and phones; zoomed-out
-charts of large patterns keep a readable grid.
+User-visible: very large patterns show in both layers on desktop and phones; their charts
+keep a readable grid and rulers.
 
 ## Out of scope
 
-- Generation limits and speed, 3-digit cell numbers (`raise-pattern-limits`); 5-digit row
-  labels in the 24 px ruler.
-- Pinch zoom, mobile layout, printing/export, building tiles in a Web Worker.
+- Generation limits and speed, 3-digit cell numbers (`raise-pattern-limits`).
+- Pinch zoom, mobile layout, printing/export, Web Worker tile building.
 
 ## Capabilities
 
@@ -43,13 +43,15 @@ charts of large patterns keep a readable grid.
 
 - `dmc-preview`: "Redraws reuse the stitch image" lets evicted tiles be rebuilt.
 - `stitch-chart`: bold line step grows when lines crowd; ruler label steps beyond 500;
-  "Only visible cells are drawn" gains a 10000 × 10000 Fit scenario.
+  "Only visible cells are drawn" gains a 10000 × 10000 Fit scenario; the left ruler may be
+  wider than 24 px.
 
 ## Impact
 
 - New: core `tile-pyramid.js`, `level-pixels.js`, `tile-budget.js`; ui
   `layers/pattern-picture.js` shared by both layers.
-- Edited: `dmc-layer.js`, `chart-layer.js`; `src/core/chart-layout.js`
-  (`gridLines`, `rulerLabelStep`, new `majorLineStep`; number functions untouched);
+- Edited: `dmc-layer.js`, `chart-layer.js`, `chart-rulers.js`; `src/core/chart-layout.js`
+  (`gridLines`, `rulerLabelStep`, `rulerPlacement`, new `majorLineStep`, `leftRulerWidth`;
+  number functions untouched);
   `src/ui/viewer.js` (a layer may ask for another frame, about 5 lines); tests.
 - No new dependencies.

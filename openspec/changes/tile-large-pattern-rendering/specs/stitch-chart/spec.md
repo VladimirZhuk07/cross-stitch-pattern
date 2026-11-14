@@ -84,3 +84,46 @@ that satisfies the same condition. Both rulers SHALL use the same step.
 #### Scenario: Beyond 500
 - **WHEN** the cell size is 0.01 CSS px and the widest label is 17 CSS px
 - **THEN** labels are drawn every 5000 stitches (2000 × 0.01 = 20 < 21 ≤ 50)
+
+### Requirement: Rulers number every 10th row and column
+The Chart layer SHALL draw a 24 CSS px ruler along the top and the left edge of the grid,
+spanning the grid's visible extent, labelling each bold line that is a multiple of 10 (not 0)
+with its stitch count from the top-left: column numbers in the top ruler, row numbers in the
+left ruler, in 10 CSS px text on an opaque background. The left ruler SHALL be wider than
+24 CSS px only as described in "Left ruler fits the longest row label".
+
+#### Scenario: Labels of a 100 × 67 pattern
+- **WHEN** a 100 × 67 pattern is shown with the content rectangle at x 24, y 100, size 1000 × 670, in a 1048 × 870 frame
+- **THEN** the top ruler spans x 24 to 1024, y 76 to 100 and shows `10`, `20`, …, `100` centred at x 124, 224, …, 1024
+- **AND** the left ruler spans x 0 to 24, y 100 to 770 and shows `10`, `20`, …, `60` centred at y 200, 300, …, 700
+- **AND** no label `0` or `67` is shown
+
+#### Scenario: Widest row label does not fit at 10 px
+- **WHEN** the widest row label measures 20 CSS px at 10 px while the left ruler has 16 CSS px of room for labels
+- **THEN** all ruler labels are drawn at 8 CSS px; if the computed size is below 7 CSS px they are drawn at 7 CSS px
+
+## ADDED Requirements
+
+### Requirement: Left ruler fits the longest row label
+After the ruler font is chosen, the left ruler SHALL be the widest row label (measured in
+that font) plus 8 CSS px (triangle 5, gap 2, padding 1), rounded up to a whole CSS px, but
+at least 24 CSS px. It SHALL sit directly left of the grid edge, or at the frame edge when
+there is not enough room, then covering the grid's left edge. The corner square SHALL be as
+wide as the left ruler, and the triangle's tip SHALL be on the ruler's inner edge.
+
+#### Scenario: 100-row pattern
+- **WHEN** the widest row label `100` measures 16.5 CSS px at 10 px
+- **THEN** labels are drawn at about 9.7 CSS px (`100` then measures 16 CSS px) and the left ruler is 24 CSS px wide
+
+#### Scenario: 1000-row pattern
+- **WHEN** the widest row label `1000` measures 22 CSS px at 10 px
+- **THEN** labels are drawn at about 7.27 CSS px (16 CSS px wide) and the left ruler is 24 CSS px wide
+
+#### Scenario: 10000-row pattern at Fit
+- **WHEN** a 10000 × 10000 pattern is shown with the content rectangle at x 24, y 24 and the widest row label `10000` measures 27.5 CSS px at 10 px
+- **THEN** labels are drawn at 7 CSS px (`10000` measures 19.25 CSS px) and the left ruler spans x 0 to 28, covering the grid's left 4 CSS px
+- **AND** every row label lies inside the ruler, ending 7 CSS px before its inner edge, the left triangle's tip is at x 28, and the corner square is 28 × 24 CSS px
+
+#### Scenario: Room to the left of the grid
+- **WHEN** the same pattern is shown with the content rectangle at x 100
+- **THEN** the left ruler spans x 72 to 100 and covers no cell

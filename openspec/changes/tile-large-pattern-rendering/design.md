@@ -43,11 +43,12 @@ behavior.
 
 | Module | Layer | Responsibility |
 |---|---|---|
-| `src/core/tile-pyramid.js` | core (new) | geometry of levels and tiles: `SINGLE_PICTURE_MAX_SIDE`, `TILE_SIZE`, `overviewLevel`, `levelSize`, `tileCount`, `tileRegion`, `regionCells`, `detailLevel`, `visibleTiles`, `pictureDrawRects` |
+| `src/core/tile-pyramid.js` | core (new) | geometry of levels and tiles: `SINGLE_PICTURE_MAX_SIDE`, `TILE_SIZE`, `overviewLevel`, `levelSize`, `tileCount`, `tileRegion`, `regionCells`, `detailLevel`, `visibleTiles`, `pictureDrawRects`; the max side and tile size are optional last parameters defaulting to the constants |
 | `src/core/level-pixels.js` | core (new) | `colorTable(hexes, emptyHex)`, `fillLevelRows(grid, table, level, region, rowStart, rowEnd, out)` |
-| `src/core/tile-budget.js` | core (new) | `TILE_CACHE_BUDGET_BYTES`, `BUILD_BUDGET_STITCHES`, `tilesToEvict(entries, budgetBytes, keepKeys)`, `rowsWithinBudget(stitchesPerRow, budgetLeft, rowsLeft)` |
-| `src/core/chart-layout.js` | core (edited) | new `MIN_MAJOR_LINE_SPACING`, `majorLineStep(cellSize)`; `gridLines` uses it; `rulerLabelStep` continues 1-2-5 without end. Number functions untouched |
-| `src/ui/layers/pattern-picture.js` | ui (new) | `createPatternPicture({ createCellCanvas, colorTableOf })`: per-pattern canvases, build jobs within the frame budget, drawing, eviction, release |
+| `src/core/tile-budget.js` | core (new) | `TILE_CACHE_BUDGET_BYTES`, `BUILD_BUDGET_STITCHES`, `tilesToEvict(entries, budgetBytes, keepKeys)`, `rowsWithinBudget(stitchesPerRow, budgetLeft, rowsLeft)`, `buildPlan(jobs, budgetStitches)` |
+| `src/core/chart-layout.js` | core (edited) | new `MIN_MAJOR_LINE_SPACING`, `majorLineStep(cellSize)`; `gridLines` uses it; `rulerLabelStep` continues 1-2-5 without end; new `leftRulerWidth(widestRowLabelWidth)`; `rulerPlacement(content, leftWidth = RULER_SIZE)`. Number functions untouched |
+| `src/ui/layers/pattern-picture.js` | ui (new) | `createPatternPicture({ createCellCanvas, colorTableOf, limits })`: per-pattern canvases, build jobs within the frame budget, drawing, eviction, release. `limits` (`{ singlePictureMaxSide, tileSize, cacheBudgetBytes, buildBudgetStitches }`, defaults = the core constants) exists only so tests can use small patterns |
+| `src/ui/layers/chart-rulers.js` | ui (edited) | measures the widest row label in the chosen font, sizes the left ruler with `leftRulerWidth`, places it with `rulerPlacement`, draws the corner square as wide as the left ruler |
 | `src/ui/layers/dmc-layer.js` | ui (edited) | uses `pattern-picture.js` with stitch colors (empty = transparent); returns `true` while incomplete; accepts `options.createCellCanvas` |
 | `src/ui/layers/chart-layer.js` | ui (edited) | cell colors through `pattern-picture.js` with tints (empty = `#E0E0E0`), sharpness rule; returns `true` while incomplete |
 | `src/ui/viewer.js` | ui (edited, minimal) | contract: `render` may return `true` = "call me again next frame"; the rAF callback then schedules one more paint |
@@ -56,8 +57,7 @@ The three new core modules use no DOM, canvas, timers or globals and import only
 `core/` (`tile-pyramid.js` imports nothing; `level-pixels.js` imports `hexToRgb` from
 `color.js` and `EMPTY_CELL` from `pattern.js`). `pattern-image.js` keeps
 `patternToStitchImage` (spec'd, for later export) and `isStitchSmallerThanDevicePixel`
-(now used by both layers). `chart-rulers.js` needs no edit. `main.js` keeps calling both
-factories without options.
+(now used by both layers). `main.js` keeps calling both factories without options.
 
 ## Data shapes
 
@@ -89,6 +89,10 @@ pixels of a level picture; level k pixel (i, j) covers stitches i·2^k … (i+1)
   (`region.width × region.height × 4` bytes, an `ImageData.data`) and returns the number of
   stitches read. Throws `RangeError` for a negative or non-integer level, a region outside
   the level, rows outside the region, or an `out` of the wrong length.
+- **BuildJob / BuildStep** (`buildPlan(jobs, budgetStitches)` in `tile-budget.js`): jobs are
+  `{ key, stitchesPerRow, rowsLeft }` in build order; the result lists `{ key, rows }` for
+  every job that gets rows this frame, filling the budget in order with `rowsWithinBudget`
+  (a job that starts with budget left gets at least one row). The ui runs exactly this plan.
 - **EvictionEntry** (input of `tilesToEvict`): `{ key, bytes, lastDrawn }`; `lastDrawn` is
   the layer's frame counter. Returns the keys to release, oldest `lastDrawn` first (ties in
   input order), skipping `keepKeys`, until the remaining total ≤ budget.
@@ -144,7 +148,8 @@ exactly like level 0, so they cost no extra code.
 ### D6. Build budget: 2,097,152 stitches per frame, resumable jobs
 Building is the only work that grows with the pattern. A **job** fills one tile (or the
 overview) row by row with `fillLevelRows`; each frame gets `BUILD_BUDGET_STITCHES = 2^21`
-reads, split with `rowsWithinBudget` (at least one row, so a job always progresses). Order:
+reads, shared out by `buildPlan` (at least one row for the job that starts with budget
+left, so building always progresses). Order:
 visible tiles of the current level in row-major order, then the overview. A tile is uploaded
 with one `putImageData` when complete; the overview uploads each new band
 (`putImageData` dirty rectangle) so it appears row by row. Jobs for tiles that left the view
@@ -211,15 +216,38 @@ independent of the bold step (labels may sit between 1000-lines, e.g. at 1500).
   ≤ frame / (label width + 4). At Fit: one overview `drawImage`, 22 bold lines, ~20 labels, no
   cell read once the overview is complete.
 
-### D13. Tests
-Unit tests for the three core modules and the `chart-layout.js` edits, with hand-sized
-grids (2 × 2, 3 × 1, 2049 × 2049 geometry without cells). Integration tests extend
-`tests/helpers/recording-context.js`: the fake cell canvas records `putImageData` dirty
-rectangles and size resets. The DMC colors test moves from global `OffscreenCanvas`/`ImageData`
-stubs to `options.createCellCanvas`. Large-pattern tests use one shared read-only
-10000 × 10000 pattern object (an `Int16Array` of 100 M cells, 200 MB, built without
-`buildPattern`) for the scenarios that need the real size (49 overview frames, 8 + 1 tiles,
-no cell read at Fit via a throwing `cells` proxy swapped in after completion).
+### D13. Tests stay light
+No test allocates a large pattern. The big-size numbers of the specs (levels and tiles of
+10000², 9 visible tiles, 8 + 1 tiles in two frames, 49 overview frames, evicting T2 and
+T3, seam positions) are checked in the pure core functions with sizes only: the geometry of
+`tile-pyramid.js` and a frame-by-frame simulation of `buildPlan`. Pixels are checked on
+small real patterns (2 × 2, 3 × 1, 2050 × 2). The ui picture code is exercised on small
+patterns with small injected `limits` (for example a 40 × 40 pattern, max side 16, tile 8,
+budget 64 stitches), which drive the same code paths as 10000² with the defaults. The
+layers' Fit checks use a 2050 × 2050 pattern (8 MB, overview level 1, real defaults); "no
+cell read" swaps `cells` for a throwing proxy after the overview completes. Integration
+tests extend `tests/helpers/recording-context.js` (the fake cell canvas records
+`putImageData` dirty rectangles and size resets); the DMC colors test moves from global
+`OffscreenCanvas`/`ImageData` stubs to `options.createCellCanvas`. A one-off script outside
+the repository (in the system temp directory, not committed) renders the real 10000² pattern
+through `pattern-picture.js` with fake canvases to confirm the 49 frames and 8 + 1 tiles and
+to time a frame's build in Node.
+
+### D14. A left ruler wide enough for 5-digit row labels
+The left ruler has 16 CSS px for labels. `rulerFontSize` shrinks the font to fit, but not
+below 7 px; `10000` at 7 px measures about 19.25 px. Chosen: after the font is set, the left
+ruler is `max(24, ceil(widest row label + 5 + 2 + 1))` CSS px (`leftRulerWidth`), so labels
+of any length fit at a legible size; `rulerPlacement` places it at
+`max(0, content.x − leftWidth)`. Up to 4-digit rows (and the 24 px fit margin of every
+existing pattern) nothing changes. For 10000 rows the ruler is 28 px; at Fit it covers the
+grid's left 4 px (about 53 stitch columns of a fitted 10000² pattern, a sub-pixel sliver
+each), the same way both rulers already cover the grid once it is panned. The triangle stays
+on the ruler's inner edge and the corner square takes the ruler's width; the top ruler keeps
+24 px (its labels run along it, and the label step already spaces them).
+*Alternatives:* a smaller minimum font (`10000` would need 5.8 px, illegible on 1× screens);
+rotated row labels (fit at 10 px, but sideways digits are harder to read and to match with
+the column numbers); a larger `FIT_MARGIN` (affects every layer and pattern; excluded by the
+user).
 
 ## Risks / Trade-offs
 
@@ -233,10 +261,15 @@ no cell read at Fit via a throwing `cells` proxy swapped in after completion).
   stitch compared with grid-line snapping, which already moves lines by the same amount.
 - [Smoothing across a tile edge clamps to that tile's pixels at levels ≥ 1] → affects a
   sub-pixel-wide band only where a stitch is below one device pixel.
-- [`chart-layout.js` is also edited by `raise-pattern-limits`] → different functions
-  (`gridLines`, `rulerLabelStep` here; number font functions there); expect a trivial rebase.
-- [5-digit row labels ("10000") need 19.25 px at the 7 px minimum font but the left ruler has
-  16 px] → out of scope; flagged for `raise-pattern-limits` or a follow-up.
+- [`chart-layout.js` and `tests/integration/chart-layer.test.js` are also edited by
+  `raise-pattern-limits`, which merges first] → different functions (`gridLines`,
+  `rulerLabelStep`, `rulerPlacement`, `leftRulerWidth` here; number font functions there);
+  rebase before archive and re-run the suite.
+- [A 28 px left ruler covers 4 px of a fitted 10000-row grid] → only for ≥ 5-digit row
+  counts, and the same as a sticky ruler while panning (D14).
+- [Tests run small sizes, not the real 10000²] → the size-only core tests pin every
+  large-size number, the limits are injected into the same code, and the temp script
+  checks the real size once (D13).
 - [The rAF loop could spin if a job never finished] → every frame completes at least one row;
   integration tests assert the layer stops asking once complete.
 
