@@ -233,13 +233,30 @@ export function snapLine(position, widthDevicePixels, pixelRatio) {
 /**
  * Returns where the rulers go, as { top, left }: top is the y of the top ruler's upper
  * edge, left the x of the left ruler's left edge. Each ruler sits directly outside its grid
- * edge and sticks to the frame edge (0) once that grid edge is scrolled out of view.
+ * edge and sticks to the frame edge (0) once that grid edge is scrolled out of view, or when
+ * there is not enough room left of the grid (then a wide left ruler covers the grid's edge).
+ * leftWidth  width of the left ruler in CSS px (default RULER_SIZE; see leftRulerWidth)
  */
-export function rulerPlacement(content) {
+export function rulerPlacement(content, leftWidth = RULER_SIZE) {
   return {
     top: Math.max(0, content.y - RULER_SIZE),
-    left: Math.max(0, content.x - RULER_SIZE),
+    left: Math.max(0, content.x - leftWidth),
   };
+}
+
+/**
+ * Returns the width of the left ruler in CSS px: the widest row label (measured in the ruler
+ * font chosen with rulerFontSize) plus the centre triangle, the gap and the padding, rounded
+ * up to a whole CSS px, but at least RULER_SIZE. Labels of up to 4 digits fit the 24 px ruler
+ * at a shrunk font; 5-digit rows (10000) would not fit even at MIN_RULER_FONT_SIZE, so the
+ * ruler grows instead of the font going below a legible size (design D14).
+ * widestRowLabelWidth  measured width of the widest row label, CSS px (≥ 0)
+ * Throws RangeError if widestRowLabelWidth is negative or not a finite number.
+ */
+export function leftRulerWidth(widestRowLabelWidth) {
+  assertNonNegativeNumber('widestRowLabelWidth', widestRowLabelWidth);
+  const needed = widestRowLabelWidth + CENTER_MARKER_DEPTH + RULER_MARKER_GAP + RULER_PADDING;
+  return Math.max(RULER_SIZE, Math.ceil(needed));
 }
 
 /**
