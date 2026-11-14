@@ -83,7 +83,7 @@ Compact landscape (667 × 375):
 |                         | [   Fit   ] |  (rows scroll here    |
 |                         | status text |   when expanded)      |
 +-------------------------+-------------+-----------------------+
-          1fr               rail 10rem      side column 14rem
+          1fr               rail 9rem       side column 16rem
 ```
 
 Alternatives: switching layouts in JavaScript with `matchMedia` (rejected: layout logic in
@@ -97,10 +97,13 @@ In compact layouts `.workspace` becomes a grid and `.toolbar` gets `display: con
 layer switcher, the zoom controls, the frame and the status line become grid items placed by
 `grid-template-areas`: portrait `"view view" "frame frame" "status zoom"` with rows
 `auto 1fr auto`; landscape `"frame view" "frame zoom" "frame status"` with columns
-`1fr 10rem`. `display: contents` is applied only to the toolbar `div`, which has no role; the
+`1fr 9rem`. `display: contents` is applied only to the toolbar `div`, which has no role; the
 `fieldset` and the zoom `role="group"` keep their own boxes and semantics. DOM order and tab
 order do not change. In landscape `.app-main` is a grid too: `"work settings" "work legend"`,
-columns `1fr 14rem`, rows `auto 1fr`, the settings and legend areas scrolling on their own.
+columns `1fr 16rem`, rows `minmax(0, auto) minmax(0, auto) 1fr` (the two panel rows share the
+height when both are open; the empty last row takes the rest), each panel body scrolling on its
+own. 16rem (256 px) is the narrowest column in which all five legend columns fit, with 4 px
+cell padding and a 13 px table font; the rail shrinks to 9rem (144 px) to pay for it.
 
 ### 3. Frame height
 
@@ -219,6 +222,10 @@ appears together with its first text is not reliably announced (it costs one 8 p
   acceptable for a static hobby app; the old layout still works, just not optimized.
 - [Expanded panels plus a 10rem frame exceed short screens] → the page scrolls; the frame
   keeps 160 px; toggles stay reachable above and below it.
+- [Both panels open on a 375 px high landscape phone leave the settings fields a small scroll
+  box (about 25 px on an iPhone SE)] → each panel still scrolls inside; collapsing the legend
+  gives the settings the whole column. An accordion (opening one closes the other) would need
+  the two modules to know each other; not done.
 - [Resizing the canvas when a panel opens costs a redraw of large patterns] → instant
   toggles (one resize); rendering speed belongs to tile-large-pattern-rendering.
 - [`display: contents` on the toolbar] → only on a role-less `div`; the fieldset and group

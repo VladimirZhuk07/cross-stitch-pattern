@@ -65,13 +65,13 @@ SHALL be at least 10rem (160 px) tall.
 
 ### Requirement: Compact landscape layout puts the panels beside the frame
 On a compact landscape screen the app SHALL show the header on top, the frame on the left with
-the view switcher, zoom controls and status line in a 10rem (160 px) column right of it, and
-the settings and legend panels in a 14rem (224 px) side column at the right edge, scrolling on
+the view switcher, zoom controls and status line in a 9rem (144 px) column right of it, and
+the settings and legend panels in a 16rem (256 px) side column at the right edge, scrolling on
 their own. The frame SHALL fill the full height below the header.
 
 #### Scenario: iPhone SE in landscape
 - **WHEN** the screen is 667 × 375 with a pattern
-- **THEN** the settings and legend toggles are in a 224 px column at the right, the frame is at least 280 px tall and at least 220 px wide, and the page does not scroll vertically while the panels are collapsed
+- **THEN** the settings and legend toggles are in a 256 px column at the right, the frame is at least 280 px tall and at least 220 px wide, and the page does not scroll vertically while the panels are collapsed
 
 #### Scenario: Pixel 7 in landscape
 - **WHEN** the screen is 915 × 412 (compact: lower than 480 and narrower than 960)

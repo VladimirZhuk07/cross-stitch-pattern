@@ -754,3 +754,126 @@ body {
     min-width: var(--touch-target);
   }
 }
+
+/* Compact landscape (phones turned sideways): height is the scarce side, so nothing sits above
+   or below the frame. Left: the frame, with a 9rem rail for the view switcher, zoom and
+   status. Right: a 16rem column with the settings and the legend. The page itself does not
+   scroll; each panel scrolls inside. The side column has two content-sized rows that share
+   the height when both panels are open, and an empty last row that takes what is left.
+   16rem is the narrowest column in which all five legend columns fit (with tighter cells). */
+@media screen and (height < 30rem) and (width < 60rem) and (orientation: landscape) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .app-header {
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .app-main {
+    display: grid;
+    grid-template-areas:
+      "work settings"
+      "work legend"
+      "work .";
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    grid-template-rows: minmax(0, auto) minmax(0, auto) 1fr;
+  }
+
+  .workspace {
+    grid-area: work;
+    grid-template-areas:
+      "frame view"
+      "frame zoom"
+      "frame status";
+    grid-template-columns: minmax(0, 1fr) 9rem;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .settings,
+  .legend {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .settings {
+    grid-area: settings;
+  }
+
+  .legend {
+    grid-area: legend;
+  }
+
+  /* The toggles keep their size; only the bodies give way. */
+  .collapsible__toggle {
+    flex-shrink: 0;
+  }
+
+  .settings__body,
+  .legend__body {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  /* The rail: view options stacked, zoom buttons in a row with Fit below them. */
+  .layer-switcher {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .layer-switcher__option + .layer-switcher__option {
+    margin-top: -1px;
+    margin-left: 0;
+  }
+
+  .layer-switcher__option:first-of-type {
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .layer-switcher__option:last-of-type {
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  .zoom-controls {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .zoom-controls__button:last-child {
+    flex: 1 0 100%;
+  }
+
+  .zoom-controls__level {
+    min-width: 2.75rem;
+  }
+
+  .legend__body {
+    padding-right: var(--space-1);
+    padding-left: var(--space-1);
+  }
+
+  .legend__table {
+    font-size: 0.8125rem;
+  }
+
+  .legend__heading,
+  .legend__cell {
+    padding-right: var(--space-1);
+    padding-left: var(--space-1);
+  }
+
+  .settings__status {
+    font-size: 0.8125rem;
+  }
+
+  .status {
+    align-self: start;
+    max-height: 100%;
+    overflow-y: auto;
+    font-size: 0.8125rem;
+  }
+}
