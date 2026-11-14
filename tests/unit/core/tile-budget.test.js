@@ -10,6 +10,7 @@ import {
   BUILD_BUDGET_STITCHES,
   tilesToEvict,
   rowsWithinBudget,
+  buildPlan,
 } from '../../../src/core/tile-budget.js';
 
 const MIB = 1024 * 1024;
@@ -87,5 +88,73 @@ describe('rowsWithinBudget', () => {
 
   it('rejects a row of 0 stitches', () => {
     assertThrowsWith(() => rowsWithinBudget(0, 100, 10), RangeError, 'stitchesPerRow', '0');
+  });
+});
+
+describe('buildPlan', () => {
+  const TILE_STITCHES_PER_ROW = 512;
+  const OVERVIEW_STITCHES_PER_ROW = 80000; // 8 stitch rows × 10000 stitches at overview level 3
+
+  // The 9 visible level-0 tiles of "Zoomed into the middle", then the 1250-row overview.
+  function zoomedJobs() {
+    const jobs = [];
+    for (let i = 1; i <= 9; i++) {
+      jobs.push({ key: `tile${i}`, stitchesPerRow: TILE_STITCHES_PER_ROW, rowsLeft: 512 });
+    }
+    jobs.push({ key: 'overview', stitchesPerRow: OVERVIEW_STITCHES_PER_ROW, rowsLeft: 1250 });
+    return jobs;
+  }
+
+  // Applies one frame's plan; returns the jobs still unfinished.
+  function afterFrame(jobs, plan) {
+    const rowsByKey = new Map(plan.map((step) => [step.key, step.rows]));
+    return jobs
+      .map((job) => ({ ...job, rowsLeft: job.rowsLeft - (rowsByKey.get(job.key) ?? 0) }))
+      .filter((job) => job.rowsLeft > 0);
+  }
+
+  it('builds the first 8 of 9 level-0 tiles of a 10000² pattern in the first frame', () => {
+    const plan = buildPlan(zoomedJobs(), BUILD_BUDGET_STITCHES);
+    assert.deepEqual(plan, [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ key: `tile${i}`, rows: 512 })));
+  });
+
+  it('builds the ninth tile and 22 overview rows in the second frame', () => {
+    const jobs = afterFrame(zoomedJobs(), buildPlan(zoomedJobs(), BUILD_BUDGET_STITCHES));
+    assert.deepEqual(buildPlan(jobs, BUILD_BUDGET_STITCHES), [
+      { key: 'tile9', rows: 512 },
+      { key: 'overview', rows: 22 },
+    ]);
+  });
+
+  it('completes the 10000² overview at Fit in 49 frames of 26 rows', () => {
+    let jobs = [{ key: 'overview', stitchesPerRow: OVERVIEW_STITCHES_PER_ROW, rowsLeft: 1250 }];
+    const rowsPerFrame = [];
+    while (jobs.length > 0) {
+      const plan = buildPlan(jobs, BUILD_BUDGET_STITCHES);
+      rowsPerFrame.push(plan[0].rows);
+      jobs = afterFrame(jobs, plan);
+    }
+    assert.equal(rowsPerFrame.length, 49);
+    assert.ok(rowsPerFrame.slice(0, 48).every((rows) => rows === 26));
+    assert.equal(rowsPerFrame[48], 2);
+  });
+
+  it('gives one row to a job whose row exceeds the budget and nothing to later jobs', () => {
+    const jobs = [
+      { key: 'wide', stitchesPerRow: 5000000, rowsLeft: 10 },
+      { key: 'next', stitchesPerRow: 1, rowsLeft: 10 },
+    ];
+    assert.deepEqual(buildPlan(jobs, 100), [{ key: 'wide', rows: 1 }]);
+  });
+
+  it('plans nothing without jobs', () => {
+    assert.deepEqual(buildPlan([], BUILD_BUDGET_STITCHES), []);
+  });
+
+  it('does not modify the jobs', () => {
+    const jobs = zoomedJobs();
+    const before = JSON.stringify(jobs);
+    buildPlan(jobs, BUILD_BUDGET_STITCHES);
+    assert.equal(JSON.stringify(jobs), before);
   });
 });
