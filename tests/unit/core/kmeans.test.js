@@ -107,6 +107,24 @@ describe('kMeansLab', () => {
     assertThrowsWith(() => kMeansLab(new Float64Array(4), 2), RangeError, '4');
   });
 
+  it('reports each iteration in order, at most MAX_KMEANS_ITERATIONS times', () => {
+    const iterations = [];
+    kMeansLab(syntheticPoints(), 8, KMEANS_SEED, (iteration) => iterations.push(iteration));
+    assert.ok(iterations.length >= 1 && iterations.length <= MAX_KMEANS_ITERATIONS, `${iterations.length} iterations`);
+    assert.deepEqual(iterations, iterations.map((_, index) => index + 1));
+  });
+
+  it('gives the same result with and without the iteration callback', () => {
+    const withCallback = kMeansLab(syntheticPoints(), 8, KMEANS_SEED, () => {});
+    assert.deepEqual(withCallback, kMeansLab(syntheticPoints(), 8));
+  });
+
+  it('handles 489 clusters on 2000 points', () => {
+    const { centres, assignments } = kMeansLab(syntheticPoints(2000), 489);
+    assert.ok(centres.length <= 489);
+    assert.ok([...assignments].every((index) => index >= 0 && index < centres.length));
+  });
+
   it('does not modify the input points', () => {
     const points = syntheticPoints();
     const before = [...points];
