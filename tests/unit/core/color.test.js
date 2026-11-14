@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   deltaE2000,
   hexToRgb,
+  labToLinearRgb,
   linearRgbToLab,
   linearToSrgb,
   rgbToLab,
@@ -237,5 +238,32 @@ describe('deltaE2000', () => {
     deltaE2000(first, second);
     assert.deepEqual(first, { L: 50, a: 2.5, b: 0 });
     assert.deepEqual(second, { L: 73, a: 25, b: -18 });
+  });
+});
+
+describe('labToLinearRgb', () => {
+  const RGB_KEYS = ['r', 'g', 'b'];
+
+  it('maps Lab white (100, 0, 0) to linear white', () => {
+    assertCloseFields(labToLinearRgb({ L: 100, a: 0, b: 0 }), { r: 1, g: 1, b: 1 }, RGB_KEYS, 1e-4, 'white');
+  });
+
+  it('maps Lab black (0, 0, 0) to linear black', () => {
+    assertCloseFields(labToLinearRgb({ L: 0, a: 0, b: 0 }), { r: 0, g: 0, b: 0 }, RGB_KEYS, 1e-9, 'black');
+  });
+
+  it('maps L* 50 grey to linear 0.184187 on every channel', () => {
+    assertCloseFields(labToLinearRgb({ L: 50, a: 0, b: 0 }), { r: 0.184187, g: 0.184187, b: 0.184187 }, RGB_KEYS, 1e-5, 'grey');
+  });
+
+  it('inverts linearRgbToLab for DMC 321 #C72B3B', () => {
+    const rgb = hexToRgb('#C72B3B');
+    const linear = { r: srgbToLinear(rgb.r), g: srgbToLinear(rgb.g), b: srgbToLinear(rgb.b) };
+    assertCloseFields(labToLinearRgb(linearRgbToLab(linear)), linear, RGB_KEYS, 1e-6, 'round trip');
+  });
+
+  it('returns channels outside 0–1 for a Lab color outside sRGB, unclamped', () => {
+    const { r, g, b } = labToLinearRgb({ L: 60, a: 0, b: -120 });
+    assert.ok([r, g, b].some((channel) => channel < 0 || channel > 1), `got ${r}, ${g}, ${b}`);
   });
 });
