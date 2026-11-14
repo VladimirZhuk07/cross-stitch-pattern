@@ -1,6 +1,7 @@
 // The pattern settings form: width in stitches, max colors and fabric count, plus the stitch
 // size / finished size text and the generation status. Writes only state.settings, and only
-// valid values; the texts come from ../core/generation-settings.js.
+// valid values; the texts come from ../core/generation-settings.js. On phones the fields fold
+// behind a Settings button that shows a one-line summary (see ./collapsible.js).
 
 import {
   MAX_COLORS_INVALID_TEXT,
@@ -11,10 +12,12 @@ import {
   formatGridTooLarge,
   formatNoExtraDetailNote,
   formatPatternSize,
+  formatSettingsSummary,
   parseWholeNumber,
 } from '../core/generation-settings.js';
 import { FABRIC_COUNTS } from '../core/pattern.js';
 import { MAX_GRID_SIDE, maxTargetWidth, stitchGridSize } from '../core/stitch-grid.js';
+import { setupCollapsible } from './collapsible.js';
 
 const NUMBER_FIELDS = {
   targetWidth: { range: TARGET_WIDTH_RANGE, invalidText: TARGET_WIDTH_INVALID_TEXT },
@@ -28,7 +31,9 @@ const NUMBER_FIELDS = {
  * shows its message ([data-error-for="…"]) and leaves the settings unchanged. The fabric
  * select [data-setting="fabricCount"] updates settings.fabricCount.
  * The size output [data-role="pattern-size"] follows the image and settings; the status
- * output [data-role="generation-status"] shows state.generation.
+ * output [data-role="generation-status"] shows state.generation. The toggle
+ * [data-action="toggle-settings"] folds the fields on phones; its [data-role="settings-summary"]
+ * shows the settings in use (last valid values), in the error color when the grid is too large.
  * root   element (or document) containing the form
  * store  the app store from ./store.js
  */
@@ -37,6 +42,9 @@ export function setupSettingsForm(root, store) {
   const sizeOutput = form.querySelector('[data-role="pattern-size"]');
   const statusOutput = form.querySelector('[data-role="generation-status"]');
   const fabricSelect = form.querySelector('[data-setting="fabricCount"]');
+  const summary = form.querySelector('[data-role="settings-summary"]');
+
+  setupCollapsible(form.querySelector('[data-action="toggle-settings"]'));
 
   form.addEventListener('submit', (event) => {
     event.preventDefault(); // settings apply as they are typed; Enter must not reload the page
@@ -67,6 +75,8 @@ export function setupSettingsForm(root, store) {
     const size = describeSize(state.image, state.settings);
     sizeOutput.textContent = size.text;
     sizeOutput.classList.toggle('settings__size--error', size.isTooLarge);
+    summary.textContent = formatSettingsSummary(size.grid, state.settings);
+    summary.classList.toggle('collapsible__summary--error', size.isTooLarge);
     statusOutput.textContent = state.generation.text;
     statusOutput.classList.toggle('settings__status--error', state.generation.kind === 'error');
   }
@@ -95,18 +105,19 @@ function showFieldError(input, message, text) {
 }
 
 /**
- * The size text for an image (or null) and settings, and whether the grid is too large.
- * A grid wider than the image gets a note that the extra stitches add no detail.
+ * The size text for an image (or null) and settings, whether the grid is too large, and the
+ * grid size { width, height } in stitches (null without an image). A grid wider than the
+ * image gets a note that the extra stitches add no detail.
  */
 function describeSize(image, settings) {
   if (image === null) {
-    return { text: NO_IMAGE_SIZE_TEXT, isTooLarge: false };
+    return { text: NO_IMAGE_SIZE_TEXT, isTooLarge: false, grid: null };
   }
   const size = stitchGridSize(image.width, image.height, settings.targetWidth);
   if (size.height > MAX_GRID_SIDE) {
-    return { text: formatGridTooLarge(size, maxTargetWidth(image.width, image.height)), isTooLarge: true };
+    return { text: formatGridTooLarge(size, maxTargetWidth(image.width, image.height)), isTooLarge: true, grid: size };
   }
   const sizeText = formatPatternSize(size, settings.fabricCount);
   const note = formatNoExtraDetailNote(size.width, image.width);
-  return { text: note === '' ? sizeText : `${sizeText}. ${note}`, isTooLarge: false };
+  return { text: note === '' ? sizeText : `${sizeText}. ${note}`, isTooLarge: false, grid: size };
 }
