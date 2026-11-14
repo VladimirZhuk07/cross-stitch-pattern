@@ -737,3 +737,20 @@ body {
     outline-offset: 2px;
   }
 }
+
+/* Touch screens in the medium and wide layouts (tablets, touch laptops): same arrangement,
+   but every control is at least 44 × 44 CSS px. */
+@media screen and (pointer: coarse) {
+  .file-picker,
+  .layer-switcher__option,
+  .zoom-controls__button,
+  .settings__input,
+  .settings__button {
+    min-height: var(--touch-target);
+  }
+
+  .zoom-controls__button,
+  .settings__button {
+    min-width: var(--touch-target);
+  }
+}

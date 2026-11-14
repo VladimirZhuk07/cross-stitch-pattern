@@ -105,7 +105,7 @@ option, `−`, `+`, `Fit`, and the settings fields. Settings fields SHALL use a 
 
 #### Scenario: Desktop with a mouse
 - **WHEN** the window is 1440 × 900 with a fine pointer
-- **THEN** the zoom buttons keep their desktop size (at least 36 px wide, about 30 px tall)
+- **THEN** the zoom buttons keep their desktop size (36 × 32 px)
 
 #### Scenario: Focusing a field does not zoom the page
 - **WHEN** the user taps the `Width (stitches)` field on an iPhone
