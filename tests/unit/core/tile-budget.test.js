@@ -25,9 +25,9 @@ function fiftyTiles() {
 }
 
 describe('budget constants', () => {
-  it('keeps 48 MiB of tiles per layer and reads at most 2,097,152 stitches per frame', () => {
+  it('keeps 48 MiB of tiles per layer and reads at most 524,288 stitches per frame', () => {
     assert.equal(TILE_CACHE_BUDGET_BYTES, 50331648);
-    assert.equal(BUILD_BUDGET_STITCHES, 2097152);
+    assert.equal(BUILD_BUDGET_STITCHES, 524288);
   });
 });
 
@@ -113,20 +113,27 @@ describe('buildPlan', () => {
       .filter((job) => job.rowsLeft > 0);
   }
 
-  it('builds the first 8 of 9 level-0 tiles of a 10000² pattern in the first frame', () => {
-    const plan = buildPlan(zoomedJobs(), BUILD_BUDGET_STITCHES);
-    assert.deepEqual(plan, [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ key: `tile${i}`, rows: 512 })));
-  });
-
-  it('builds the ninth tile and 22 overview rows in the second frame', () => {
-    const jobs = afterFrame(zoomedJobs(), buildPlan(zoomedJobs(), BUILD_BUDGET_STITCHES));
-    assert.deepEqual(buildPlan(jobs, BUILD_BUDGET_STITCHES), [
+  it('builds the 9 level-0 tiles of a 10000² pattern in pairs, the ninth with 3 overview rows', () => {
+    let jobs = zoomedJobs();
+    const plans = [];
+    for (let frame = 1; frame <= 5; frame++) {
+      const plan = buildPlan(jobs, BUILD_BUDGET_STITCHES);
+      plans.push(plan);
+      jobs = afterFrame(jobs, plan);
+    }
+    for (let frame = 0; frame < 4; frame++) {
+      assert.deepEqual(plans[frame], [
+        { key: `tile${2 * frame + 1}`, rows: 512 },
+        { key: `tile${2 * frame + 2}`, rows: 512 },
+      ]);
+    }
+    assert.deepEqual(plans[4], [
       { key: 'tile9', rows: 512 },
-      { key: 'overview', rows: 22 },
+      { key: 'overview', rows: 3 },
     ]);
   });
 
-  it('completes the 10000² overview at Fit in 49 frames of 26 rows', () => {
+  it('completes the 10000² overview at Fit in 209 frames of 6 rows', () => {
     let jobs = [{ key: 'overview', stitchesPerRow: OVERVIEW_STITCHES_PER_ROW, rowsLeft: 1250 }];
     const rowsPerFrame = [];
     while (jobs.length > 0) {
@@ -134,9 +141,9 @@ describe('buildPlan', () => {
       rowsPerFrame.push(plan[0].rows);
       jobs = afterFrame(jobs, plan);
     }
-    assert.equal(rowsPerFrame.length, 49);
-    assert.ok(rowsPerFrame.slice(0, 48).every((rows) => rows === 26));
-    assert.equal(rowsPerFrame[48], 2);
+    assert.equal(rowsPerFrame.length, 209);
+    assert.ok(rowsPerFrame.slice(0, 208).every((rows) => rows === 6));
+    assert.equal(rowsPerFrame[208], 2);
   });
 
   it('gives one row to a job whose row exceeds the budget and nothing to later jobs', () => {
