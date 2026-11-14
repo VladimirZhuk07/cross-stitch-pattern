@@ -29,10 +29,11 @@ const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer()];
 setupStatus(document, store);
 setupImageInput(document, store);
 
-// Pattern settings and generation (the worker runs the pipeline off the main thread).
-const patternWorker = new Worker(new URL('./workers/pattern.worker.js', import.meta.url), { type: 'module' });
+// Pattern settings and generation (the worker runs the pipeline off the main thread; the
+// client creates a fresh worker after a stop, so it gets a factory).
+const createPatternWorker = () => new Worker(new URL('./workers/pattern.worker.js', import.meta.url), { type: 'module' });
 setupSettingsForm(document, store);
-setupPatternGeneration(store, createPatternWorkerClient(patternWorker));
+setupPatternGeneration(document, store, createPatternWorkerClient(createPatternWorker));
 
 // The shared view frame and its controls.
 setupViewer(document, store, layers);
