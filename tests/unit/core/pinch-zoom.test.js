@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { assertCloseFields } from '../../helpers/assert-close.js';
-import { pinchViewport } from '../../../src/core/pinch-zoom.js';
+import { assertClose, assertCloseFields } from '../../helpers/assert-close.js';
+import { pinchViewport, trackpadPinchFactor } from '../../../src/core/pinch-zoom.js';
 
 const TOLERANCE = 1e-9;
 const LIMITS = { minScale: 0.5, maxScale: 64 };
@@ -79,5 +79,29 @@ describe('pinchViewport', () => {
     assert.deepEqual(start, viewport(1, 0, 0));
     assert.deepEqual(previous, points(100, 100, 200, 100));
     assert.deepEqual(current, points(50, 100, 250, 100));
+  });
+});
+
+describe('trackpadPinchFactor', () => {
+  const FACTOR_TOLERANCE = 1e-6;
+
+  it('zooms in by e^0.4 for a delta of −40 px', () => {
+    assertClose(trackpadPinchFactor(-40), 1.4918247, FACTOR_TOLERANCE, 'factor');
+  });
+
+  it('limits a delta of +100 px to +50 px', () => {
+    assertClose(trackpadPinchFactor(100), 0.6065307, FACTOR_TOLERANCE, 'factor');
+  });
+
+  it('limits a delta of −100 px to −50 px', () => {
+    assertClose(trackpadPinchFactor(-100), 1.6487213, FACTOR_TOLERANCE, 'factor');
+  });
+
+  it('does not zoom for a delta of 0', () => {
+    assert.equal(trackpadPinchFactor(0), 1);
+  });
+
+  it('zooms in by e^0.1 for a small delta of −10 px', () => {
+    assertClose(trackpadPinchFactor(-10), 1.1051709, FACTOR_TOLERANCE, 'factor');
   });
 });
