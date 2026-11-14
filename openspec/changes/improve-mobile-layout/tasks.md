@@ -37,7 +37,7 @@
 
 ## 6. Verification
 
-- [ ] 6.1 Run `npm run test:unit`; all tests pass
+- [x] 6.1 Run `npm run test:unit`; all tests pass
 - [ ] 6.2 Run `npm run test:integration`; all tests pass
 - [ ] 6.3 Browser smoke check via `node scripts/serve.js` in Chrome DevTools device mode (reload between devices), loading a 1200 × 800 photo and a PNG with transparency:
   - 1440 × 900 desktop: looks like `main` except `Choose image` is a button; no toggles; legend 384 px; Tab/Space opens the chooser
