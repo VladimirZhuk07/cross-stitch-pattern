@@ -1,7 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { assertClose, assertCloseFields } from '../../helpers/assert-close.js';
-import { pinchViewport, trackpadPinchFactor } from '../../../src/core/pinch-zoom.js';
+import {
+  pinchViewport,
+  trackpadPinchFactor,
+  emptyGesture,
+  startPointer,
+  movePointer,
+  endPointer,
+} from '../../../src/core/pinch-zoom.js';
 
 const TOLERANCE = 1e-9;
 const LIMITS = { minScale: 0.5, maxScale: 64 };
@@ -103,5 +110,93 @@ describe('trackpadPinchFactor', () => {
 
   it('zooms in by e^0.1 for a small delta of −10 px', () => {
     assertClose(trackpadPinchFactor(-10), 1.1051709, FACTOR_TOLERANCE, 'factor');
+  });
+});
+
+describe('pointer gesture', () => {
+  function twoFingers() {
+    const one = startPointer(emptyGesture(), 1, { x: 100, y: 100 });
+    return startPointer(one, 2, { x: 200, y: 100 });
+  }
+
+  it('starts with no pointers', () => {
+    assert.deepEqual(emptyGesture(), { pointers: [] });
+  });
+
+  it('tracks two pointers in touch-down order', () => {
+    assert.deepEqual(twoFingers(), {
+      pointers: [{ id: 1, x: 100, y: 100 }, { id: 2, x: 200, y: 100 }],
+    });
+  });
+
+  it('ignores a third pointer', () => {
+    const gesture = twoFingers();
+    assert.equal(startPointer(gesture, 3, { x: 300, y: 300 }), gesture);
+  });
+
+  it('ignores a pointer id that is already tracked', () => {
+    const gesture = startPointer(emptyGesture(), 1, { x: 100, y: 100 });
+    assert.equal(startPointer(gesture, 1, { x: 150, y: 150 }), gesture);
+  });
+
+  it('pans by the movement of a single pointer', () => {
+    const gesture = startPointer(emptyGesture(), 1, { x: 100, y: 100 });
+    const result = movePointer(gesture, 1, { x: 130, y: 80 }, viewport(1, 16, 158), LIMITS);
+    assertCloseFields(result.viewport, viewport(1, 46, 138), VIEWPORT_KEYS, TOLERANCE);
+    assert.deepEqual(result.gesture.pointers, [{ id: 1, x: 130, y: 80 }]);
+  });
+
+  it('pinches when two pointers move one after the other', () => {
+    const first = movePointer(twoFingers(), 1, { x: 50, y: 100 }, viewport(1, 0, 0), LIMITS);
+    const second = movePointer(first.gesture, 2, { x: 250, y: 100 }, first.viewport, LIMITS);
+    assertCloseFields(second.viewport, viewport(2, -150, -100), VIEWPORT_KEYS, TOLERANCE);
+  });
+
+  it('pans from the remaining pointer after one of two is lifted, without a jump', () => {
+    const first = movePointer(twoFingers(), 1, { x: 50, y: 100 }, viewport(1, 0, 0), LIMITS);
+    const second = movePointer(first.gesture, 2, { x: 250, y: 100 }, first.viewport, LIMITS);
+    const lifted = endPointer(second.gesture, 1);
+    const result = movePointer(lifted, 2, { x: 270, y: 90 }, second.viewport, LIMITS);
+    assertCloseFields(result.viewport, viewport(2, -130, -110), VIEWPORT_KEYS, TOLERANCE);
+  });
+
+  it('only pans while two pointers at the same position move apart and together', () => {
+    const one = startPointer(emptyGesture(), 1, { x: 100, y: 100 });
+    const both = startPointer(one, 2, { x: 100, y: 100 });
+    const first = movePointer(both, 1, { x: 120, y: 120 }, viewport(1, 0, 0), LIMITS);
+    const second = movePointer(first.gesture, 2, { x: 120, y: 120 }, first.viewport, LIMITS);
+    assertCloseFields(second.viewport, viewport(1, 20, 20), VIEWPORT_KEYS, TOLERANCE);
+  });
+
+  it('returns the same gesture and viewport when an untracked pointer moves', () => {
+    const gesture = twoFingers();
+    const start = viewport(1, 0, 0);
+    const result = movePointer(gesture, 3, { x: 340, y: 300 }, start, LIMITS);
+    assert.equal(result.gesture, gesture);
+    assert.equal(result.viewport, start);
+  });
+
+  it('removes a lifted pointer', () => {
+    assert.deepEqual(endPointer(twoFingers(), 1), { pointers: [{ id: 2, x: 200, y: 100 }] });
+  });
+
+  it('returns the same gesture when an unknown pointer is lifted', () => {
+    const gesture = twoFingers();
+    assert.equal(endPointer(gesture, 3), gesture);
+  });
+
+  it('never modifies its inputs', () => {
+    const gesture = twoFingers();
+    const start = viewport(1, 0, 0);
+    const point = { x: 50, y: 100 };
+    const result = movePointer(gesture, 1, point, start, LIMITS);
+    endPointer(result.gesture, 2);
+    startPointer(gesture, 3, { x: 0, y: 0 });
+    assert.deepEqual(gesture, {
+      pointers: [{ id: 1, x: 100, y: 100 }, { id: 2, x: 200, y: 100 }],
+    });
+    assert.deepEqual(start, viewport(1, 0, 0));
+    assert.deepEqual(point, { x: 50, y: 100 });
+    assert.equal(result.gesture.pointers.length, 2);
   });
 });
