@@ -30,7 +30,7 @@
 
 ## 6. Exact nearest-centre search and faster k-means (core)
 
-- [ ] 6.1 Write `tests/unit/core/nearest-centre.test.js`: equals a brute-force search for 10,000 seeded random Lab queries against 489 seeded random centres; two identical centres → the lower index; a query equidistant from centres 2 and 5 → 2; a single centre → 0; an empty or non-multiple-of-3 centre list → `RangeError`. Verify it fails
+- [x] 6.1 Write `tests/unit/core/nearest-centre.test.js`: equals a brute-force search for 10,000 seeded random Lab queries against 489 seeded random centres; two identical centres → the lower index; a query equidistant from centres 2 and 5 → 2; a single centre → 0; an empty or non-multiple-of-3 centre list → `RangeError`. Verify it fails
 - [ ] 6.2 Implement `createNearestCentreSearch(centres)` in `src/core/nearest-centre.js` per design D6. Verify the test passes
 - [ ] 6.3 Add `kMeansLab` tests in `tests/unit/core/kmeans.test.js`: `onIteration` is called with 1, 2, … in order, at most 30 times; results with and without the callback are deep-equal; all existing k-means tests still pass unchanged. Verify the new tests fail
 - [ ] 6.4 Use the nearest-centre search in the assignment step and add the optional 4th parameter `onIteration` in `src/core/kmeans.js` (design D6, D8). Verify `node --test tests/unit/core/kmeans.test.js` passes
