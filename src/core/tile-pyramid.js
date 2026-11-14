@@ -53,6 +53,59 @@ export function levelSize(grid, level) {
   return { width: Math.ceil(grid.width / blockSide), height: Math.ceil(grid.height / blockSide) };
 }
 
+/**
+ * Returns how many tiles level `level` of a grid is cut into: { columns, rows }, each
+ * ceil(level side / tileSize).
+ * tileSize  tile side in picture px (default TILE_SIZE; tests pass less)
+ * Throws RangeError for an invalid grid, level or tileSize.
+ */
+export function tileCount(grid, level, tileSize = TILE_SIZE) {
+  assertPositiveInteger('tileSize', tileSize);
+  const size = levelSize(grid, level);
+  return { columns: Math.ceil(size.width / tileSize), rows: Math.ceil(size.height / tileSize) };
+}
+
+/**
+ * Returns the TileRegion of tile (column, row) of level `level`:
+ * { x, y, width, height } in picture px of that level, x = column × tileSize, y = row ×
+ * tileSize, width and height up to tileSize, clipped to the level size.
+ * Throws RangeError if column or row is not a tile index of the level.
+ */
+export function tileRegion(grid, level, column, row, tileSize = TILE_SIZE) {
+  const size = levelSize(grid, level);
+  const count = tileCount(grid, level, tileSize);
+  assertIndex('column', column, count.columns);
+  assertIndex('row', row, count.rows);
+  const x = column * tileSize;
+  const y = row * tileSize;
+  return { x, y, width: Math.min(tileSize, size.width - x), height: Math.min(tileSize, size.height - y) };
+}
+
+/**
+ * Returns the CellRect a region of level `level` covers: { x, y, width, height } in
+ * stitches, clipped to the grid (so a level's last pixel may cover fewer than 2^level stitches).
+ * region  { x, y, width, height } in picture px of that level, integers
+ */
+export function regionCells(grid, level, region) {
+  assertGridSize(grid);
+  assertLevel(level);
+  const blockSide = 2 ** level;
+  const x = region.x * blockSide;
+  const y = region.y * blockSide;
+  return {
+    x,
+    y,
+    width: Math.min(grid.width, (region.x + region.width) * blockSide) - x,
+    height: Math.min(grid.height, (region.y + region.height) * blockSide) - y,
+  };
+}
+
+function assertIndex(name, value, count) {
+  if (!Number.isInteger(value) || value < 0 || value >= count) {
+    throw new RangeError(`tile ${name} must be an integer 0–${count - 1}, got ${String(value)}`);
+  }
+}
+
 function assertGridSize(grid) {
   assertPositiveInteger('grid.width', grid.width);
   assertPositiveInteger('grid.height', grid.height);
