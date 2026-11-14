@@ -58,7 +58,7 @@
 ## 8. Verification
 
 - [x] 8.1 Run `npm run test:unit`; all tests pass (show output)
-- [ ] 8.2 Run `npm run test:integration`; all tests pass (show output)
+- [x] 8.2 Run `npm run test:integration`; all tests pass (show output)
 - [ ] 8.3 Browser smoke check (the user runs it). Serve the worktree (`node scripts/serve.js`, or the dev server on port 8082), load a photo and a PNG with transparency, generate a pattern, then check:
   - Fitted view: 24 px margin; `Chart` shows every stitched cell in a pale tint of its color (the motif is recognisable), bold lines every 10 stitches and around the grid, thin lines only if cells ≥ 4 px, no numbers if cells < 14 px; transparent areas are `#E0E0E0` with a diagonal line from 6 px cells, never confused with a grey floss; rulers above and left of the grid with 10, 20, … and no overlapping labels; triangles at the centre column and row
   - Zoom in until cells are ≥ 14 px: black numbers appear, centred, the same size for 1- and 2-digit numbers, clearly readable on the darkest tints (310 Black, navy), matching the legend; switching to `DMC colors` and back shows each tinted cell over the block of its color (cells aligned, no seams or half-cell shifts)
