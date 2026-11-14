@@ -69,7 +69,7 @@
 
 ## 12. Max zoom follows the cell size (core, ui)
 
-- [ ] 12.1 Add `zoomLimits` tests in `tests/unit/core/viewport.test.js`: content 1000 × 800 with grid 10000 × 8000 → maxScale 640; grid 100 × 80 → 64; no grid, `null` or `undefined` → 64 as before; a grid whose 64 px scale is below the fit scale → the fit scale; `MAX_ZOOM_CELL_SIZE` is 64; a grid with width 0 → `RangeError`; existing tests unchanged. Verify the new tests fail
+- [x] 12.1 Add `zoomLimits` tests in `tests/unit/core/viewport.test.js`: content 1000 × 800 with grid 10000 × 8000 → maxScale 640; grid 100 × 80 → 64; no grid, `null` or `undefined` → 64 as before; a grid whose 64 px scale is below the fit scale → the fit scale; `MAX_ZOOM_CELL_SIZE` is 64; a grid with width 0 → `RangeError`; existing tests unchanged. Verify the new tests fail
 - [ ] 12.2 Implement the optional `grid` parameter and `MAX_ZOOM_CELL_SIZE` in `src/core/viewport.js` (design D14). Verify `node --test tests/unit/core/viewport.test.js` passes
 - [ ] 12.3 Change the one `zoomLimits(state.image, state.frame)` call in `src/ui/viewer-input.js` to pass `state.pattern` (one line, design D13/D14). Verify `npm test` passes; behavior is checked in 14.3
 

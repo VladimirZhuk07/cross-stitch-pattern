@@ -4,6 +4,8 @@ import { assertClose, assertCloseFields } from '../../helpers/assert-close.js';
 import {
   fitViewport,
   zoomLimits,
+  MAX_SCALE,
+  MAX_ZOOM_CELL_SIZE,
   zoomAt,
   wheelZoomFactor,
   panBy,
@@ -62,6 +64,35 @@ describe('zoomLimits', () => {
     const limits = zoomLimits({ width: 10, height: 5 }, { width: 1048, height: 800 });
     // available 1000 × 752 → fit scale 100
     assertCloseFields(limits, { minScale: 50, maxScale: 100 }, ['minScale', 'maxScale'], TOLERANCE);
+  });
+
+  it('lets a stitch reach 64 CSS px: max scale 640 for a 10000-wide pattern of a 1000 px image', () => {
+    assert.equal(MAX_ZOOM_CELL_SIZE, 64);
+    const limits = zoomLimits({ width: 1000, height: 800 }, FRAME, { width: 10000, height: 8000 });
+    assertClose(limits.maxScale, 640, TOLERANCE, 'maxScale');
+    assertClose(limits.minScale, 0.47, TOLERANCE, 'minScale');
+  });
+
+  it('keeps 6400 % for a pattern coarser than the image', () => {
+    const limits = zoomLimits({ width: 1000, height: 800 }, FRAME, { width: 100, height: 80 });
+    assert.equal(limits.maxScale, MAX_SCALE);
+    assert.equal(MAX_SCALE, 64);
+  });
+
+  it('keeps 6400 % without a pattern', () => {
+    for (const grid of [undefined, null]) {
+      assert.equal(zoomLimits({ width: 1000, height: 800 }, FRAME, grid).maxScale, 64);
+    }
+  });
+
+  it('keeps the fit scale when it is larger than the 64 px cell scale', () => {
+    // fit scale 100; a 10-stitch-wide grid of a 10 px image reaches 64 px cells at scale 64
+    const limits = zoomLimits({ width: 10, height: 5 }, { width: 1048, height: 800 }, { width: 10, height: 5 });
+    assertClose(limits.maxScale, 100, TOLERANCE, 'maxScale');
+  });
+
+  it('rejects a pattern width that is not a positive integer', () => {
+    assert.throws(() => zoomLimits({ width: 1000, height: 800 }, FRAME, { width: 0, height: 80 }), { name: 'RangeError', message: /0/ });
   });
 });
 
