@@ -341,3 +341,43 @@ describe('chart layer: large patterns', () => {
     assert.ok(labels.includes(100) && !labels.includes(50), 'label step 100');
   });
 });
+
+describe('chart layer: left ruler width', () => {
+  const frameSize = { width: 400, height: 300 };
+
+  // The left ruler band: the fill at x `left` that is not the 24 px high corner square.
+  function leftBand(recording, left) {
+    return recording.fills.flatMap((fill) => fill.rects).find((rect) => rect.x === left && rect.height !== 24);
+  }
+
+  function rowLabels(recording) {
+    return recording.texts.filter((text) => text.textAlign === 'right');
+  }
+
+  it('keeps a 24 px left ruler for 100 rows', () => {
+    const recording = render(solidPattern(1, 100), { x: 24, y: 24, width: 10, height: 1000 }, frameSize);
+    assert.equal(leftBand(recording, 0).width, 24);
+  });
+
+  it('keeps a 24 px left ruler for 1000 rows', () => {
+    const recording = render(solidPattern(1, 1000), { x: 24, y: 24, width: 1, height: 1000 }, frameSize);
+    assert.equal(leftBand(recording, 0).width, 24);
+  });
+
+  it('widens the left ruler to 28 px for 10000 rows and keeps every label inside it', () => {
+    const recording = render(solidPattern(1, 10000), { x: 24, y: 24, width: 1, height: 250 }, frameSize);
+    assert.equal(leftBand(recording, 0).width, 28);
+    const labels = rowLabels(recording);
+    assert.ok(labels.length > 0);
+    assert.ok(labels.every((label) => label.x === 21 && label.fontSize === 7), 'labels at 7 px, right-aligned at x 21');
+    assert.ok(hasTriangleWithTip(recording, 28, 149), 'left triangle tip at (28, 149)');
+    const corner = recording.fills.flatMap((fill) => fill.rects)
+      .filter((rect) => rect.x === 0 && rect.y === 0 && rect.width === 28 && rect.height === 24);
+    assert.equal(corner.length, 1);
+  });
+
+  it('places the wide left ruler directly left of a grid that has room', () => {
+    const recording = render(solidPattern(1, 10000), { x: 100, y: 24, width: 1, height: 250 }, frameSize);
+    assert.equal(leftBand(recording, 72).width, 28);
+  });
+});
