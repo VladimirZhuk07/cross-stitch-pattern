@@ -136,4 +136,38 @@ describe('mobile layout markup', () => {
       assert.ok(form.includes('data-role="generation-status"'));
     });
   });
+
+  describe('legend panel', () => {
+    let section;
+
+    before(() => {
+      const match = html.match(/<section\b[^>]*data-role="legend"[^>]*>[\s\S]*?<\/section>/);
+      assert.ok(match, 'no legend section');
+      section = match[0];
+    });
+
+    it('marks the legend as a collapsible panel', () => {
+      assert.match(attributeOf(tagWith(section, 'data-role="legend"'), 'class'), /\bcollapsible\b/);
+    });
+
+    it('starts with a collapsed Legend toggle, before the heading, that controls the panel body', () => {
+      assertCollapsedToggle(section, 'toggle-legend', 'legend-body');
+      assert.ok(section.indexOf('data-action="toggle-legend"') < section.indexOf('<h2'), 'the toggle comes before the heading');
+    });
+
+    it('shows Legend and an empty summary that the app fills in', () => {
+      const content = buttonContent(section, 'data-action="toggle-legend"');
+      assert.match(content, /<span\b[^>]*data-role="legend-summary"[^>]*><\/span>/);
+      assert.equal(textOf(content), 'Legend');
+    });
+
+    it('folds the empty text and the table, but keeps the heading and the row template outside', () => {
+      const body = elementWithId(section, 'legend-body');
+      assert.match(attributeOf(body, 'class'), /\bcollapsible__body\b/);
+      assert.ok(body.includes('data-role="legend-empty"'), 'the empty text is inside the body');
+      assert.ok(body.includes('data-role="legend-table"'), 'the table is inside the body');
+      assert.ok(!body.includes('id="legend-title"'), 'the heading stays outside');
+      assert.ok(!body.includes('data-role="legend-row-template"'), 'the row template stays outside');
+    });
+  });
 });

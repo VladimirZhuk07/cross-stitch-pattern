@@ -100,8 +100,15 @@
       <output class="status" data-role="status" aria-live="polite"></output>
     </section>
 
-    <section class="legend" data-role="legend" aria-labelledby="legend-title" hidden>
+    <section class="legend collapsible" data-role="legend" aria-labelledby="legend-title" hidden>
+      <!-- On phones the rows fold behind this button; on wider screens it is hidden (styles/main.css). -->
+      <button class="collapsible__toggle" type="button" data-action="toggle-legend"
+              aria-expanded="false" aria-controls="legend-body">
+        <span class="collapsible__title">Legend</span>
+        <span class="collapsible__summary" data-role="legend-summary"></span>
+      </button>
       <h2 class="legend__title" id="legend-title">Legend</h2>
+      <div class="collapsible__body legend__body" id="legend-body">
       <p class="legend__empty" data-role="legend-empty" hidden>This pattern has no stitches.</p>
       <table class="legend__table" data-role="legend-table">
         <thead>
@@ -115,6 +122,7 @@
         </thead>
         <tbody data-role="legend-rows"></tbody>
       </table>
+      </div>
       <template data-role="legend-row-template">
         <tr class="legend__row">
           <td class="legend__cell"><span class="legend__number" data-field="number"></span></td>
