@@ -3,7 +3,7 @@
 
 import { createPatternWorkerHandler } from './pattern-worker-handler.js';
 
-const handleMessage = createPatternWorkerHandler();
+const handleMessage = createPatternWorkerHandler((message) => self.postMessage(message));
 
 self.addEventListener('message', (event) => {
   const { response, transfer } = handleMessage(event.data);

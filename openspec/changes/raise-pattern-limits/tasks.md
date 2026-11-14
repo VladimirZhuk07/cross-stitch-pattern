@@ -44,7 +44,7 @@
 ## 8. Worker progress (workers)
 
 - [x] 8.1 Update `tests/integration/pattern-worker.test.js`: `createPatternWorkerHandler(postProgress)` with a recording `postProgress`; a 2 × 200 two-color image @2 as `id: 5` → progress messages with `id: 5`, phases in order, at most 101 per phase, rising `done`, last averaging/assigning `done = total = 200`, last clustering 30 / 30, all recorded before the pattern response is returned; maxColors 490 as `id: 6` → no progress, error with `490` and `489`; existing protocol tests still pass. Verify the new tests fail
-- [ ] 8.2 Implement percent-throttled progress in `src/workers/pattern-worker-handler.js` and pass `(message) => self.postMessage(message)` in `pattern.worker.js` (design D9). Verify `node --test tests/integration/pattern-worker.test.js` passes
+- [x] 8.2 Implement percent-throttled progress in `src/workers/pattern-worker-handler.js` and pass `(message) => self.postMessage(message)` in `pattern.worker.js` (design D9). Verify `node --test tests/integration/pattern-worker.test.js` passes
 
 ## 9. Worker client: factory, progress, stop (io)
 
