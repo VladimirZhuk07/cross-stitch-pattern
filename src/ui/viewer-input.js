@@ -1,7 +1,8 @@
 // Turns pointer, wheel and keyboard input on the view frame into viewport changes.
-// The math lives in ../core/viewport.js; this module only reads events.
+// The math lives in ../core/viewport.js and ../core/pinch-zoom.js; this module only reads events.
 
 import { zoomAt, zoomLimits, panBy, wheelZoomFactor, ZOOM_STEP } from '../core/viewport.js';
+import { emptyGesture, startPointer, movePointer, endPointer } from '../core/pinch-zoom.js';
 
 /** Distance one arrow-key press scrolls the view, in CSS px. */
 const PAN_STEP = 50;
@@ -15,6 +16,7 @@ const DELTA_MODE_PAGE = 2;
 /**
  * Makes the frame [data-role="viewer"] navigable:
  *   drag with mouse, pen or one finger   pans
+ *   two fingers                          pinch-zoom around their midpoint and pan with it
  *   mouse wheel / trackpad scroll        zooms around the cursor (100 px = one ×1.25 step)
  *   keys while the frame has focus       + or = zoom in, - zoom out, 0 fits,
  *                                        arrow keys scroll the view by 50 CSS px
@@ -25,7 +27,7 @@ const DELTA_MODE_PAGE = 2;
 export function setupViewerInput(root, store) {
   const viewer = root.querySelector('[data-role="viewer"]');
   const canvas = root.querySelector('[data-role="viewer-canvas"]');
-  setupDragPan(viewer, store);
+  setupPointerGestures(viewer, canvas, store);
 
   viewer.addEventListener('wheel', (event) => {
     if (!canNavigate(store.getState())) {
@@ -74,8 +76,15 @@ function zoomBy(store, factor, anchor) {
   if (!canNavigate(state)) {
     return;
   }
-  const limits = zoomLimits(state.image, state.frame, state.pattern);
-  store.setState({ viewport: zoomAt(state.viewport, factor, anchor, limits) });
+  store.setState({ viewport: zoomAt(state.viewport, factor, anchor, currentZoomLimits(state)) });
+}
+
+/**
+ * The zoom range for the current state (with a pattern, a stitch can always reach 64 CSS px);
+ * the one place that decides the limits for buttons, keys, wheel, pinch and Safari gestures.
+ */
+function currentZoomLimits(state) {
+  return zoomLimits(state.image, state.frame, state.pattern);
 }
 
 function panView(store, dx, dy) {
@@ -116,36 +125,61 @@ function handleKey(key, store) {
   }
 }
 
-/** Pans while the primary button (or one finger) is held down; other pointers are ignored. */
-function setupDragPan(viewer, store) {
-  let drag = null; // { pointerId, x, y } of the pointer currently dragging
+/**
+ * Pans with one pointer and pinch-zooms with two (core/pinch-zoom.js does the bookkeeping).
+ * Only the primary button (mouse) or a touch/pen contact starts tracking; a third finger is
+ * ignored. pointercancel ends the whole gesture where it is (the browser took the touches).
+ */
+function setupPointerGestures(viewer, canvas, store) {
+  let gesture = emptyGesture();
+
+  function setGesture(next) {
+    gesture = next;
+    viewer.classList.toggle('viewer--panning', gesture.pointers.length > 0);
+  }
 
   viewer.addEventListener('pointerdown', (event) => {
-    if (drag !== null || event.button !== 0 || !canNavigate(store.getState())) {
+    if (event.button !== 0 || !canNavigate(store.getState())) {
       return;
     }
-    drag = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    const next = startPointer(gesture, event.pointerId, framePoint(canvas, event));
+    if (next === gesture) {
+      return; // third finger or a pointer that is already tracked
+    }
     viewer.setPointerCapture(event.pointerId);
-    viewer.classList.add('viewer--panning');
+    setGesture(next);
   });
 
   viewer.addEventListener('pointermove', (event) => {
-    if (drag === null || event.pointerId !== drag.pointerId) {
+    if (gesture.pointers.length === 0) {
       return;
     }
-    panView(store, event.clientX - drag.x, event.clientY - drag.y);
-    drag = { pointerId: drag.pointerId, x: event.clientX, y: event.clientY };
+    const state = store.getState();
+    if (!canNavigate(state)) {
+      setGesture(emptyGesture()); // the image went away mid-gesture
+      return;
+    }
+    const result = movePointer(
+      gesture, event.pointerId, framePoint(canvas, event), state.viewport, currentZoomLimits(state),
+    );
+    gesture = result.gesture;
+    if (result.viewport !== state.viewport) {
+      store.setState({ viewport: result.viewport });
+    }
   });
 
-  function endDrag(event) {
-    if (drag === null || event.pointerId !== drag.pointerId) {
-      return;
-    }
-    drag = null;
-    viewer.classList.remove('viewer--panning');
-  }
-  viewer.addEventListener('pointerup', endDrag);
-  viewer.addEventListener('pointercancel', endDrag);
+  viewer.addEventListener('pointerup', (event) => {
+    setGesture(endPointer(gesture, event.pointerId));
+  });
+  viewer.addEventListener('pointercancel', () => {
+    setGesture(emptyGesture());
+  });
+}
+
+/** Position of a pointer or gesture event in CSS px relative to the frame's top-left corner. */
+function framePoint(canvas, event) {
+  const bounds = canvas.getBoundingClientRect();
+  return { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
 }
 
 /** Converts a wheel event's vertical delta to CSS px, whatever unit the browser reports. */
