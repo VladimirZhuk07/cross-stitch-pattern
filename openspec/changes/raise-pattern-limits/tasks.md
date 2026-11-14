@@ -8,7 +8,7 @@
 ## 2. Decode cap (core, io)
 
 - [x] 2.1 Rewrite `tests/unit/core/image-size.test.js` for `capImageSize(width, height, { maxSide: 10000, maxPixels: 16777216 })`: 3200 × 4000 unchanged; 6000 × 4000 → 5016 × 3344 (area ≤ cap); 4096 × 4096 unchanged, `isDownscaled` false; 4097 × 4096 → 4096 × 4095; 8000 × 6000 → 4729 × 3547; 100 × 5000 unchanged; 100 × 20000 → 50 × 10000; 30000 × 3 → 10000 × 1; width 0 / 12.5, maxSide 0, maxPixels 0 → `RangeError` naming the value. Verify it fails
-- [ ] 2.2 Implement the area + side cap in `src/core/image-size.js` per design D3. Verify `node --test tests/unit/core/image-size.test.js` passes
+- [x] 2.2 Implement the area + side cap in `src/core/image-size.js` per design D3. Verify `node --test tests/unit/core/image-size.test.js` passes
 - [ ] 2.3 Replace `MAX_DECODE_SIDE` in `src/io/image-loader.js` with `DECODE_LIMITS = { maxSide: MAX_GRID_SIDE, maxPixels: 4096 * 4096 }` (comment: Safari canvas area limit, 64 MB per RGBA copy), default parameter `limits = DECODE_LIMITS`; update the example in `image-input.js`'s comment to `5016 × 3344`. Verify `npm run test:integration` passes (served-site still resolves every import); behavior is checked in 14.3
 
 ## 3. Grid limit and settings texts (core)
