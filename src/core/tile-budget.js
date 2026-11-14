@@ -73,3 +73,30 @@ export function rowsWithinBudget(stitchesPerRow, budgetLeft, rowsLeft) {
   const rowsThatFit = Math.max(1, Math.floor(budgetLeft / stitchesPerRow));
   return Math.min(rowsLeft, rowsThatFit);
 }
+
+// BuildJob (input of buildPlan): a picture still being built.
+//   key             the picture's key, any string
+//   stitchesPerRow  stitches read to build one of its rows
+//   rowsLeft        rows not built yet (> 0)
+// BuildStep (output): { key, rows }, the rows of that picture to build in this frame.
+
+/**
+ * Shares one frame's build budget among the pictures being built, in the given order
+ * (visible tiles first, then the overview): each job gets rowsWithinBudget rows of what is
+ * left, until the budget is spent. Returns the BuildSteps of the jobs that get rows, in order.
+ * jobs            list of BuildJob; not modified
+ * budgetStitches  stitches allowed in this frame (BUILD_BUDGET_STITCHES in the app)
+ */
+export function buildPlan(jobs, budgetStitches) {
+  const plan = [];
+  let budgetLeft = budgetStitches;
+  for (const job of jobs) {
+    const rows = rowsWithinBudget(job.stitchesPerRow, budgetLeft, job.rowsLeft);
+    if (rows === 0) {
+      break;
+    }
+    plan.push({ key: job.key, rows });
+    budgetLeft -= rows * job.stitchesPerRow;
+  }
+  return plan;
+}
