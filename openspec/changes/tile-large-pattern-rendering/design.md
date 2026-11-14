@@ -54,8 +54,9 @@ behavior.
 | `src/ui/viewer.js` | ui (edited, minimal) | contract: `render` may return `true` = "call me again next frame"; the rAF callback then schedules one more paint |
 
 The three new core modules use no DOM, canvas, timers or globals and import only from
-`core/` (`tile-pyramid.js` imports nothing; `level-pixels.js` imports `hexToRgb` from
-`color.js` and `EMPTY_CELL` from `pattern.js`). `pattern-image.js` keeps
+`core/` (`tile-pyramid.js` and `tile-budget.js` import nothing; `level-pixels.js` imports
+`hexToRgb` from `color.js`, `EMPTY_CELL` from `pattern.js` and `levelSize` from
+`tile-pyramid.js` to validate its region). `pattern-image.js` keeps
 `patternToStitchImage` (spec'd, for later export) and `isStitchSmallerThanDevicePixel`
 (now used by both layers). `main.js` keeps calling both factories without options.
 
@@ -150,9 +151,9 @@ Building is the only work that grows with the pattern. A **job** fills one tile 
 overview) row by row with `fillLevelRows`; each frame gets `BUILD_BUDGET_STITCHES = 2^19`
 reads, shared out by `buildPlan` (at least one row for the job that starts with budget
 left, so building always progresses). Order:
-visible tiles of the current level in row-major order, then the overview. A tile is uploaded
-with one `putImageData` when complete; the overview uploads each new band
-(`putImageData` dirty rectangle) so it appears row by row. Jobs for tiles that left the view
+visible tiles of the current level in row-major order, then the overview. Every picture
+uploads each new band of rows (`putImageData` dirty rectangle), so the overview appears row by
+row; a tile is drawn only once complete (one code path for both, same bytes uploaded). Jobs for tiles that left the view
 are dropped. Measured in Node 22 (V8, as in Chrome) on the development machine after
 optimizing the loops: about 2-3 ns per stitch at level 0 (a 32-bit copy per stitch), 7-8 ns at
 level 1 (only 4 stitches per averaged pixel, so the per-pixel work dominates), 4-5 ns at
@@ -252,6 +253,17 @@ on the ruler's inner edge and the corner square takes the ruler's width; the top
 rotated row labels (fit at 10 px, but sideways digits are harder to read and to match with
 the column numbers); a larger `FIT_MARGIN` (affects every layer and pattern; excluded by the
 user).
+
+## Implementation notes
+
+- `chart-layout.js` grew from 289 to 355 lines (`majorLineStep`, `leftRulerWidth`, sparse
+  `gridLines`), past the ~300-line guideline. It was not split, to keep the rebase onto
+  `raise-pattern-limits` (which edits the same file) small; moving the ruler functions into
+  their own core module is a possible follow-up.
+- `tintedCellPixels` (`chart-tint.js`) is no longer used by app code; tests still use it as
+  the reference for level-0 chart pixels. `patternToStitchImage` likewise (spec'd for export).
+- `fillLevelRows` rounds averages half up with `Math.round` before storing (the
+  Uint8ClampedArray would round halves to even); the spec says "nearest integer".
 
 ## Risks / Trade-offs
 
