@@ -58,7 +58,7 @@
 
 ## 8. Verification
 
-- [ ] 8.1 Run `npm run test:unit`; all tests pass (show output)
+- [x] 8.1 Run `npm run test:unit`; all tests pass (show output)
 - [ ] 8.2 Run `npm run test:integration`; all tests pass (show output)
 - [ ] 8.3 Browser smoke check via `node scripts/serve.js` (the user runs it). Small patterns need only this change; the large-pattern part needs `raise-pattern-limits` on `main` (rebase first). Check:
   - A pattern of at most 500 × 500: `DMC colors` and `Chart` look as before at Fit, zoomed in and panned; switching layers keeps cells aligned
