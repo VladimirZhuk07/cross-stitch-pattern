@@ -659,3 +659,81 @@ body {
     background: var(--color-surface);
   }
 }
+
+/* Compact layout, controls: every control is at least 44 × 44 CSS px, and the view switcher
+   becomes a segmented control that fills its row. The selected view is marked by a thicker
+   border and bold text, not by color alone; the radio dots and the "View" caption are hidden
+   from sight but still read by screen readers. Settings fields keep a 16 px font, so iOS does
+   not zoom the page when one is focused. .settings__button: the Generate/Stop buttons that
+   raise-pattern-limits adds next to the generation status. */
+@media screen and (width < 48rem), screen and (height < 30rem) and (width < 60rem) {
+  .file-picker,
+  .zoom-controls__button,
+  .settings__input,
+  .settings__button {
+    min-height: var(--touch-target);
+  }
+
+  .zoom-controls__button,
+  .settings__button {
+    min-width: var(--touch-target);
+  }
+
+  .settings__input {
+    font-size: 1rem;
+  }
+
+  .zoom-controls__level {
+    min-width: 3.5rem;
+  }
+
+  .layer-switcher {
+    gap: 0;
+    min-width: 0;
+  }
+
+  .layer-switcher__legend,
+  .layer-switcher__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .layer-switcher__option {
+    position: relative;
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
+    min-height: var(--touch-target);
+    border-radius: 0;
+    white-space: nowrap;
+  }
+
+  /* Neighbouring segments share one border line. */
+  .layer-switcher__option + .layer-switcher__option {
+    margin-left: -1px;
+  }
+
+  .layer-switcher__option:first-of-type {
+    border-radius: var(--radius) 0 0 var(--radius);
+  }
+
+  .layer-switcher__option:last-of-type {
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  .layer-switcher__option:has(.layer-switcher__input:checked) {
+    z-index: 1; /* its accent border is drawn over the shared line */
+    font-weight: 600;
+  }
+
+  .layer-switcher__option:has(.layer-switcher__input:focus-visible) {
+    z-index: 2;
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
