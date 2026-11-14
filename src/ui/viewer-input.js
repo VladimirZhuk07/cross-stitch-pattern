@@ -21,6 +21,7 @@ const DELTA_MODE_PAGE = 2;
  *   two fingers                          pinch-zoom around their midpoint and pan with it
  *   mouse wheel / trackpad scroll        zooms around the cursor (100 px = one ×1.25 step)
  *   Ctrl + wheel (trackpad pinch)        zooms around the cursor by e^(−delta / 100)
+ *   Safari pinch (gesture events)        zooms around the gesture position, not the page
  *   keys while the frame has focus       + or = zoom in, - zoom out, 0 fits,
  *                                        arrow keys scroll the view by 50 CSS px
  * Does nothing while no image is shown.
@@ -30,7 +31,8 @@ const DELTA_MODE_PAGE = 2;
 export function setupViewerInput(root, store) {
   const viewer = root.querySelector('[data-role="viewer"]');
   const canvas = root.querySelector('[data-role="viewer-canvas"]');
-  setupPointerGestures(viewer, canvas, store);
+  const hasPointers = setupPointerGestures(viewer, canvas, store);
+  setupSafariGestures(viewer, canvas, store, hasPointers);
 
   viewer.addEventListener('wheel', (event) => {
     if (!canNavigate(store.getState())) {
@@ -180,6 +182,56 @@ function setupPointerGestures(viewer, canvas, store) {
   viewer.addEventListener('pointercancel', () => {
     setGesture(emptyGesture());
   });
+
+  return () => gesture.pointers.length > 0;
+}
+
+/**
+ * Safari reports a trackpad pinch only as non-standard gesturestart/gesturechange/gestureend
+ * events whose default action zooms the whole page. They zoom the view instead, by the change
+ * of event.scale since the previous gesture event. iOS Safari fires them during a touch pinch
+ * too; that pinch is already handled by the pointer events, so they never zoom while
+ * hasPointers() is true.
+ */
+function setupSafariGestures(viewer, canvas, store, hasPointers) {
+  let lastScale = 1;
+
+  viewer.addEventListener('gesturestart', (event) => {
+    lastScale = 1;
+    if (canNavigate(store.getState())) {
+      event.preventDefault();
+    }
+  });
+
+  viewer.addEventListener('gesturechange', (event) => {
+    if (!canNavigate(store.getState())) {
+      return;
+    }
+    event.preventDefault();
+    const scale = event.scale;
+    if (!Number.isFinite(scale) || scale <= 0) {
+      return;
+    }
+    const factor = scale / lastScale;
+    lastScale = scale;
+    if (!hasPointers()) {
+      zoomBy(store, factor, gestureAnchor(canvas, event, store.getState().frame));
+    }
+  });
+
+  viewer.addEventListener('gestureend', (event) => {
+    if (canNavigate(store.getState())) {
+      event.preventDefault();
+    }
+  });
+}
+
+/** The gesture position in frame coordinates, or the frame center if Safari gave none. */
+function gestureAnchor(canvas, event, frame) {
+  if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) {
+    return { x: frame.width / 2, y: frame.height / 2 };
+  }
+  return framePoint(canvas, event);
 }
 
 /** Position of a pointer or gesture event in CSS px relative to the frame's top-left corner. */
