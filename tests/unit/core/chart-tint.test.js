@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { assertClose } from '../../helpers/assert-close.js';
 import { hexToRgb, rgbToLab } from '../../../src/core/color.js';
 import { DMC_COLORS } from '../../../src/data/dmc.js';
-import { paleTint, contrastRatio } from '../../../src/core/chart-tint.js';
+import { paleTint, contrastRatio, tintedCellPixels, EMPTY_CELL_COLOR } from '../../../src/core/chart-tint.js';
+import { buildPattern } from '../../../src/core/pattern.js';
 
 // Expected tints: design D9 of add-stitch-chart-layer (L' = 72 + 0.25 L*, chroma × 0.6).
 describe('paleTint', () => {
@@ -78,5 +79,44 @@ describe('contrastRatio', () => {
 
   it('is about 9.68 for black on the 310 tint #B0B0B0', () => {
     assertClose(contrastRatio('#B0B0B0', '#000000'), 9.68, 5e-3, 'contrast');
+  });
+});
+
+describe('tintedCellPixels', () => {
+  // Legend 1 = 310 (tint #B0B0B0), 2 = 321 (tint #FFC0BB); cells [1, 0, 0, -1, 0, 1].
+  function threeByTwoPattern() {
+    return buildPattern({
+      width: 3,
+      height: 2,
+      cells: [0, 1, 1, -1, 1, 0],
+      colors: [{ code: '321', name: 'Red', hex: '#C72B3B' }, { code: '310', name: 'Black', hex: '#000000' }],
+    });
+  }
+
+  it('gives one RGBA pixel per cell: the tint of its color, or #E0E0E0 when empty', () => {
+    const pixels = tintedCellPixels(threeByTwoPattern());
+    assert.ok(pixels instanceof Uint8ClampedArray);
+    assert.deepEqual([...pixels], [
+      255, 192, 187, 255, 176, 176, 176, 255, 176, 176, 176, 255,
+      224, 224, 224, 255, 176, 176, 176, 255, 255, 192, 187, 255,
+    ]);
+  });
+
+  it('fills a pattern without stitches with #E0E0E0', () => {
+    const pattern = buildPattern({ width: 2, height: 2, cells: [-1, -1, -1, -1], colors: [] });
+    assert.deepEqual([...tintedCellPixels(pattern)], [
+      224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255, 224, 224, 224, 255,
+    ]);
+  });
+
+  it('names the empty cell color #E0E0E0', () => {
+    assert.equal(EMPTY_CELL_COLOR, '#E0E0E0');
+  });
+
+  it('does not modify the pattern', () => {
+    const pattern = threeByTwoPattern();
+    const before = structuredClone(pattern);
+    tintedCellPixels(pattern);
+    assert.deepEqual(pattern, before);
   });
 });
