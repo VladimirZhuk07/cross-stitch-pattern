@@ -16,7 +16,7 @@
 
 - [x] 3.1 Run `npm run test:unit` and confirm all unit tests pass
 - [x] 3.2 Run `npm run test:integration` and confirm all integration tests pass
-- [ ] 3.3 Manual browser smoke check. Precondition: add-pattern-generation (#4) is merged into `main` and this branch is rebased onto it (before that `state.pattern` is always `null` and `DMC colors` stays disabled, so this check cannot run). Start `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/`:
+- [x] 3.3 Manual browser smoke check. Precondition: add-pattern-generation (#4) is merged into `main` and this branch is rebased onto it (before that `state.pattern` is always `null` and `DMC colors` stays disabled, so this check cannot run). Start `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/`:
   - load a photo and generate a pattern (e.g. 100 stitches wide, 20 colors): `DMC colors` becomes enabled
   - select `DMC colors`: the image appears as solid stitch blocks, no "not available yet" note, no grid lines
   - zoom in far (`+` repeatedly, up to 6400 %): each stitch is a crisp, uniform square with hard edges, no blur
@@ -26,4 +26,5 @@
   - zoom out to the minimum on a wide pattern: the picture is smoothed rather than missing stitches
   - set browser zoom to 200 %: block edges stay sharp
   - DevTools Console: no errors; Network: no external requests
+  - Result: Not performed: the user waived the manual browser check and asked to finish; covered only by automated tests.
 - [x] 3.4 Run `openspec validate add-dmc-preview-layer --strict` and confirm it passes
