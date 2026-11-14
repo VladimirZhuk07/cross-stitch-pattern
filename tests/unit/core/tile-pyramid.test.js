@@ -4,6 +4,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { assertThrowsWith } from '../../helpers/assert-throws-with.js';
+import { assertCloseFields } from '../../helpers/assert-close.js';
 import {
   SINGLE_PICTURE_MAX_SIDE,
   TILE_SIZE,
@@ -14,6 +15,7 @@ import {
   regionCells,
   detailLevel,
   visibleTiles,
+  pictureDrawRects,
 } from '../../../src/core/tile-pyramid.js';
 
 const HUGE = { width: 10000, height: 10000 };
@@ -173,5 +175,56 @@ describe('visibleTiles', () => {
   it('returns no tile for an empty range', () => {
     const empty = { columnStart: 10000, columnEnd: 10000, rowStart: 0, rowEnd: 800 };
     assert.deepEqual(visibleTiles(HUGE, 0, empty), []);
+  });
+});
+
+describe('pictureDrawRects', () => {
+  const RECT_KEYS = ['x', 'y', 'width', 'height'];
+  const TOLERANCE = 1e-9;
+  const shifted = { x: 0.3, y: 0, width: 10000, height: 10000 };
+
+  function tileRects(column, row, pixelRatio) {
+    const region = tileRegion(HUGE, 0, column, row);
+    return pictureDrawRects(shifted, HUGE, 0, region, regionCells(HUGE, 0, region), pixelRatio);
+  }
+
+  it('keeps the outer content edge of tile (0, 0) at x 0.3 and snaps its inner edge to x 512', () => {
+    const rects = tileRects(0, 0, 1);
+    assertCloseFields(rects.destination, { x: 0.3, y: 0, width: 511.7, height: 512 }, RECT_KEYS, TOLERANCE, 'destination');
+    assert.deepEqual(rects.source, { x: 0, y: 0, width: 512, height: 512 });
+  });
+
+  it('starts tile (1, 0) exactly where tile (0, 0) ends', () => {
+    assertCloseFields(tileRects(1, 0, 1).destination, { x: 512, y: 0, width: 512, height: 512 }, RECT_KEYS, TOLERANCE, 'destination');
+  });
+
+  it('snaps the shared edge to x 512.5 at device pixel ratio 2', () => {
+    const left = tileRects(0, 0, 2).destination;
+    const right = tileRects(1, 0, 2).destination;
+    assertCloseFields(left, { x: 0.3, y: 0, width: 512.2, height: 512 }, RECT_KEYS, TOLERANCE, 'tile (0, 0)');
+    assert.equal(right.x, 512.5);
+  });
+
+  it('keeps the right content edge of the last tile exact at x 10000.3', () => {
+    const rects = tileRects(19, 0, 1);
+    assertCloseFields(rects.destination, { x: 9728, y: 0, width: 272.3, height: 512 }, RECT_KEYS, 1e-6, 'destination');
+    assert.equal(rects.source.width, 272);
+  });
+
+  it('trims the partial last pixel of a level-1 picture of a 3 × 1 grid', () => {
+    const grid = { width: 3, height: 1 };
+    const region = { x: 0, y: 0, width: 2, height: 1 };
+    const rects = pictureDrawRects({ x: 0, y: 0, width: 300, height: 100 }, grid, 1, region, regionCells(grid, 1, region), 1);
+    assert.deepEqual(rects.source, { x: 0, y: 0, width: 1.5, height: 0.5 });
+    assert.deepEqual(rects.destination, { x: 0, y: 0, width: 300, height: 100 });
+  });
+
+  it('draws the visible range of a panned 100 × 100 single picture like the chart did', () => {
+    const grid = { width: 100, height: 100 };
+    const region = { x: 0, y: 0, width: 100, height: 100 };
+    const visible = { x: 9, y: 4, width: 41, height: 30 };
+    const rects = pictureDrawRects({ x: -95, y: -40, width: 1000, height: 1000 }, grid, 0, region, visible, 1);
+    assert.deepEqual(rects.source, { x: 9, y: 4, width: 41, height: 30 });
+    assert.deepEqual(rects.destination, { x: -5, y: 0, width: 410, height: 300 });
   });
 });
