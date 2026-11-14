@@ -15,7 +15,7 @@ const blackOverWhite = () => pixelImage(2, 2, [OPAQUE_BLACK, OPAQUE_BLACK, OPAQU
 
 describe('generatePattern', () => {
   it('turns a two-color image into a two-entry pattern', () => {
-    const pattern = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 24 }, TEST_PALETTE);
+    const pattern = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE });
     assert.equal(pattern.width, 2);
     assert.equal(pattern.height, 2);
     assert.deepEqual([...pattern.cells], [0, 0, 1, 1]);
@@ -27,13 +27,13 @@ describe('generatePattern', () => {
 
   it('leaves transparent cells empty', () => {
     const image = pixelImage(2, 2, [OPAQUE_BLACK, TRANSPARENT, OPAQUE_BLACK, TRANSPARENT]);
-    const pattern = generatePattern(image, { targetWidth: 2, maxColors: 24 }, TEST_PALETTE);
+    const pattern = generatePattern(image, { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE });
     assert.deepEqual([...pattern.cells], [0, -1, 0, -1]);
     assert.deepEqual(pattern.legend.map((entry) => [entry.code, entry.stitchCount]), [['K', 2]]);
   });
 
   it('builds an empty pattern from a fully transparent image', () => {
-    const pattern = generatePattern(solidImage(4, 4, TRANSPARENT), { targetWidth: 2, maxColors: 24 }, TEST_PALETTE);
+    const pattern = generatePattern(solidImage(4, 4, TRANSPARENT), { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE });
     assert.equal(pattern.width, 2);
     assert.equal(pattern.height, 2);
     assert.deepEqual([...pattern.cells], [-1, -1, -1, -1]);
@@ -42,14 +42,14 @@ describe('generatePattern', () => {
 
   it('leaves a cell empty when less than half of it is covered', () => {
     const image = pixelImage(4, 1, [OPAQUE_BLACK, TRANSPARENT, TRANSPARENT, TRANSPARENT]);
-    const pattern = generatePattern(image, { targetWidth: 1, maxColors: 24 }, TEST_PALETTE);
+    const pattern = generatePattern(image, { targetWidth: 1, maxColors: 24 }, { palette: TEST_PALETTE });
     assert.deepEqual([...pattern.cells], [-1]);
     assert.deepEqual(pattern.legend, []);
   });
 
   it('stitches a cell that is exactly half covered', () => {
     const image = pixelImage(2, 1, [OPAQUE_BLACK, TRANSPARENT]);
-    const pattern = generatePattern(image, { targetWidth: 1, maxColors: 24 }, TEST_PALETTE);
+    const pattern = generatePattern(image, { targetWidth: 1, maxColors: 24 }, { palette: TEST_PALETTE });
     assert.deepEqual([...pattern.cells], [0]);
     assert.equal(pattern.legend[0].code, 'K');
   });
@@ -57,7 +57,7 @@ describe('generatePattern', () => {
   it('rejects target widths outside 1–10000 or not whole', () => {
     for (const targetWidth of [0, 10001, 12.5]) {
       assertThrowsWith(
-        () => generatePattern(blackOverWhite(), { targetWidth, maxColors: 24 }, TEST_PALETTE),
+        () => generatePattern(blackOverWhite(), { targetWidth, maxColors: 24 }, { palette: TEST_PALETTE }),
         RangeError,
         'targetWidth',
         String(targetWidth),
@@ -66,37 +66,68 @@ describe('generatePattern', () => {
   });
 
   it('rejects color limits outside 1–489 or not whole', () => {
-    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 0 }, TEST_PALETTE), RangeError, 'maxColors', '0');
-    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 490 }, TEST_PALETTE), RangeError, '490', '489');
+    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 0 }, { palette: TEST_PALETTE }), RangeError, 'maxColors', '0');
+    assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 490 }, { palette: TEST_PALETTE }), RangeError, '490', '489');
   });
 
   it('rejects a grid taller than 10000 stitches and names the largest width that fits', () => {
     const tall = solidImage(1, 2048, OPAQUE_BLACK);
-    assertThrowsWith(() => generatePattern(tall, { targetWidth: 5, maxColors: 24 }, TEST_PALETTE), RangeError, '10240', '10000', '4');
+    assertThrowsWith(() => generatePattern(tall, { targetWidth: 5, maxColors: 24 }, { palette: TEST_PALETTE }), RangeError, '10240', '10000', '4');
   });
 
   it('says so when no width fits at all', () => {
     const needle = solidImage(1, 10001, OPAQUE_BLACK);
-    assertThrowsWith(() => generatePattern(needle, { targetWidth: 1, maxColors: 24 }, TEST_PALETTE), RangeError, '10001', 'no target width');
+    assertThrowsWith(() => generatePattern(needle, { targetWidth: 1, maxColors: 24 }, { palette: TEST_PALETTE }), RangeError, '10001', 'no target width');
   });
 
   it('rejects a pixel buffer of the wrong size', () => {
     const image = { width: 2, height: 2, pixels: new Uint8ClampedArray(12) };
-    assertThrowsWith(() => generatePattern(image, { targetWidth: 2, maxColors: 24 }, TEST_PALETTE), RangeError, '16', '12');
+    assertThrowsWith(() => generatePattern(image, { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE }), RangeError, '16', '12');
   });
 
   it('does not modify the pixels or the settings', () => {
     const image = blackOverWhite();
     const pixelsBefore = [...image.pixels];
     const settings = { targetWidth: 2, maxColors: 24, fabricCount: 14 };
-    generatePattern(image, settings, TEST_PALETTE);
+    generatePattern(image, settings, { palette: TEST_PALETTE });
     assert.deepEqual([...image.pixels], pixelsBefore);
     assert.deepEqual(settings, { targetWidth: 2, maxColors: 24, fabricCount: 14 });
   });
 
+  it('reports progress through averaging, clustering and assigning, in that order', () => {
+    const image = pixelImage(2, 3, [OPAQUE_BLACK, OPAQUE_WHITE, OPAQUE_BLACK, OPAQUE_WHITE, OPAQUE_BLACK, OPAQUE_WHITE]);
+    const reports = [];
+    generatePattern(image, { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE, onProgress: (progress) => reports.push(progress) });
+    const phases = [...new Set(reports.map((report) => report.phase))];
+    assert.deepEqual(phases, ['averaging', 'clustering', 'assigning']);
+    assert.deepEqual(reports.filter((report) => report.phase === 'averaging'), [1, 2, 3].map((done) => ({ phase: 'averaging', done, total: 3 })));
+    assert.deepEqual(reports.filter((report) => report.phase === 'assigning'), [1, 2, 3].map((done) => ({ phase: 'assigning', done, total: 3 })));
+    const clustering = reports.filter((report) => report.phase === 'clustering');
+    assert.ok(clustering.every((report, index) => report.total === 30 && report.done >= 1 && (index === 0 || report.done > clustering[index - 1].done)));
+    assert.deepEqual(clustering.at(-1), { phase: 'clustering', done: 30, total: 30 });
+  });
+
+  it('reports clustering as done for an image without stitches', () => {
+    const reports = [];
+    generatePattern(solidImage(2, 2, TRANSPARENT), { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE, onProgress: (progress) => reports.push(progress) });
+    assert.deepEqual(reports.map((report) => report.phase), ['averaging', 'averaging', 'clustering', 'assigning', 'assigning']);
+    assert.deepEqual(reports[2], { phase: 'clustering', done: 30, total: 30 });
+  });
+
+  it('reports no progress for invalid settings', () => {
+    const reports = [];
+    assert.throws(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 490 }, { palette: TEST_PALETTE, onProgress: (progress) => reports.push(progress) }));
+    assert.deepEqual(reports, []);
+  });
+
+  it('gives the same pattern with and without a progress callback', () => {
+    const withProgress = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE, onProgress: () => {} });
+    assert.deepEqual(withProgress, generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 24 }, { palette: TEST_PALETTE }));
+  });
+
   it('gives equal patterns for equal input', () => {
-    const first = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 1 }, TEST_PALETTE);
-    const second = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 1 }, TEST_PALETTE);
+    const first = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 1 }, { palette: TEST_PALETTE });
+    const second = generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 1 }, { palette: TEST_PALETTE });
     assert.deepEqual(first, second);
   });
 });
