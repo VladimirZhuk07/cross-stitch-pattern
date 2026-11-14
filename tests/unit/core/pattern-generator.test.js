@@ -54,8 +54,8 @@ describe('generatePattern', () => {
     assert.equal(pattern.legend[0].code, 'K');
   });
 
-  it('rejects target widths outside 1–500 or not whole', () => {
-    for (const targetWidth of [0, 501, 12.5]) {
+  it('rejects target widths outside 1–10000 or not whole', () => {
+    for (const targetWidth of [0, 10001, 12.5]) {
       assertThrowsWith(
         () => generatePattern(blackOverWhite(), { targetWidth, maxColors: 24 }, TEST_PALETTE),
         RangeError,
@@ -70,14 +70,14 @@ describe('generatePattern', () => {
     assertThrowsWith(() => generatePattern(blackOverWhite(), { targetWidth: 2, maxColors: 490 }, TEST_PALETTE), RangeError, '490', '489');
   });
 
-  it('rejects a grid taller than 500 stitches and names the largest width that fits', () => {
-    const tall = solidImage(41, 2048, OPAQUE_BLACK);
-    assertThrowsWith(() => generatePattern(tall, { targetWidth: 100, maxColors: 24 }, TEST_PALETTE), RangeError, '4995', '500', '10');
+  it('rejects a grid taller than 10000 stitches and names the largest width that fits', () => {
+    const tall = solidImage(1, 2048, OPAQUE_BLACK);
+    assertThrowsWith(() => generatePattern(tall, { targetWidth: 5, maxColors: 24 }, TEST_PALETTE), RangeError, '10240', '10000', '4');
   });
 
   it('says so when no width fits at all', () => {
-    const needle = solidImage(1, 2048, OPAQUE_BLACK);
-    assertThrowsWith(() => generatePattern(needle, { targetWidth: 1, maxColors: 24 }, TEST_PALETTE), RangeError, '2048', 'no target width');
+    const needle = solidImage(1, 10001, OPAQUE_BLACK);
+    assertThrowsWith(() => generatePattern(needle, { targetWidth: 1, maxColors: 24 }, TEST_PALETTE), RangeError, '10001', 'no target width');
   });
 
   it('rejects a pixel buffer of the wrong size', () => {

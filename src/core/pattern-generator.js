@@ -24,8 +24,8 @@ function dmcPalette() {
 // Generates a cross-stitch pattern from an image.
 // image     pixel image { width, height, pixels } as described at resizeToGrid in
 //           ./stitch-grid.js (RGBA bytes, row-major).
-// settings  { targetWidth, maxColors }: stitches per row (whole number 1–500) and the largest
-//           number of DMC colors (whole number 1–99). Other fields (fabricCount) are ignored.
+// settings  { targetWidth, maxColors }: stitches per row (whole number 1–MAX_GRID_SIDE) and the
+//           largest number of DMC colors (whole number 1–MAX_PATTERN_COLORS). Other fields (fabricCount) are ignored.
 // palette   prepared palette (see prepareLabPalette in ./dmc-match.js); defaults to the
 //           bundled DMC palette. Tests pass a small palette.
 // Returns a Pattern (see ./pattern.js) of targetWidth × round(targetWidth × height / width)

@@ -4,9 +4,10 @@
 
 import { srgbToLinear } from './color.js';
 
-// Neither side of a grid may exceed this many stitches: 500 × 500 = 250 000 cells keeps
-// the worst-case generation time at a few seconds.
-export const MAX_GRID_SIDE = 500;
+// Neither side of a grid may exceed this many stitches. 10000 × 10000 = 100 M cells is the
+// largest pattern generation can hold in a browser: the pipeline keeps about 4 bytes per
+// cell (see ./pattern-generator.js), about 0.5 GB at this size.
+export const MAX_GRID_SIDE = 10000;
 
 // Size of a stitch grid for an image, in stitches. The width is the chosen target width;
 // the height follows the image's aspect ratio, so the grid covers the whole image with
@@ -25,10 +26,10 @@ export function stitchGridSize(imageWidth, imageHeight, targetWidth) {
 
 // The largest target width (at most MAX_GRID_SIDE) whose grid height is at most
 // MAX_GRID_SIDE for an image of this size, or 0 if not even a width of 1 fits (an image
-// 500.5 times taller than wide). Throws RangeError for invalid image sizes.
+// more than 10000.5 times taller than wide). Throws RangeError for invalid image sizes.
 export function maxTargetWidth(imageWidth, imageHeight) {
   checkImageSize(imageWidth, imageHeight);
-  // round(W × h / w) ≤ 500 exactly when W × h / w < 500.5; the loop guards against
+  // round(W × h / w) ≤ MAX_GRID_SIDE exactly when W × h / w < MAX_GRID_SIDE + 0.5; the loop guards against
   // floating-point error at the boundary.
   let width = Math.min(MAX_GRID_SIDE, Math.ceil(((MAX_GRID_SIDE + 0.5) * imageWidth) / imageHeight) - 1);
   while (width > 0 && gridHeight(imageWidth, imageHeight, width) > MAX_GRID_SIDE) {
