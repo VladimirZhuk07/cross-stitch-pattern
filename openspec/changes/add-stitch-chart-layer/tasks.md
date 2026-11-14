@@ -47,7 +47,7 @@
 - [x] 7.4 Create `src/core/chart-tint.js` with `paleTint` and `contrastRatio` and the named constants `TINT_LIGHTNESS_BASE = 72`, `TINT_LIGHTNESS_RANGE = 0.25`, `TINT_CHROMA_FACTOR = 0.6`, `GAMUT_SEARCH_STEPS = 20` (design D9); verify 7.3 passes
 - [x] 7.5 Write failing tests for `tintedCellPixels` and `EMPTY_CELL_COLOR`: the 3 × 2 pattern gives a 24-byte `Uint8ClampedArray` `[255,192,187,255, 176,176,176,255, 176,176,176,255, 224,224,224,255, 176,176,176,255, 255,192,187,255]`; an all-empty 2 × 2 pattern gives 4 × `224,224,224,255`; `EMPTY_CELL_COLOR` is `#E0E0E0`; the pattern is not modified; verify they fail
 - [x] 7.6 Implement `tintedCellPixels` (one `paleTint` per legend entry, not per cell); verify 7.5 passes
-- [ ] 7.7 Write failing tests in `chart-layout.test.js` for `isEmptyHatchVisible`: 6 → true, 5.9 → false, 20 → true; −1 throws `RangeError`; verify they fail
+- [x] 7.7 Write failing tests in `chart-layout.test.js` for `isEmptyHatchVisible`: 6 → true, 5.9 → false, 20 → true; −1 throws `RangeError`; verify they fail
 - [ ] 7.8 Implement `isEmptyHatchVisible` with `MIN_HATCH_CELL_SIZE = 6`; verify 7.7 passes
 - [ ] 7.9 Write failing tests in `legend-rows.test.js`: rows of the 3 × 2 pattern have `tint` `'#B0B0B0'` and `'#FFC0BB'`; verify they fail
 - [ ] 7.10 Add `tint` to `legendRows` (from `paleTint`) and to its LegendRow comment; verify 7.9 passes

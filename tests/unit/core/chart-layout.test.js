@@ -6,6 +6,7 @@ import {
   cellCenter,
   visibleCellRange,
   numberFontSize,
+  isEmptyHatchVisible,
   gridLines,
   chartLineWidths,
   snapLine,
@@ -338,5 +339,23 @@ describe('chartCenter', () => {
 
   it('is the middle of the only cell of a 1 × 1 grid', () => {
     assert.deepEqual(chartCenter({ width: 1, height: 1 }), { column: 0.5, row: 0.5 });
+  });
+});
+
+describe('isEmptyHatchVisible', () => {
+  it('hatches empty cells of exactly 6 px', () => {
+    assert.equal(isEmptyHatchVisible(6), true);
+  });
+
+  it('does not hatch empty cells of 5.9 px', () => {
+    assert.equal(isEmptyHatchVisible(5.9), false);
+  });
+
+  it('hatches empty cells of 20 px', () => {
+    assert.equal(isEmptyHatchVisible(20), true);
+  });
+
+  it('rejects a negative cell size', () => {
+    assert.throws(() => isEmptyHatchVisible(-1), { name: 'RangeError', message: /-1/ });
   });
 });
