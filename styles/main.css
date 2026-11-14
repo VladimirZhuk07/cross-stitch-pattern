@@ -851,9 +851,10 @@ body {
     min-width: 2.75rem;
   }
 
+  /* Thin side padding: the three-digit number boxes (raise-pattern-limits) need the room. */
   .legend__body {
-    padding-right: var(--space-1);
-    padding-left: var(--space-1);
+    padding-right: 0.125rem;
+    padding-left: 0.125rem;
   }
 
   .legend__table {
