@@ -167,8 +167,12 @@ last valid settings, never an invalid typed value.
 - **THEN** the summary reads `100 × 67 · max 1 color · 18 ct · 5.6 × 3.7 in`
 
 #### Scenario: Grid too large
-- **WHEN** a 41 × 2048 image is loaded with width 100 (100 × 4995 stitches)
-- **THEN** the summary reads `100 × 4995 · too large · max 24 colors · 14 ct` and is shown in the error color
+- **WHEN** a 41 × 2048 image is loaded with width 250 (250 × 12488 stitches, above the 10000 limit)
+- **THEN** the summary reads `250 × 12488 · too large · max 24 colors · 14 ct` and is shown in the error color
+
+#### Scenario: Grid wider than the image
+- **WHEN** a 3200 × 4000 image is loaded with width 5000 and fabric 14 ct
+- **THEN** the summary reads `5000 × 6250 · max 24 colors · 14 ct · 357.1 × 446.4 in` and is not shown in the error color (the no-detail note is in the expanded size text)
 
 #### Scenario: Invalid value typed before collapsing
 - **WHEN** a 1200 × 800 image is loaded with width 100, the user types `5` into the width and collapses the settings

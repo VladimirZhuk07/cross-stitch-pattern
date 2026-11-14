@@ -231,6 +231,13 @@ describe('formatSettingsSummary', () => {
     );
   });
 
+  it('shows the size of a grid wider than the image like any other size', () => {
+    assert.equal(
+      formatSettingsSummary({ width: 5000, height: 6250 }, { ...defaults, targetWidth: 5000 }),
+      '5000 × 6250 · max 24 colors · 14 ct · 357.1 × 446.4 in',
+    );
+  });
+
   it('does not modify its arguments', () => {
     const size = { width: 100, height: 67 };
     const settings = { ...defaults };

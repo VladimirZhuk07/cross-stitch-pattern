@@ -103,7 +103,8 @@ order do not change. In landscape `.app-main` is a grid too: `"work settings" "w
 columns `1fr 16rem`, rows `minmax(0, auto) minmax(0, auto) 1fr` (the two panel rows share the
 height when both are open; the empty last row takes the rest), each panel body scrolling on its
 own. 16rem (256 px) is the narrowest column in which all five legend columns fit, with 4 px
-cell padding and a 13 px table font; the rail shrinks to 9rem (144 px) to pay for it.
+cell padding, 2 px panel padding and a 13 px table font (enough for the three-digit number boxes
+of raise-pattern-limits); the rail shrinks to 9rem (144 px) to pay for it.
 
 ### 3. Frame height
 
@@ -226,13 +227,18 @@ appears together with its first text is not reliably announced (it costs one 8 p
   box (about 25 px on an iPhone SE)] → each panel still scrolls inside; collapsing the legend
   gives the settings the whole column. An accordion (opening one closes the other) would need
   the two modules to know each other; not done.
+- [A stitch count of a million or more (huge patterns) makes the landscape legend table about
+  8 px wider than its 256 px column] → the legend panel scrolls sideways inside itself; the
+  page never does. Portrait phones have room to spare.
 - [Resizing the canvas when a panel opens costs a redraw of large patterns] → instant
   toggles (one resize); rendering speed belongs to tile-large-pattern-rendering.
 - [`display: contents` on the toolbar] → only on a role-less `div`; the fieldset and group
   keep their boxes, so no accessibility semantics are lost.
 - [Conflicts with parallel changes] → main.css edits are new sections at the end plus removal
   of the two 48rem blocks; settings-form.js and generation-settings.js get appended code;
-  tests use `MAX_GRID_SIDE + 1` instead of a literal 500 for the too-large summary.
+  tests use `MAX_GRID_SIDE + 1` instead of a literal limit for the too-large summary. The
+  Generate/Stop buttons of raise-pattern-limits (`.settings__button`) sit outside the folding
+  body, so they stay visible with collapsed settings, and get the 44 px minimum.
 - [No real-phone test of iOS] → the dev server binds 127.0.0.1 only; Android can be tested
   through `chrome://inspect` port forwarding; iPhone checks rely on DevTools emulation unless
   the user tests a deployed build.
