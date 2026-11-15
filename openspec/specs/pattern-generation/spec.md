@@ -230,6 +230,7 @@ While an image is loaded, the form SHALL show the stitch dimensions and the fini
 inches and centimetres (one decimal) for the chosen fabric count, updated as soon as a setting
 changes. Without an image it SHALL say so. A grid side above 10000 SHALL be explained with the
 largest width that fits. A grid wider than the image SHALL get a note that it adds no detail.
+With collapsed settings on a phone, the settings summary SHALL show them (size in inches).
 
 #### Scenario: 1200 × 800 image on 14 ct
 - **WHEN** a 1200 × 800 px image is loaded with width 100 and fabric 14 ct
@@ -262,6 +263,10 @@ largest width that fits. A grid wider than the image SHALL get a note that it ad
 - **WHEN** the same image is loaded with width 5000
 - **THEN** the size reads `5000 × 6250 stitches — 357.1 × 446.4 in (907.1 × 1133.9 cm) on 14 ct. Wider than the image (3200 px), so the extra stitches add no detail.`
 - **AND** the text is not styled as an error
+
+#### Scenario: Collapsed settings on a phone
+- **WHEN** a 1200 × 800 px image is loaded with width 100 and fabric 14 ct, the screen is 375 CSS px wide and the settings are collapsed
+- **THEN** the `Settings` button shows `100 × 67 · max 24 colors · 14 ct · 7.1 × 4.8 in`
 
 ### Requirement: Patterns are generated automatically
 A pattern of at most 4,000,000 stitches SHALL be generated, without a button press, as soon as

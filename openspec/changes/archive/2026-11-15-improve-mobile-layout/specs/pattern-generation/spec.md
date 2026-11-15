@@ -4,9 +4,8 @@
 While an image is loaded, the form SHALL show the stitch dimensions and the finished size in
 inches and centimetres (one decimal) for the chosen fabric count, updated as soon as a setting
 changes. Without an image it SHALL say so. A grid side above 10000 SHALL be explained with the
-largest width that fits. A grid wider than the image SHALL get a note that it adds no detail. On a compact screen
-with the settings collapsed, the settings summary (see the responsive-layout spec) SHALL show
-the stitch dimensions and the finished size in inches instead.
+largest width that fits. A grid wider than the image SHALL get a note that it adds no detail.
+With collapsed settings on a phone, the settings summary SHALL show them (size in inches).
 
 #### Scenario: 1200 × 800 image on 14 ct
 - **WHEN** a 1200 × 800 px image is loaded with width 100 and fabric 14 ct
