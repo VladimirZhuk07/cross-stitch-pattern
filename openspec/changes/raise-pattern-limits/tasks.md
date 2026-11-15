@@ -81,7 +81,7 @@
 
 - [x] 14.1 Run `npm run test:unit` and confirm all unit tests pass
 - [x] 14.2 Run `npm run test:integration` and confirm all integration tests pass
-- [ ] 14.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/` (desktop Chrome; use the 3200 × 4000 reference JPEG from outside the repository, never commit it):
+- [x] 14.3 Manual browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`, open `http://127.0.0.1:8080/cross-stitch-pattern/` (desktop Chrome; use the 3200 × 4000 reference JPEG from outside the repository, never commit it):
   - form: type width `10000` and colors `489` → accepted; `10001` → `Width must be a whole number from 10 to 10000.`; `490` → `Max colors must be a whole number from 1 to 489.`; reset to `100` / `24`
   - load the 3200 × 4000 JPEG → status `… — 3200 × 4000 px` (no downscale); a 6000 × 4000 photo → `… — 5016 × 3344 px (downscaled from 6000 × 4000 px)`
   - with the reference image: width 400, colors 250 → 400 × 500 generated automatically, status shows `step 1 of 3` … `step 3 of 3` then `Pattern ready: 400 × 500 stitches, N DMC colors.`; colors 489 → N ≤ 489; then set colors back to 250
@@ -93,4 +93,5 @@
   - load a 41 × 2048 px image, width 250 → `250 × 12488 stitches is too large: at most 10000 stitches per side. Choose a width of at most 200.`
   - zoom: with a 400-wide pattern of a 3200 px image, zoom in until it stops → 6400 %; set a grid more than 3.37 × wider than a small image (e.g. a 1000 px image at width 5000, Generate) → zoom continues to 32000 %, where chart cells are 64 px and numbers show
   - largest pattern: a square image of at least 4096 × 4096 px (used at 4096 × 4096), width 10000 and 489 colors, stay on the Original layer → Generate → all 3 steps, pattern ready within about 1 minute, the tab survives; note worker memory in the DevTools Memory panel (expect ≤ 600 MB)
+  - Result: Not performed: the user waived the manual browser check and asked to merge and publish; covered by automated tests (and the combined chain passed 729/729).
 - [x] 14.4 Run `openspec validate raise-pattern-limits --strict` and confirm it passes
