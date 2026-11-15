@@ -126,6 +126,8 @@ empty cells as over stitched cells.
 The Chart layer SHALL draw a thin mid-grey (`#A0A0A0`) line between all cells and a bold black
 line every 10 stitches counted from the top-left corner and along the grid's outer border.
 Thin lines SHALL be omitted when the cell size is below 4 CSS px; bold lines SHALL always be drawn.
+When 10 cells are shorter than 8 CSS px, bold lines SHALL be drawn every 100, 1000, …
+stitches instead: the first power of ten from 10 up whose spacing is at least 8 CSS px.
 
 #### Scenario: 23 × 12 pattern with 10 px cells
 - **WHEN** a 23 × 12 pattern is shown with 10 px cells
@@ -139,6 +141,22 @@ Thin lines SHALL be omitted when the cell size is below 4 CSS px; bold lines SHA
 #### Scenario: Thin-line threshold
 - **WHEN** the cell size is exactly 4 CSS px
 - **THEN** thin lines are drawn
+
+#### Scenario: Bold-line step threshold
+- **WHEN** the cell size is 0.8 CSS px, and again 0.79 CSS px
+- **THEN** bold lines are every 10 stitches at 0.8 (8 CSS px apart) and every 100 stitches at 0.79
+
+#### Scenario: Fitted 1000 × 1000 pattern
+- **WHEN** a 1000 × 1000 pattern is shown with 0.752 CSS px cells
+- **THEN** the bold vertical lines are at boundaries 0, 100, 200, …, 1000 (11 lines), and no thin line is drawn
+
+#### Scenario: Fitted 10000 × 10000 pattern
+- **WHEN** a 10000 × 10000 pattern is shown with 0.0752 CSS px cells
+- **THEN** the bold vertical lines are at boundaries 0, 1000, 2000, …, 10000 (11 lines), and likewise the horizontal ones
+
+#### Scenario: Far border off the step
+- **WHEN** a 10050 × 10 pattern is shown with 0.0752 CSS px cells
+- **THEN** the bold vertical lines are 0, 1000, …, 10000 and the border 10050
 
 ### Requirement: Grid lines are crisp at any pixel ratio
 A thin line SHALL be the device pixel ratio rounded to a whole number of device pixels wide
@@ -173,11 +191,16 @@ outside the frame SHALL draw nothing.
 - **WHEN** the content rectangle's top-left is at (500, 0) in a 400 × 300 frame
 - **THEN** no cell, line, ruler or number is drawn
 
+#### Scenario: 10000 × 10000 pattern at Fit
+- **WHEN** a 10000 × 10000 pattern with empty cells is shown with the content rectangle at x 124, y 24, size 752 × 752, in a 1000 × 800 frame, once its overview is complete
+- **THEN** the cell colors are one picture drawn once, no number and no hatch line is drawn, 11 vertical and 11 horizontal bold lines are drawn, and no cell of the pattern is read during the frame
+
 ### Requirement: Rulers number every 10th row and column
 The Chart layer SHALL draw a 24 CSS px ruler along the top and the left edge of the grid,
 spanning the grid's visible extent, labelling each bold line that is a multiple of 10 (not 0)
 with its stitch count from the top-left: column numbers in the top ruler, row numbers in the
-left ruler, in 10 CSS px text on an opaque background.
+left ruler, in 10 CSS px text on an opaque background. The left ruler SHALL be wider than
+24 CSS px only as described in "Left ruler fits the longest row label".
 
 #### Scenario: Labels of a 100 × 67 pattern
 - **WHEN** a 100 × 67 pattern is shown with the content rectangle at x 24, y 100, size 1000 × 670, in a 1048 × 870 frame
@@ -205,8 +228,9 @@ meet, a blank square SHALL cover them.
 
 ### Requirement: Ruler labels never overlap
 Ruler labels SHALL be drawn every 10 stitches if 10 cells are at least as long as the widest
-label plus 4 CSS px; otherwise every 20, 50, 100, 200 or 500 stitches, the first step that
-satisfies the same condition (500 if none does). Both rulers SHALL use the same step.
+label plus 4 CSS px; otherwise every 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, …
+stitches (the sequence 1, 2, 5 times a power of ten continues without end), the first step
+that satisfies the same condition. Both rulers SHALL use the same step.
 
 #### Scenario: Comfortable spacing
 - **WHEN** the cell size is 3.2 CSS px and the widest label is 17 CSS px
@@ -219,6 +243,14 @@ satisfies the same condition (500 if none does). Both rulers SHALL use the same 
 #### Scenario: Very small cells
 - **WHEN** the cell size is 0.5 CSS px and the widest label is 17 CSS px
 - **THEN** labels are drawn every 50 stitches
+
+#### Scenario: 10000 × 10000 pattern on a phone
+- **WHEN** the cell size is 0.0342 CSS px and the widest label is 19.25 CSS px
+- **THEN** labels are drawn every 1000 stitches (500 × 0.0342 = 17.1 < 23.25 ≤ 34.2)
+
+#### Scenario: Beyond 500
+- **WHEN** the cell size is 0.01 CSS px and the widest label is 17 CSS px
+- **THEN** labels are drawn every 5000 stitches (2000 × 0.01 = 20 < 21 ≤ 50)
 
 ### Requirement: Centre marker
 The Chart layer SHALL mark the centre of the grid (W/2 stitches from the left, H/2 from the
@@ -299,3 +331,27 @@ from the background. Legend numbers SHALL equal the numbers printed in the chart
 #### Scenario: White floss swatch
 - **WHEN** the legend shows `BLANC` "White" `#FFFFFF`
 - **THEN** its swatch has a 1 CSS px border in a non-white color and the row shows `BLANC` and `White`
+
+### Requirement: Left ruler fits the longest row label
+After the ruler font is chosen, the left ruler SHALL be the widest row label (measured in
+that font) plus 8 CSS px (triangle 5, gap 2, padding 1), rounded up to a whole CSS px, but
+at least 24 CSS px. It SHALL sit directly left of the grid edge, or at the frame edge when
+there is not enough room, then covering the grid's left edge. The corner square SHALL be as
+wide as the left ruler, and the triangle's tip SHALL be on the ruler's inner edge.
+
+#### Scenario: 100-row pattern
+- **WHEN** the widest row label `100` measures 16.5 CSS px at 10 px
+- **THEN** labels are drawn at about 9.7 CSS px (`100` then measures 16 CSS px) and the left ruler is 24 CSS px wide
+
+#### Scenario: 1000-row pattern
+- **WHEN** the widest row label `1000` measures 22 CSS px at 10 px
+- **THEN** labels are drawn at about 7.27 CSS px (16 CSS px wide) and the left ruler is 24 CSS px wide
+
+#### Scenario: 10000-row pattern at Fit
+- **WHEN** a 10000 × 10000 pattern is shown with the content rectangle at x 24, y 24 and the widest row label `10000` measures 27.5 CSS px at 10 px
+- **THEN** labels are drawn at 7 CSS px (`10000` measures 19.25 CSS px) and the left ruler spans x 0 to 28, covering the grid's left 4 CSS px
+- **AND** every row label lies inside the ruler, ending 7 CSS px before its inner edge, the left triangle's tip is at x 28, and the corner square is 28 × 24 CSS px
+
+#### Scenario: Room to the left of the grid
+- **WHEN** the same pattern is shown with the content rectangle at x 100
+- **THEN** the left ruler spans x 72 to 100 and covers no cell
