@@ -39,7 +39,7 @@
 
 - [x] 6.1 Run `npm run test:unit`; all tests pass
 - [x] 6.2 Run `npm run test:integration`; all tests pass
-- [ ] 6.3 Browser smoke check via `node scripts/serve.js` in Chrome DevTools device mode (reload between devices), loading a 1200 × 800 photo and a PNG with transparency:
+- [x] 6.3 Not performed on a real device: the user waived the manual browser check and asked to merge and publish; covered by automated tests and headless-Chrome layout checks. Original checklist (not run in a browser): Browser smoke check via `node scripts/serve.js` in Chrome DevTools device mode (reload between devices), loading a 1200 × 800 photo and a PNG with transparency:
   - 1440 × 900 desktop: looks like `main` except `Choose image` is a button; no toggles; legend 384 px; Tab/Space opens the chooser
   - 1100 × 800 and iPad Air 820 × 1180 (touch): medium layout, legend below at ≤ 40 % height; on iPad zoom buttons and view options are ≥ 44 px
   - iPhone SE 375 × 667: header, `Settings` (collapsed, summary `Width 100 · max 24 colors · 14 ct`, after loading `100 × 67 · max 24 colors · 14 ct · 7.1 × 4.8 in`), segmented view switcher, frame ≥ 300 px, status + zoom row, `Legend` / `N colors`; no page scroll; expand settings, change max colors to 12 → summary and pattern update, collapse again; type `5` in width → summary keeps the old width; expand legend → rows scroll inside, headers stay; generation status visible while collapsed
