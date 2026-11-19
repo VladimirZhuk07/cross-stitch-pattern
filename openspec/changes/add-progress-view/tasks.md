@@ -10,7 +10,7 @@
 
   Verify it fails because the module is missing.
 - [x] 1.2 Create `src/core/progress.js` with `createProgress` and the Progress shape comment from design D1 (bit layout included); verify 1.1 passes
-- [ ] 1.3 Add failing tests for `toggleStitch(progress, cellIndex)` and `isStitched`:
+- [x] 1.3 Add failing tests for `toggleStitch(progress, cellIndex)` and `isStitched`:
   - toggling cell 5 of the 3 × 2 pattern sets bit 5 of byte 0 (`0b00100000`), `stitchedCount` 1, `version` 1, `lastToggled` 5, and leaves the old Progress and its bits unchanged;
   - toggling again clears it (`version` 2);
   - toggling the empty cell 3 returns the same object;

@@ -3,7 +3,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { createProgress } from '../../../src/core/progress.js';
+import { createProgress, isStitched, toggleStitch } from '../../../src/core/progress.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -46,5 +46,51 @@ describe('createProgress', () => {
     const before = [...pattern.cells];
     createProgress(pattern);
     assert.deepEqual([...pattern.cells], before);
+  });
+});
+
+describe('toggleStitch and isStitched', () => {
+  it('marks a cell in a new Progress and leaves the old one alone', () => {
+    const before = createProgress(threeByTwoPattern());
+    const after = toggleStitch(before, 5);
+    assert.notEqual(after, before);
+    assert.deepEqual([...after.bits], [0b00100000]);
+    assert.equal(after.stitchedCount, 1);
+    assert.equal(after.version, 1);
+    assert.equal(after.lastToggled, 5);
+    assert.equal(after.pattern, before.pattern);
+    assert.equal(after.totalCount, 5);
+    assert.equal(isStitched(after, 5), true);
+    assert.equal(isStitched(after, 4), false);
+    assert.deepEqual([...before.bits], [0]);
+    assert.equal(before.stitchedCount, 0);
+    assert.equal(isStitched(before, 5), false);
+  });
+
+  it('unmarks a stitched cell when toggled again', () => {
+    const twice = toggleStitch(toggleStitch(createProgress(threeByTwoPattern()), 5), 5);
+    assert.deepEqual([...twice.bits], [0]);
+    assert.equal(twice.stitchedCount, 0);
+    assert.equal(twice.version, 2);
+    assert.equal(twice.lastToggled, 5);
+  });
+
+  it('cannot mark an empty cell', () => {
+    const progress = createProgress(threeByTwoPattern());
+    assert.equal(toggleStitch(progress, 3), progress);
+  });
+
+  it('puts cell 8 into bit 0 of the second byte', () => {
+    const progress = toggleStitch(createProgress(solidPattern(3, 3)), 8);
+    assert.deepEqual([...progress.bits], [0, 1]);
+    assert.equal(isStitched(progress, 8), true);
+  });
+
+  it('rejects a cell index outside the grid, naming it', () => {
+    const progress = createProgress(threeByTwoPattern());
+    for (const index of [-1, 6, 1.5]) {
+      assert.throws(() => toggleStitch(progress, index), (error) => error instanceof RangeError && error.message.includes(String(index)), `for ${index}`);
+      assert.throws(() => isStitched(progress, index), RangeError, `for ${index}`);
+    }
   });
 });
