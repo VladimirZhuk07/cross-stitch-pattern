@@ -126,7 +126,7 @@ duplicate parsing logic and go against the "load only `./src/main.js`" rule.
 - [`localStorage` is shared with the user's other GitHub Pages sites] → Namespaced key, and
   the parser accepts only the two known values.
 - [The vertical label in the rail could be clipped with large font settings] → The rail is
-  2.75rem, so it scales with the root font. The smoke check includes a 200 % page zoom.
+  2.75rem, so it scales with the root font. The smoke check includes a 150 % page zoom (200 % of a 1440 px window is already the compact layout).
 
 ## Migration Plan
 
