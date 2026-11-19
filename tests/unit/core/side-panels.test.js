@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { SIDE_PANEL_DEFAULTS, parseSidePanelState, serializeSidePanelState } from '../../../src/core/side-panels.js';
+import { SIDE_PANEL_DEFAULTS, parseSidePanelState, serializeSidePanelState, shouldOpenSettings } from '../../../src/core/side-panels.js';
 
 describe('parseSidePanelState', () => {
   it('opens both panels when nothing is stored', () => {
@@ -71,5 +71,27 @@ describe('serializeSidePanelState', () => {
         assert.deepEqual(parseSidePanelState(serializeSidePanelState(state)), state);
       }
     }
+  });
+});
+
+describe('shouldOpenSettings', () => {
+  it('opens the settings when a large pattern starts waiting for Generate', () => {
+    assert.equal(shouldOpenSettings('running', 'awaiting-confirmation'), true);
+    assert.equal(shouldOpenSettings('idle', 'awaiting-confirmation'), true);
+  });
+
+  it('opens the settings when generation fails', () => {
+    assert.equal(shouldOpenSettings('running', 'error'), true);
+  });
+
+  it('does not reopen them while the status stays the same', () => {
+    assert.equal(shouldOpenSettings('error', 'error'), false);
+    assert.equal(shouldOpenSettings('awaiting-confirmation', 'awaiting-confirmation'), false);
+  });
+
+  it('leaves them alone for every other status', () => {
+    assert.equal(shouldOpenSettings('running', 'done'), false);
+    assert.equal(shouldOpenSettings('idle', 'running'), false);
+    assert.equal(shouldOpenSettings('running', 'stopped'), false);
   });
 });
