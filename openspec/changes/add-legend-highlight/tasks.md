@@ -2,7 +2,7 @@
 
 ## 1. Highlight rules (core)
 
-- [ ] 1.1 Write failing `tests/unit/core/highlight.test.js` for the constants and `toggleHighlight`:
+- [x] 1.1 Write failing `tests/unit/core/highlight.test.js` for the constants and `toggleHighlight`:
   - `HIGHLIGHT_COLOR` is `#B00000` and `HIGHLIGHT_NUMBER_COLOR` is `#FFFFFF`;
   - WCAG contrast (computed in the test from `hexToRgb`/`srgbToLinear`) of white on `HIGHLIGHT_COLOR` is ≥ 7.3, and of `HIGHLIGHT_COLOR` against luminance 0.436 is ≥ 3.4;
   - `toggleHighlight(null, 2)` → 2, `(2, 2)` → null, `(2, 0)` → 0;
