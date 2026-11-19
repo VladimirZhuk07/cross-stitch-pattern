@@ -14,6 +14,7 @@ import {
   tileRegion,
   regionCells,
   detailLevel,
+  assertLevelInput,
   visibleTiles,
   pictureDrawRects,
 } from '../../../src/core/tile-pyramid.js';
@@ -226,5 +227,23 @@ describe('pictureDrawRects', () => {
     const rects = pictureDrawRects({ x: -95, y: -40, width: 1000, height: 1000 }, grid, 0, region, visible, 1);
     assert.deepEqual(rects.source, { x: 9, y: 4, width: 41, height: 30 });
     assert.deepEqual(rects.destination, { x: -5, y: 0, width: 410, height: 300 });
+  });
+});
+
+describe('assertLevelInput', () => {
+  it('accepts a positive stitch size and a level ≥ 0', () => {
+    assert.doesNotThrow(() => assertLevelInput(0.18, 0));
+    assert.doesNotThrow(() => assertLevelInput(20, 5));
+  });
+
+  it('rejects a stitch size that is not a positive finite number, naming it', () => {
+    for (const value of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      assert.throws(() => assertLevelInput(value, 3), (error) => error instanceof RangeError && /devicePxPerStitch/.test(error.message), `for ${value}`);
+    }
+  });
+
+  it('rejects a level that is not an integer ≥ 0', () => {
+    assert.throws(() => assertLevelInput(1, -1), RangeError);
+    assert.throws(() => assertLevelInput(1, 1.5), RangeError);
   });
 });

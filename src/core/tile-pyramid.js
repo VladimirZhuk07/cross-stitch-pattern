@@ -115,12 +115,20 @@ export function regionCells(grid, level, region) {
  * Throws RangeError if devicePxPerStitch is not a positive number or maxLevel is invalid.
  */
 export function detailLevel(devicePxPerStitch, maxLevel) {
+  assertLevelInput(devicePxPerStitch, maxLevel);
+  const ideal = Math.round(Math.log2(1 / devicePxPerStitch));
+  return Math.min(maxLevel, Math.max(0, ideal));
+}
+
+/**
+ * Checks the input of a level choice such as detailLevel: devicePxPerStitch must be a finite
+ * number > 0 and maxLevel an integer ≥ 0. Throws RangeError naming the wrong value.
+ */
+export function assertLevelInput(devicePxPerStitch, maxLevel) {
   if (!Number.isFinite(devicePxPerStitch) || devicePxPerStitch <= 0) {
     throw new RangeError(`devicePxPerStitch must be a positive number, got ${String(devicePxPerStitch)}`);
   }
   assertLevel(maxLevel);
-  const ideal = Math.round(Math.log2(1 / devicePxPerStitch));
-  return Math.min(maxLevel, Math.max(0, ideal));
 }
 
 /**
