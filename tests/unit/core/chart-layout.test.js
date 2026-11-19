@@ -21,6 +21,7 @@ import {
   rulerLabelStep,
   rulerFontSize,
   chartCenter,
+  cellAtPoint,
 } from '../../../src/core/chart-layout.js';
 import { FIT_MARGIN } from '../../../src/core/viewport.js';
 
@@ -462,5 +463,41 @@ describe('isEmptyHatchVisible', () => {
 
   it('rejects a negative cell size', () => {
     assert.throws(() => isEmptyHatchVisible(-1), { name: 'RangeError', message: /-1/ });
+  });
+});
+
+describe('cellAtPoint', () => {
+  const grid = { width: 3, height: 2 };
+  const content = { x: 0, y: 0, width: 60, height: 40 }; // 20 px cells
+
+  it('returns the column, row and cell index under a point', () => {
+    assert.deepEqual(cellAtPoint(content, grid, { x: 50, y: 30 }), { column: 2, row: 1, index: 5 });
+    assert.deepEqual(cellAtPoint(content, grid, { x: 0, y: 0 }), { column: 0, row: 0, index: 0 });
+  });
+
+  it('gives a shared corner to the cell right and below', () => {
+    assert.deepEqual(cellAtPoint(content, grid, { x: 40, y: 20 }), { column: 2, row: 1, index: 5 });
+  });
+
+  it('returns null outside the grid', () => {
+    for (const point of [{ x: 60, y: 10 }, { x: -1, y: 10 }, { x: 10, y: 40 }, { x: 10, y: -0.5 }]) {
+      assert.equal(cellAtPoint(content, grid, point), null, JSON.stringify(point));
+    }
+  });
+
+  it('follows the content position', () => {
+    const moved = { x: 100, y: 50, width: 60, height: 40 };
+    assert.deepEqual(cellAtPoint(moved, grid, { x: 150, y: 80 }), { column: 2, row: 1, index: 5 });
+    assert.equal(cellAtPoint(moved, grid, { x: 50, y: 30 }), null);
+  });
+
+  it('returns null on a ruler that covers the grid', () => {
+    // Zoomed in: the grid starts left of and above the frame, the rulers stick to the frame edge.
+    const zoomed = { x: -100, y: -100, width: 600, height: 400 }; // 200 px cells
+    const rulers = { top: 0, left: 0, leftWidth: 30 };
+    assert.equal(cellAtPoint(zoomed, grid, { x: 20, y: 200 }, rulers), null, 'left ruler');
+    assert.equal(cellAtPoint(zoomed, grid, { x: 200, y: 10 }, rulers), null, 'top ruler');
+    assert.deepEqual(cellAtPoint(zoomed, grid, { x: 31, y: 200 }, rulers), { column: 0, row: 1, index: 3 });
+    assert.deepEqual(cellAtPoint(zoomed, grid, { x: 20, y: 200 }), { column: 0, row: 1, index: 3 }, 'without rulers');
   });
 });

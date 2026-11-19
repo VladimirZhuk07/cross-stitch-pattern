@@ -78,9 +78,17 @@ Functions:
   module's handlers. On the Progress layer:
   - Space and Enter call `onKeyToggle()` (`preventDefault`, so Space does not scroll);
   - Shift + an arrow key pans by exactly one cell: `content.width / pattern.width` CSS px.
-- `cellAtPoint(content, grid, point)` (core, `chart-layout.js`) returns
+- `cellAtPoint(content, grid, point, rulers = null)` (core, `chart-layout.js`) returns
   `{ column, row, index }`, or `null` outside the grid. A point on a shared edge belongs to the
   cell right or below.
+  - When zoomed in, the rulers stick to the frame edge **over** the grid, so a click there must
+    not mark the hidden cell. `rulers` is `{ top, left, leftWidth }`, as placed by
+    `rulerPlacement`, and points inside either ruler band give `null`.
+  - Only the layer knows `leftWidth`, because it measures the label text. So `drawRulers`
+    returns its placement, and the Progress layer offers `cellAt(point)` from the content and
+    rulers of its last paint.
+  - `ui/progress.js` asks that layer instead of recomputing the geometry. This was found while
+    implementing task 2.3.
 - **Keyboard marker.** A new state field, `isFrameKeyboardFocused`, is written only by
   `viewer-input.js`:
   - on `focus`, it becomes `viewer.matches(':focus-visible')`;

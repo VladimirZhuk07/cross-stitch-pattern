@@ -41,7 +41,7 @@
 
   Verify it fails.
 - [x] 2.2 Create `src/core/tap.js` (`TAP_SLOP`, `idleTap`, `startTap`, `moveTap`, `endTap`, `cancelTap`, pure, with a comment on the slop choice); verify 2.1 passes
-- [ ] 2.3 Add failing tests to `tests/unit/core/chart-layout.test.js` for `cellAtPoint(content, grid, point)`:
+- [x] 2.3 Add failing tests to `tests/unit/core/chart-layout.test.js` for `cellAtPoint(content, grid, point)`:
   - 20 px cells at (0, 0): (50, 30) → column 2, row 1, index 5 on a 3 × 2 grid;
   - (40, 20) (shared corner) → column 2, row 1;
   - (60, 10), (-1, 10) and (10, 40) → null;

@@ -110,6 +110,34 @@ export function cellCenter(content, grid, column, row) {
 }
 
 /**
+ * Returns the cell under a screen point of a grid drawn into the content rectangle, as
+ * { column, row, index } (index = row × grid.width + column), or null when the point is
+ * outside the grid. A point on an edge between cells belongs to the cell right of or below it.
+ * rulers  optional { top, left, leftWidth }: the rulers as placed by rulerPlacement (top ruler
+ *         RULER_SIZE high from y = top, left ruler leftWidth wide from x = left). A point on a
+ *         ruler gives null, because a ruler that sticks to the frame edge covers grid cells.
+ * Throws RangeError if the grid size is not a pair of positive integers.
+ */
+export function cellAtPoint(content, grid, point, rulers = null) {
+  const { cellWidth, cellHeight } = chartCellGeometry(content, grid);
+  if (rulers !== null && isOnRuler(point, rulers)) {
+    return null;
+  }
+  const column = Math.floor((point.x - content.x) / cellWidth);
+  const row = Math.floor((point.y - content.y) / cellHeight);
+  if (column < 0 || row < 0 || column >= grid.width || row >= grid.height) {
+    return null;
+  }
+  return { column, row, index: row * grid.width + column };
+}
+
+function isOnRuler(point, rulers) {
+  const isOnTop = point.y >= rulers.top && point.y < rulers.top + RULER_SIZE;
+  const isOnLeft = point.x >= rulers.left && point.x < rulers.left + rulers.leftWidth;
+  return isOnTop || isOnLeft;
+}
+
+/**
  * Returns the CellRange of the cells that intersect the frame, so a layer draws only those.
  * A cell that merely touches the frame edge is not visible.
  * Throws RangeError if the grid size is not a pair of positive integers.
