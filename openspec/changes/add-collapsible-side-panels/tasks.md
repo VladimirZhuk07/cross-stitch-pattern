@@ -50,7 +50,7 @@
 ## 6. Verification
 
 - [x] 6.1 Run `npm run test:unit`; all tests pass
-- [ ] 6.2 Run `npm run test:integration`; all tests pass
+- [x] 6.2 Run `npm run test:integration`; all tests pass
 - [ ] 6.3 Browser smoke check with `node scripts/serve.js`:
   - 1440 × 900: load a photo; both panels open, as on `main`. Fold the settings: a 44 px `Settings` rail, a wider frame, and the zoom and centre stitch unchanged. Fold the legend: a right rail. Reload: both still folded once the pattern shows. Tab to each rail toggle: a focus ring appears, and Enter/Space toggle it.
   - Set width 2001 and fold the settings. Load a 1000 × 1000 image: the settings open with the Generate prompt.
