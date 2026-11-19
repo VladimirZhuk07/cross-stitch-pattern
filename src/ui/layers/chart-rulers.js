@@ -31,6 +31,8 @@ const FONT_FAMILY = 'system-ui, sans-serif';
  * frame     the view frame { width, height, ... } from ../viewer.js
  * pattern   the Pattern being drawn (../../core/pattern.js)
  * content   the content rectangle; geometry, range from chartCellGeometry, visibleCellRange
+ * Returns where the rulers were drawn, { top, left, leftWidth } (see rulerPlacement in
+ * ../../core/chart-layout.js), so a click on a ruler can be told from a click on a cell.
  */
 export function drawRulers(ctx, frame, pattern, content, geometry, range) {
   const { step, leftWidth } = chooseRulerFont(ctx, pattern, geometry.cellSize);
@@ -50,6 +52,7 @@ export function drawRulers(ctx, frame, pattern, content, geometry, range) {
   // The square where both rulers meet hides labels that would run into each other.
   ctx.fillStyle = RULER_BACKGROUND;
   ctx.fillRect(placement.left, placement.top, leftWidth, RULER_SIZE);
+  return { top: placement.top, left: placement.left, leftWidth };
 }
 
 // Sets the ruler font (shrunk if the widest row label does not fit) and returns

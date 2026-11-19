@@ -82,7 +82,7 @@
   - the Chart layer ignores `state.progress`.
 
   Verify the file fails.
-- [ ] 4.5 Implement `src/ui/layers/stitched-picture.js`, the `id` / `showsProgress` options and the Progress paint order in `chart-layer.js`, and `src/ui/layers/progress-layer.js` (design D3); keep each file under ~300 lines; verify 4.4 and `tests/integration/chart-layer.test.js` pass
+- [x] 4.5 Implement `src/ui/layers/stitched-picture.js`, the `id` / `showsProgress` options and the Progress paint order in `chart-layer.js`, and `src/ui/layers/progress-layer.js` (design D3); keep each file under ~300 lines; verify 4.4 and `tests/integration/chart-layer.test.js` pass
 
 ## 5. Progress state, input and counter (ui)
 
