@@ -60,8 +60,15 @@ Inside the block:
 - `.settings:has(> .side-toggle[aria-expanded="false"])` gets `flex-basis: var(--touch-target)`
   (2.75rem), and every child except `.side-toggle` is hidden. The legend does the same on
   wide screens.
-- In the medium range (`max-width: 72rem`) the folded legend keeps `flex: 1 1 100%` with
-  `height: var(--touch-target)` and a horizontal label, so it becomes the bottom bar.
+- In the medium range (`max-width: 72rem`) the folded legend becomes a bottom bar
+  `height: var(--touch-target)` with a horizontal label. The wrapped flex row cannot do
+  this alone: free height in a multi-line flex container is shared between all lines
+  (`align-content: stretch`), which left the frame short and a ~300 px gap under the bar.
+  So while the visible legend is folded, `.app-main` becomes a grid. The columns are `16rem`
+  (or `2.75rem` with folded settings) and `minmax(0, 1fr)`, the rows `minmax(0, 1fr)` and
+  `2.75rem`, and the legend spans both columns. The open state keeps today's flex layout.
+  *Alternative:* turn the medium layout into a grid in every state. Rejected: it would
+  change the layout of open panels, which this change keeps as it is.
 - No transitions: a frame that animates its width would make the `ResizeObserver` re-render
   tiles on every frame.
 

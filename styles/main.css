@@ -586,14 +586,26 @@ body {
   }
 
   /* Medium screens: the legend is a row under the settings and frame, so it folds down into a
-     bar across the full width with a horizontal label. */
+     bar across the full width with a horizontal label. A wrapped flex row would share the
+     freed height between both rows and leave a gap under the bar, so while the legend is
+     folded the main area is a grid whose first row (settings and frame) takes all of it. */
   @media (max-width: 72rem) {
     .legend > .side-toggle .side-toggle__icon {
       transform: rotate(90deg);
     }
 
+    .app-main:has(> .legend:not([hidden]) > .side-toggle[aria-expanded="false"]) {
+      display: grid;
+      grid-template-columns: 16rem minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) var(--touch-target);
+    }
+
+    .app-main:has(> .legend:not([hidden]) > .side-toggle[aria-expanded="false"]):has(> .settings > .side-toggle[aria-expanded="false"]) {
+      grid-template-columns: var(--touch-target) minmax(0, 1fr);
+    }
+
     .legend:has(> .side-toggle[aria-expanded="false"]) {
-      flex: 1 1 100%;
+      grid-column: 1 / -1;
       height: var(--touch-target);
       max-height: var(--touch-target);
     }

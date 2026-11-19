@@ -37,7 +37,7 @@ folds independently.
 
 #### Scenario: Folding the legend on a tablet
 - **WHEN** the window is 820 × 1180 (medium) with a pattern and the user presses the legend side toggle
-- **THEN** the legend becomes a 44 px tall bar across the full width under the settings and frame, showing only `Legend`, and the frame grows taller by the height the legend gave up
+- **THEN** the legend becomes a 44 px tall bar across the full width at the bottom of the page content (no gap below it), showing only `Legend`, and the settings and frame fill all the height above it (the frame grows from 406 px to 919 px tall)
 
 #### Scenario: Folding the settings on a tablet
 - **WHEN** the window is 820 × 1180 with both panels open (frame column 516 px wide) and the user presses the settings side toggle
