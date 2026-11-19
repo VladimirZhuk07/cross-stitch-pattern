@@ -17,7 +17,7 @@
 
   Verify they fail.
 - [x] 1.4 Implement `highlightLevel` and the two constants (reuse the level validation of `tile-pyramid.js`, exporting it if needed); verify 1.3 passes and `tests/unit/core/tile-pyramid.test.js` still passes
-- [ ] 1.5 Add failing tests for `fillHighlightRows(grid, legendIndex, level, region, rowStart, rowEnd, out)`:
+- [x] 1.5 Add failing tests for `fillHighlightRows(grid, legendIndex, level, region, rowStart, rowEnd, out)`:
   - with the 3 × 2 pattern (index 1 at (0, 0) and (2, 1)), level 0, index 1: pixels (0, 0) and (2, 1) are `176, 0, 0, 255` and the other four are `0, 0, 0, 0`;
   - at level 1 a 4 × 4 grid with one index-3 stitch at (3, 3) gives pixel (1, 1) opaque `#B00000` and pixels (0, 0), (1, 0), (0, 1) transparent;
   - a 5 × 5 grid at level 1 handles the partial edge blocks;
