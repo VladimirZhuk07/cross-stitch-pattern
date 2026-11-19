@@ -26,7 +26,7 @@
 
 ## 3. Markup (index.html)
 
-- [ ] 3.1 Add failing tests to `tests/integration/mobile-layout-markup.test.js` (or a new `side-panels-markup.test.js` in the same regex style): the settings form has `id="settings-panel"` and its first child is `<button type="button" class="side-toggle" data-action="toggle-settings-side" aria-expanded="true" aria-controls="settings-panel" title="Hide settings">` with a text span `Settings`; the legend section has `id="legend-panel"` with the same kind of button (`toggle-legend-side`, `aria-controls="legend-panel"`, `title="Hide legend"`, text `Legend`); each panel has exactly one `.side-toggle`; the chevron span is `aria-hidden="true"`; verify they fail
+- [x] 3.1 Add failing tests to `tests/integration/mobile-layout-markup.test.js` (or a new `side-panels-markup.test.js` in the same regex style): the settings form has `id="settings-panel"` and its first child is `<button type="button" class="side-toggle" data-action="toggle-settings-side" aria-expanded="true" aria-controls="settings-panel" title="Hide settings">` with a text span `Settings`; the legend section has `id="legend-panel"` with the same kind of button (`toggle-legend-side`, `aria-controls="legend-panel"`, `title="Hide legend"`, text `Legend`); each panel has exactly one `.side-toggle`; the chevron span is `aria-hidden="true"`; verify they fail
 - [ ] 3.2 Add the two buttons and ids to `index.html` without touching the existing compact toggles or fields; verify 3.1, `settings-markup.test.js`, `legend-markup.test.js` and `mobile-layout-markup.test.js` pass
 
 ## 4. Styles (main.css, print.css)
