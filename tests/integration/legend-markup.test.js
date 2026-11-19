@@ -13,6 +13,13 @@ function legendSection() {
   return { openingTag: match[0].slice(0, match[0].indexOf('>') + 1), body: match[1] };
 }
 
+// The markup inside the legend's row template.
+function rowTemplate() {
+  const template = /<template\b[^>]*data-role="legend-row-template"[^>]*>([\s\S]*?)<\/template>/.exec(legendSection().body);
+  assert.ok(template !== null, 'a <template data-role="legend-row-template"> exists');
+  return template[1];
+}
+
 describe('legend markup', () => {
   before(async () => {
     html = await readFile(new URL('../../index.html', import.meta.url), 'utf8');
@@ -44,5 +51,18 @@ describe('legend markup', () => {
     assert.ok(template !== null, 'a <template data-role="legend-row-template"> exists');
     const fields = [...template[1].matchAll(/data-field="([^"]+)"/g)].map((match) => match[1]);
     assert.deepEqual(fields, ['number', 'swatch', 'code', 'name', 'stitchCount']);
+  });
+
+  it('makes the number of a row template a highlight toggle button', () => {
+    const number = /<([a-z]+)\b([^>]*\bdata-field="number"[^>]*)>/.exec(rowTemplate());
+    assert.ok(number !== null, 'the number field exists');
+    assert.equal(number[1], 'button');
+    for (const expected of ['type="button"', 'class="legend__number"', 'data-action="highlight-color"', 'aria-pressed="false"']) {
+      assert.ok(number[2].includes(expected), `the number button has ${expected}`);
+    }
+  });
+
+  it('leaves the legend index of a row to the script', () => {
+    assert.doesNotMatch(rowTemplate(), /data-legend-index/);
   });
 });

@@ -57,7 +57,7 @@
 
 ## 4. Legend selection (markup, ui, CSS)
 
-- [ ] 4.1 Add failing checks to `tests/integration/legend-markup.test.js`: the row template's number is `<button type="button" class="legend__number" data-action="highlight-color" aria-pressed="false" data-field="number">`, and the `<tr>` of the template has no `data-legend-index` (it is set per row); then change `index.html`; verify the markup tests pass
+- [x] 4.1 Add failing checks to `tests/integration/legend-markup.test.js`: the row template's number is `<button type="button" class="legend__number" data-action="highlight-color" aria-pressed="false" data-field="number">`, and the `<tr>` of the template has no `data-legend-index` (it is set per row); then change `index.html`; verify the markup tests pass
 - [ ] 4.2 Write failing `tests/integration/legend-highlight.test.js` that drives `setupLegend` with a minimal fake DOM (template clone, `closest`, `classList`, `setAttribute`, document `keydown`) and the real store. Cover:
   - click row 2 → `highlightedColor` 1, `aria-pressed` true on row 2, row class `legend__row--selected`;
   - click row 1 → 0 and the classes move;
