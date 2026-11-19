@@ -138,7 +138,7 @@
   - compact segments: four, `font-size: 0.875rem`.
 
   Verify in the browser at 1440 × 900, 375 × 667, 360 × 640 (no sideways scroll, one-line labels, segments ≥ 44 px) and 667 × 375.
-- [ ] 7.2 In `.claude/rules/ui.md`, change "Three switchable layers" to four, describing the Progress layer in one clause; verify the `git diff` shows only that bullet changed
+- [x] 7.2 In `.claude/rules/ui.md`, change "Three switchable layers" to four, describing the Progress layer in one clause; verify the `git diff` shows only that bullet changed
 
 ## 8. Verification
 

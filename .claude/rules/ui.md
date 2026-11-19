@@ -35,9 +35,10 @@ paths:
 - Account for `devicePixelRatio` so the grid stays crisp.
 - Grid conventions: thin line every stitch, bold line every 10 stitches, row/column numbers
   every 10. Show a center marker.
-- Three switchable layers in one shared frame: the original image, the image in DMC colors
-  as color blocks, and the number chart (every cell white with its legend number 1..N in
-  black; printable in black and white). Numbers must remain legible without color.
+- Four switchable layers in one shared frame: the original image, the image in DMC colors
+  as color blocks, the number chart (every cell white with its legend number 1..N in
+  black; printable in black and white), and Progress (the chart on which tapped stitches show
+  their DMC color). Numbers must remain legible without color.
 
 ## Accessibility
 
