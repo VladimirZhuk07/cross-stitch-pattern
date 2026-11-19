@@ -480,6 +480,140 @@ body {
   overflow-wrap: break-word;
 }
 
+/* Side panels (settings, legend) fold to their edge on wide and medium screens. The side
+   toggles exist only there: compact screens and print never show them or the folded state.
+   See src/ui/side-panels.js. */
+
+.side-toggle {
+  display: none;
+}
+
+/* Wide and medium screens: the exact complement of the compact query below. A panel whose side
+   toggle says aria-expanded="false" shrinks to a 2.75rem rail (a bar under the frame for the
+   medium legend) that shows only the toggle. No transitions: the frame would re-render its
+   tiles on every animation frame. */
+@media screen and (width >= 48rem) and (height >= 30rem), screen and (width >= 60rem) {
+  .side-toggle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .side-toggle__icon {
+    display: inline-block;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  /* While the panel is open the label is for screen readers only; the chevron shows the way. */
+  .side-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .settings > .side-toggle {
+    align-self: flex-end;
+  }
+
+  /* The legend toggle sits in the top right corner, next to the "Legend" heading. */
+  .legend {
+    position: relative;
+  }
+
+  .legend > .side-toggle {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-3);
+  }
+
+  /* Folded: the panel is a rail holding only its toggle, which fills it. */
+  .settings:has(> .side-toggle[aria-expanded="false"]),
+  .legend:has(> .side-toggle[aria-expanded="false"]) {
+    flex: 0 0 var(--touch-target);
+    gap: 0;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .settings:has(> .side-toggle[aria-expanded="false"]) > :not(.side-toggle),
+  .legend:has(> .side-toggle[aria-expanded="false"]) > :not(.side-toggle) {
+    display: none;
+  }
+
+  .side-toggle[aria-expanded="false"] {
+    position: static;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-self: stretch;
+    padding: var(--space-2) 0;
+  }
+
+  .side-toggle[aria-expanded="false"] .side-toggle__label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    writing-mode: vertical-rl;
+    font-weight: 600;
+  }
+
+  /* Chevrons point to where the panel goes: ‹ folds the settings left, › the legend right. */
+  .side-toggle[aria-expanded="false"] .side-toggle__icon {
+    transform: rotate(180deg);
+  }
+
+  /* Medium screens: the legend is a row under the settings and frame, so it folds down into a
+     bar across the full width with a horizontal label. */
+  @media (max-width: 72rem) {
+    .legend > .side-toggle .side-toggle__icon {
+      transform: rotate(90deg);
+    }
+
+    .legend:has(> .side-toggle[aria-expanded="false"]) {
+      flex: 1 1 100%;
+      height: var(--touch-target);
+      max-height: var(--touch-target);
+    }
+
+    .legend > .side-toggle[aria-expanded="false"] {
+      flex-direction: row;
+      justify-content: center;
+      padding: 0 var(--space-3);
+    }
+
+    .legend > .side-toggle[aria-expanded="false"] .side-toggle__label {
+      writing-mode: horizontal-tb;
+    }
+
+    .legend > .side-toggle[aria-expanded="false"] .side-toggle__icon {
+      transform: rotate(-90deg);
+    }
+  }
+}
+
 /* Compact layout: phones in portrait (narrower than 48rem = 768 px) and in landscape (lower
    than 30rem = 480 px while narrower than 60rem = 960 px, so short desktop windows keep their
    layout). Screens only: a printed page is narrower than 48rem too.

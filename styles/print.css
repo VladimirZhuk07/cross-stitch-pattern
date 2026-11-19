@@ -21,3 +21,8 @@ body {
   border: 0;
   background: #FFFFFF;
 }
+
+/* The side toggles that fold the panels on screens (main.css applies the folding to screens only). */
+.side-toggle {
+  display: none;
+}

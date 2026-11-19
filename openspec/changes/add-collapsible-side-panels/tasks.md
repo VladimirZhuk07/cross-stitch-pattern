@@ -38,7 +38,7 @@
   - `styles/print.css` hides `.side-toggle`.
 
   Verify they fail.
-- [ ] 4.2 Add the base rule and the non-compact block: visible `.side-toggle` (chevron pointing to the panel's edge, visually hidden label while open, `:focus-visible` ring); folded settings and wide legend at `flex-basis: var(--touch-target)` with every child but `.side-toggle` hidden and a vertical label; no transitions. Add `.side-toggle { display: none }` to `print.css`. Verify 4.1 passes and, in the browser at 1440 × 900 with a pattern, the frame column is 736 → 948 → 1288 px as settings and then legend fold
+- [x] 4.2 Add the base rule and the non-compact block: visible `.side-toggle` (chevron pointing to the panel's edge, visually hidden label while open, `:focus-visible` ring); folded settings and wide legend at `flex-basis: var(--touch-target)` with every child but `.side-toggle` hidden and a vertical label; no transitions. Add `.side-toggle { display: none }` to `print.css`. Verify 4.1 passes and, in the browser at 1440 × 900 with a pattern, the frame column is 736 → 948 → 1288 px as settings and then legend fold
 - [ ] 4.3 Inside the block, add the medium (`max-width: 72rem`) folded legend as a full-width bar `height: var(--touch-target)` with a horizontal label and the chevron pointing down; verify at 820 × 1180 the legend folds to a 44 px bar and the frame grows taller, and folding the settings gives a 728 px frame column
 - [ ] 4.4 Make the toggles at least 44 × 44 px under `(pointer: coarse)` on non-compact screens; verify in DevTools at 1024 × 1366 with touch emulation that the `Legend` bar and the `Settings` rail toggle are ≥ 44 × 44 px
 
