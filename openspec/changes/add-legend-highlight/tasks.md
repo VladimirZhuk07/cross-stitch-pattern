@@ -10,7 +10,7 @@
 
   Verify it fails because the module is missing.
 - [x] 1.2 Create `src/core/highlight.js` with the two colours and `toggleHighlight`, with a header comment pointing to the stitch-chart spec; verify 1.1 passes
-- [ ] 1.3 Add failing tests for `highlightLevel(devicePxPerStitch, maxLevel)`:
+- [x] 1.3 Add failing tests for `highlightLevel(devicePxPerStitch, maxLevel)`:
   - `(1, 5)` → 0; `(2, 5)` → 0; `(0.9, 5)` → 1; `(0.5, 5)` → 1; `(0.49, 5)` → 2; `(0.18, 5)` → 3; `(0.18, 2)` → 2 (clamped);
   - `0`, `-1`, `NaN` throw `RangeError` like `detailLevel`;
   - `HIGHLIGHT_SINGLE_PICTURE_MAX_SIDE` is 256 and `HIGHLIGHT_CACHE_BUDGET_BYTES` is 16 MiB.
