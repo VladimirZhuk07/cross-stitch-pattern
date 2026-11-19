@@ -72,7 +72,7 @@
   Verify they fail.
 - [x] 4.2 Implement `refreshCell` (design D5); verify 4.1 and the file pass
 - [x] 4.3 Move the highlight picture out of `chart-layer.js` into `src/ui/layers/highlight-picture.js` (no behaviour change); verify `tests/integration/chart-layer.test.js` passes unchanged
-- [ ] 4.4 Write failing `tests/integration/progress-layer.test.js` (same helpers as the chart test). Cover:
+- [x] 4.4 Write failing `tests/integration/progress-layer.test.js` (same helpers as the chart test). Cover:
   - id `progress`, available exactly with a pattern;
   - with a fresh Progress it draws the same images, texts and strokes as the Chart layer;
   - with cell (2, 1) of the 3 × 2 pattern stitched, a third picture is drawn after tints and highlight, whose pixel (2, 1) is `#C72B3B` opaque and all others transparent, and no text `2` is drawn at (50, 30);
