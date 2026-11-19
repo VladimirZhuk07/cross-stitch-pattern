@@ -42,3 +42,14 @@ export function formatLegendSummary(colorCount) {
   }
   return colorCount === 1 ? '1 color' : `${colorCount} colors`;
 }
+
+/**
+ * The accessible name of a legend row's highlight button, e.g.
+ * 'Highlight color 2, DMC 321 Red'. It contains the visible number, so speech input that
+ * says the number finds the button.
+ * row  a LegendRow from legendRows (number, code and name are used)
+ * Returns plain text, to be set as an attribute, never as markup.
+ */
+export function formatHighlightLabel(row) {
+  return `Highlight color ${row.number}, DMC ${row.code} ${row.name}`;
+}

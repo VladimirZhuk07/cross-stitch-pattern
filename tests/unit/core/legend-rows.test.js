@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { formatLegendSummary, legendRows } from '../../../src/core/legend-rows.js';
+import { formatHighlightLabel, formatLegendSummary, legendRows } from '../../../src/core/legend-rows.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -74,5 +74,20 @@ describe('formatLegendSummary', () => {
   it('rejects a count that is not a whole number of at least 0', () => {
     assert.throws(() => formatLegendSummary(-1), RangeError);
     assert.throws(() => formatLegendSummary(1.5), RangeError);
+  });
+});
+
+describe('formatHighlightLabel', () => {
+  it('names the number, DMC code and name of a row', () => {
+    const [, red] = legendRows(threeByTwoPattern());
+    assert.equal(formatHighlightLabel(red), 'Highlight color 2, DMC 321 Red');
+  });
+
+  it('keeps codes that are not numbers', () => {
+    assert.equal(formatHighlightLabel({ number: '10', code: 'BLANC', name: 'White' }), 'Highlight color 10, DMC BLANC White');
+  });
+
+  it('keeps a name with markup characters literally', () => {
+    assert.equal(formatHighlightLabel({ number: '1', code: '321', name: '<b>Red</b>' }), 'Highlight color 1, DMC 321 <b>Red</b>');
   });
 });

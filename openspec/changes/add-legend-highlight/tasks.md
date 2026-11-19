@@ -28,7 +28,7 @@
 
   Verify they fail.
 - [x] 1.6 Implement `fillHighlightRows`, exporting and reusing `assertFillInput` from `level-pixels.js`; verify 1.5 passes and `tests/unit/core/level-pixels.test.js` still passes
-- [ ] 1.7 Add failing tests to `tests/unit/core/legend-rows.test.js` for `formatHighlightLabel(row)`: the row of `321` "Red" number 2 → `Highlight color 2, DMC 321 Red`; `BLANC` "White" number 10 → `Highlight color 10, DMC BLANC White`; the name `<b>Red</b>` is kept literally. Then implement it; verify `npm run test:unit` passes
+- [x] 1.7 Add failing tests to `tests/unit/core/legend-rows.test.js` for `formatHighlightLabel(row)`: the row of `321` "Red" number 2 → `Highlight color 2, DMC 321 Red`; `BLANC` "White" number 10 → `Highlight color 10, DMC BLANC White`; the name `<b>Red</b>` is kept literally. Then implement it; verify `npm run test:unit` passes
 
 ## 2. Overlay picture (ui)
 
