@@ -29,7 +29,7 @@
 
 ## 2. Taps and cells under a point (core)
 
-- [ ] 2.1 Write failing `tests/unit/core/tap.test.js`. Cover:
+- [x] 2.1 Write failing `tests/unit/core/tap.test.js`. Cover:
   - start at (50, 30), end at (50, 30) → tapPoint (50, 30);
   - a move to (56, 34) (7.2 px) and end there → tapPoint (56, 34);
   - a move to (58, 30) then back to (50, 30) → null (cancelled once beyond 8 px);
