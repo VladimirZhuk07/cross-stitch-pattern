@@ -63,7 +63,7 @@
 
 ## 4. Pictures and layers (ui)
 
-- [ ] 4.1 Add failing tests to `tests/integration/pattern-picture.test.js` for `refreshCell(pattern, column, row)`. Cover:
+- [x] 4.1 Add failing tests to `tests/integration/pattern-picture.test.js` for `refreshCell(pattern, column, row)`. Cover:
   - after a complete single picture of a 4 × 3 pattern, a filler change plus `refreshCell(p, 2, 1)` puts one 1 × 1 ImageData at (2, 1) and only that pixel changes;
   - with SMALL_LIMITS tiles and the overview built, the cell's tile and the overview get one put each, and other tiles none;
   - a cell in a row not built yet gets no put;

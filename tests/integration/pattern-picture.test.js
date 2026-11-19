@@ -314,3 +314,89 @@ describe('pattern picture: custom fillers and release (highlight overlay)', () =
     assert.deepEqual([canvases[1].width, canvases[1].height], [4, 3]);
   });
 });
+
+describe('pattern picture: refreshing one cell (progress)', () => {
+  // A picture whose level-0 pixel of cell i is [marks[i], 0, 0, 255]; higher levels the max of their
+  // block, so a refresh can be seen at every level. marks can change between draws.
+  function createMarkPicture(limits) {
+    const factory = createFakeCellCanvasFactory();
+    const marks = new Map();
+    const picture = createPatternPicture({
+      createCellCanvas: factory.createCellCanvas,
+      limits,
+      fillRows(pattern, level, region, rowStart, rowEnd, out) {
+        const side = 2 ** level;
+        for (let row = rowStart; row < rowEnd; row++) {
+          for (let column = 0; column < region.width; column++) {
+            let value = 0;
+            for (let cellRow = (region.y + row) * side; cellRow < Math.min(pattern.height, (region.y + row + 1) * side); cellRow++) {
+              for (let cellColumn = (region.x + column) * side; cellColumn < Math.min(pattern.width, (region.x + column + 1) * side); cellColumn++) {
+                value = Math.max(value, marks.get(cellRow * pattern.width + cellColumn) ?? 0);
+              }
+            }
+            out.set([value, 0, 0, 255], (row * region.width + column) * 4);
+          }
+        }
+        return (rowEnd - rowStart) * region.width;
+      },
+    });
+    const draw = (pattern, frame) => picture.draw(createRecordingContext().ctx, frame, pattern, visibleCellRange(frame.content, frame, pattern));
+    return { picture, draw, marks, canvases: factory.canvases };
+  }
+
+  const redAt = (canvas, x, y) => canvas.pixels[(y * canvas.width + x) * 4];
+
+  it('refills exactly one pixel of a complete single picture', () => {
+    const { picture, draw, marks, canvases } = createMarkPicture();
+    const pattern = stripes(4, 3);
+    draw(pattern, frameFor({ x: 0, y: 0, width: 40, height: 30 }));
+    const [canvas] = canvases;
+    const putsBefore = canvas.puts.length;
+    marks.set(1 * 4 + 2, 200);
+    picture.refreshCell(pattern, 2, 1);
+    assert.equal(canvas.puts.length, putsBefore + 1);
+    assert.deepEqual(canvas.puts.at(-1), { dx: 2, dy: 1, dirtyX: 0, dirtyY: 0, dirtyWidth: 1, dirtyHeight: 1 });
+    assert.equal(redAt(canvas, 2, 1), 200);
+    assert.equal(redAt(canvas, 1, 1), 0);
+  });
+
+  it('refills the cell in its tile and in the overview, and in no other tile', () => {
+    const { picture, draw, marks, canvases } = createMarkPicture(SMALL_LIMITS);
+    const pattern = stripes(40, 40);
+    completeOverview({ draw: (p, f) => ({ isComplete: draw(p, f) }) }, pattern);
+    while (!draw(pattern, zoomedAt(0, 0, { width: 16, height: 16 }))) {
+      // build the four top-left tiles
+    }
+    const overview = canvases.find((canvas) => canvas.width === 10);
+    const tiles = liveTiles(canvases);
+    assert.equal(tiles.length, 4);
+    const putsBefore = canvases.map((canvas) => canvas.puts.length);
+    marks.set(9 * 40 + 9, 255); // cell (9, 9): tile (1, 1) at level 0, overview pixel (2, 2)
+    picture.refreshCell(pattern, 9, 9);
+    const newPuts = canvases.map((canvas, index) => canvas.puts.length - putsBefore[index]);
+    assert.equal(newPuts[canvases.indexOf(overview)], 1);
+    assert.equal(redAt(overview, 2, 2), 255);
+    const changedTiles = tiles.filter((tile) => newPuts[canvases.indexOf(tile)] === 1);
+    assert.equal(changedTiles.length, 1);
+    assert.equal(redAt(changedTiles[0], 1, 1), 255);
+    assert.equal(newPuts.reduce((sum, count) => sum + count, 0), 2);
+  });
+
+  it('puts nothing for a row that is not built yet', () => {
+    const { picture, draw, canvases } = createMarkPicture({ buildBudgetStitches: 4 });
+    const pattern = stripes(4, 3);
+    draw(pattern, frameFor({ x: 0, y: 0, width: 40, height: 30 })); // builds row 0 only
+    const putsBefore = canvases[0].puts.length;
+    picture.refreshCell(pattern, 1, 2);
+    assert.equal(canvases[0].puts.length, putsBefore);
+  });
+
+  it('ignores cells of another pattern', () => {
+    const { picture, draw, canvases } = createMarkPicture();
+    const pattern = stripes(4, 3);
+    draw(pattern, frameFor({ x: 0, y: 0, width: 40, height: 30 }));
+    const putsBefore = canvases[0].puts.length;
+    picture.refreshCell(stripes(4, 3), 1, 1);
+    assert.equal(canvases[0].puts.length, putsBefore);
+  });
+});
