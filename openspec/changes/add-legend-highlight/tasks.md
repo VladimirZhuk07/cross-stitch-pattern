@@ -75,7 +75,7 @@
 ## 5. Verification
 
 - [x] 5.1 Run `npm run test:unit`; all tests pass
-- [ ] 5.2 Run `npm run test:integration`; all tests pass
+- [x] 5.2 Run `npm run test:integration`; all tests pass
 - [ ] 5.3 Browser smoke check with `node scripts/serve.js`:
   - 1440 × 900, photo at width 100: on Chart, click a legend row. Its cells turn red with bold white numbers (zoom in to see numbers) and stay red at Fit, where numbers are hidden. Click another row: the highlight moves. Click it again: no highlight. Select, then press Esc: cleared.
   - On `DMC colors`, click a row: the view switches to Chart, highlighted. Switch to Original and back: still highlighted. Change the width: the selection is gone.
