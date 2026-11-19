@@ -1,7 +1,8 @@
 // The legend panel beside or under the frame: one row per pattern color, in legend-number
 // order. The markup (section, table, row template) is static in index.html; this module only
 // fills it. On phones the rows fold behind a Legend button showing the number of colors
-// (see ./collapsible.js). Rows have no actions yet; a future row action (e.g. highlighting a color) should use
+// (see ./collapsible.js); on wider screens the whole panel can fold to its edge (see
+// ./side-panels.js). Rows have no actions yet; a future row action (e.g. highlighting a color) should use
 // one delegated listener on the rows container.
 
 import { formatLegendSummary, legendRows } from '../core/legend-rows.js';

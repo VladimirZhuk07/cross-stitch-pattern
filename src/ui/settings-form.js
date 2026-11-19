@@ -1,7 +1,8 @@
 // The pattern settings form: width in stitches, max colors and fabric count, plus the stitch
 // size / finished size text and the generation status. Writes only state.settings, and only
 // valid values; the texts come from ../core/generation-settings.js. On phones the fields fold
-// behind a Settings button that shows a one-line summary (see ./collapsible.js).
+// behind a Settings button that shows a one-line summary (see ./collapsible.js); on wider
+// screens the whole panel can fold to the left edge (see ./side-panels.js).
 
 import {
   MAX_COLORS_INVALID_TEXT,

@@ -447,8 +447,9 @@ body {
   }
 }
 
-/* Collapsible panels (settings, legend). The toggle buttons exist only for the compact layout
-   below; on wider screens the panels are always open. See src/ui/collapsible.js. */
+/* Collapsible panels (settings, legend). These toggle buttons exist only for the compact layout
+   below; wider screens fold the panels with the side toggles instead (see "Side panels" below).
+   See src/ui/collapsible.js. */
 
 .collapsible__toggle {
   display: none;
