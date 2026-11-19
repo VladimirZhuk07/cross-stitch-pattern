@@ -116,3 +116,55 @@ describe('fillLevelRows', () => {
     assertThrowsWith(() => fillLevelRows(pattern, table, 0, whole, 0, 2, new Uint8ClampedArray(12)), RangeError, '16', '12');
   });
 });
+
+describe('fillLevelRows with a stitched mask', () => {
+  // Legend 1 = 310 (cells 1, 2, 4), legend 2 = 321 (cells 0, 5), cell 3 empty.
+  const threeByTwo = () => buildPattern({ width: 3, height: 2, cells: [0, 1, 1, -1, 1, 0], colors: [RED, BLACK] });
+
+  // A mask (Progress bits layout: bit i & 7 of byte i >> 3) with the given cells stitched.
+  function maskOf(cellCount, stitchedCells) {
+    const bits = new Uint8Array(Math.ceil(cellCount / 8));
+    for (const cell of stitchedCells) {
+      bits[cell >> 3] |= 1 << (cell & 7);
+    }
+    return bits;
+  }
+
+  function maskedLevel(pattern, table, level, mask) {
+    const side = 2 ** level;
+    const region = { x: 0, y: 0, width: Math.ceil(pattern.width / side), height: Math.ceil(pattern.height / side) };
+    const out = new Uint8ClampedArray(region.width * region.height * 4);
+    const read = fillLevelRows(pattern, table, level, region, 0, region.height, out, mask);
+    return { pixels: [...out], read };
+  }
+
+  it('shows only the stitched cells at level 0, the others transparent', () => {
+    const pattern = threeByTwo();
+    const { pixels } = maskedLevel(pattern, stitchTable(pattern), 0, maskOf(6, [5]));
+    assert.deepEqual(pixels, [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0xC7, 0x2B, 0x3B, 255,
+    ]);
+  });
+
+  it('averages a block by its stitched share at higher levels', () => {
+    const pattern = buildPattern({ width: 2, height: 2, cells: [0, 0, 0, 0], colors: [BLACK] });
+    assert.deepEqual(maskedLevel(pattern, stitchTable(pattern), 1, maskOf(4, [3])).pixels, [0, 0, 0, 64]);
+    assert.deepEqual(maskedLevel(pattern, stitchTable(pattern), 1, maskOf(4, [0, 1, 2, 3])).pixels, [0, 0, 0, 255]);
+    assert.deepEqual(maskedLevel(pattern, stitchTable(pattern), 1, maskOf(4, [])).pixels, [0, 0, 0, 0]);
+  });
+
+  it('gives exactly the unmasked result for a null mask', () => {
+    const pattern = threeByTwo();
+    for (const level of [0, 1]) {
+      assert.deepEqual(maskedLevel(pattern, tintTable(pattern), level, null), wholeLevel(pattern, tintTable(pattern), level));
+    }
+  });
+
+  it('reads as many stitches with a mask as without', () => {
+    const pattern = threeByTwo();
+    for (const level of [0, 1]) {
+      assert.equal(maskedLevel(pattern, stitchTable(pattern), level, maskOf(6, [0, 5])).read, wholeLevel(pattern, stitchTable(pattern), level).read);
+    }
+  });
+});

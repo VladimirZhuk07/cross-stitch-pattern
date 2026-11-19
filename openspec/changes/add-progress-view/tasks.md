@@ -51,7 +51,7 @@
 
 ## 3. Stitched pixels (core)
 
-- [ ] 3.1 Add failing tests to `tests/unit/core/level-pixels.test.js` for the `stitched` mask of `fillLevelRows`:
+- [x] 3.1 Add failing tests to `tests/unit/core/level-pixels.test.js` for the `stitched` mask of `fillLevelRows`:
   - level 0 with only cell 5 stitched: pixel 5 is its table color, the others transparent;
   - level 1 on a 2 × 2 block of `#000000` with 1 of 4 stitched → `0, 0, 0, 64`;
   - level 1 with all 4 stitched → `0, 0, 0, 255`;
