@@ -73,8 +73,10 @@ case.
 - `fillHighlightRows(grid, legendIndex, level, region, rowStart, rowEnd, out)` has the same
   shape and validation as `fillLevelRows` in `level-pixels.js`. A pixel is opaque
   `HIGHLIGHT_COLOR` when **any** stitch of its 2^level block (inside the pattern) has
-  `legendIndex`, and `0, 0, 0, 0` otherwise. It returns the stitches read. It stops scanning a
-  block at its first match, so it reads no more stitches than `fillLevelRows`. The validation
+  `legendIndex`, and `0, 0, 0, 0` otherwise. It returns the stitches covered by the filled rows,
+  counted exactly as `fillLevelRows` counts them, so both pictures share one build budget. It
+  stops scanning a block at its first match, so it never reads more than that. A per-block
+  result object was dropped because it allocated in the hot loop. The validation
   of `level-pixels.js` (`assertFillInput`) is exported and reused instead of copied.
 
 ### D3. `createPatternPicture` options (ui, `pattern-picture.js`)
