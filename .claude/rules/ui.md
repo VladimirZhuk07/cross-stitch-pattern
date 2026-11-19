@@ -55,7 +55,9 @@ paths:
 - No inline styles except values computed at runtime (e.g. a swatch background color via
   `element.style.setProperty('--swatch', hex)`).
 - Layout with flexbox/grid. Phones (from 360 px wide, portrait and landscape) are a supported
-  target; the desktop layout stays as it is. CSS alone decides the layout: the compact layout
+  target; the desktop and medium layout stays as it is with both panels open, and there the
+  settings and legend may fold to their edge (CSS reads `aria-expanded` on the side toggle).
+  CSS alone decides the layout: the compact layout
   applies below 48rem width, or below 30rem height while narrower than 60rem, on `screen` only
   (never in print). No horizontal page scroll down to 360 px.
 - Touch targets are at least 44 × 44 CSS px in the compact layout and on coarse pointers.

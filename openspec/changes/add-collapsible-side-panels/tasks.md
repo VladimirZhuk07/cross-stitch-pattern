@@ -44,7 +44,7 @@
 
 ## 5. Documentation
 
-- [ ] 5.1 In `.claude/rules/ui.md`, reword "the desktop layout stays as it is" to: the desktop/medium layout stays as it is with both panels open, and the settings and legend may fold to their edge there (CSS decides, from `aria-expanded` on the side toggle); verify `git diff .claude/rules/ui.md` shows only that sentence changed
+- [x] 5.1 In `.claude/rules/ui.md`, reword "the desktop layout stays as it is" to: the desktop/medium layout stays as it is with both panels open, and the settings and legend may fold to their edge there (CSS decides, from `aria-expanded` on the side toggle); verify `git diff .claude/rules/ui.md` shows only that sentence changed
 - [ ] 5.2 Update the header comments of `src/ui/settings-form.js` and `src/ui/legend.js` that say "on wider screens the panels are always open", and the matching comment above `.collapsible__toggle` in `styles/main.css`; verify `grep -rn "always open" src styles` finds nothing outdated
 
 ## 6. Verification
