@@ -484,7 +484,12 @@ describe('chart layer: highlighted color', () => {
     while (renderState({ pattern, highlightedColor: null }, content, frameSize).needsAnotherFrame) {
       // build the tints first
     }
-    assert.equal(renderState({ pattern, highlightedColor: 0 }, content, frameSize).needsAnotherFrame, true);
-    assert.equal(renderState({ pattern, highlightedColor: 0 }, content, frameSize).needsAnotherFrame, false);
+    // The highlight has 4 level-0 tiles (1,000,000 stitches) and a 250 × 250 overview (another
+    // 1,000,000): at 524,288 stitches per frame it takes 4 frames.
+    const answers = [];
+    do {
+      answers.push(renderState({ pattern, highlightedColor: 0 }, content, frameSize).needsAnotherFrame);
+    } while (answers.at(-1) && answers.length < 10);
+    assert.deepEqual(answers, [true, true, true, false]);
   });
 });

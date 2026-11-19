@@ -2,22 +2,28 @@
 //
 // Every stitched cell is filled with a pale tint of its DMC color and, when the cells are
 // large enough, shows its legend number (1..N) in black; empty cells are light grey with a
-// diagonal hatch and no number. The rules (visible range, sizes, thresholds, tints) live in
+// diagonal hatch and no number. The cells of the legend color in state.highlightedColor are
+// red with bold white numbers (../../core/highlight.js). The rules (visible range, sizes,
+// thresholds, tints) live in
 // ../../core/chart-layout.js and ../../core/chart-tint.js; this module only draws them.
 //
 // Paint order, each step limited to the cells visible in the frame:
 //   1. the cell colors: pictures with one pixel per cell (tints and empty grey), or one
 //      averaged pixel per block of cells when a large pattern is zoomed out, built and cached
 //      by ./pattern-picture.js; hard edges from one device pixel per cell up, smoothed below
-//   2. the empty-cell hatch: one diagonal per visible empty cell, in one path
-//   3. numbers: one font for all, one fillText per visible stitched cell (skipped when the
-//      cells are too small to read them)
-//   4. thin lines, then bold lines (one path each, snapped to device pixels, so bold wins at
+//   2. the highlight, while a color is selected: a second picture from ./pattern-picture.js,
+//      red where its block holds a selected stitch and transparent elsewhere, at a level whose
+//      pixels cover at least one device pixel, drawn without smoothing (never averaged away)
+//   3. the empty-cell hatch: one diagonal per visible empty cell, in one path
+//   4. numbers: one fillText per visible stitched cell, black for all but the selected color,
+//      then bold white for the selected color (skipped when the cells are too small to read)
+//   5. thin lines, then bold lines (one path each, snapped to device pixels, so bold wins at
 //      crossings)
-//   5. rulers with row/column labels, the centre triangles, and the corner square
+//   6. rulers with row/column labels, the centre triangles, and the corner square
 //      (./chart-rulers.js)
-// Cached per pattern (by object identity): the cell pictures and the number texts.
-// render returns true while the cell pictures are still being built (see ../viewer.js).
+// Cached per pattern (by object identity): the cell pictures and the number texts; the
+// highlight picture per pattern and selected color, released when either changes.
+// render returns true while a picture is still being built (see ../viewer.js).
 
 import { EMPTY_CELL } from '../../core/pattern.js';
 import { paleTint, EMPTY_CELL_COLOR } from '../../core/chart-tint.js';
@@ -33,6 +39,13 @@ import {
   chartLineWidths,
   snapLine,
 } from '../../core/chart-layout.js';
+import {
+  HIGHLIGHT_NUMBER_COLOR,
+  HIGHLIGHT_SINGLE_PICTURE_MAX_SIDE,
+  HIGHLIGHT_CACHE_BUDGET_BYTES,
+  fillHighlightRows,
+  highlightLevel,
+} from '../../core/highlight.js';
 import { drawRulers } from './chart-rulers.js';
 import { createPatternPicture } from './pattern-picture.js';
 
@@ -42,8 +55,12 @@ const THIN_LINE_COLOR = '#A0A0A0';
 const BOLD_LINE_COLOR = '#000000';
 const FONT_FAMILY = 'system-ui, sans-serif';
 
+/** A legend index no cell has: no color is highlighted. */
+const NO_HIGHLIGHT = -2;
+
 /**
  * Creates the Chart layer. It is available once a pattern exists (state.pattern is not null).
+ * It highlights the cells of state.highlightedColor (a legend index or null, see ../app-state.js).
  * options.createCellCanvas(width, height)  makes the canvases that hold the cell colors;
  *   defaults to an OffscreenCanvas. Tests pass a fake.
  * Returns a view layer { id: 'chart', isAvailable, render }.
@@ -53,6 +70,7 @@ export function createChartLayer(options = {}) {
     createCellCanvas: options.createCellCanvas ?? createOffscreenCanvas,
     colorTableOf: chartColors,
   });
+  const highlight = createHighlightPicture(options.createCellCanvas ?? createOffscreenCanvas);
   let cachedPattern = null;
   let cachedNumberTexts = [];
 
@@ -76,14 +94,54 @@ export function createChartLayer(options = {}) {
         return false;
       }
       const geometry = chartCellGeometry(content, pattern);
-      const isComplete = drawCellColors(ctx, cellPicture, frame, pattern, range);
+      const highlightIndex = highlight.select(pattern, state.highlightedColor);
+      const areCellsComplete = drawCellColors(ctx, cellPicture, frame, pattern, range);
+      const isHighlightComplete = highlight.draw(ctx, frame, pattern, range);
       drawEmptyHatch(ctx, frame.pixelRatio, pattern, content, geometry, range);
-      drawNumbers(ctx, pattern, content, geometry, range, numberTextsOf(pattern));
+      drawNumbers(ctx, pattern, content, geometry, range, numberTextsOf(pattern), highlightIndex);
       drawGridLines(ctx, frame.pixelRatio, pattern, content, geometry, range);
       drawRulers(ctx, frame, pattern, content, geometry, range);
-      return !isComplete;
+      return !areCellsComplete || !isHighlightComplete;
     },
   };
+}
+
+// The highlight picture of one pattern and selected color. select(pattern, highlightedColor)
+// releases the old picture when the pattern or the color changed and returns the legend index
+// to highlight (NO_HIGHLIGHT for none, or for an index the pattern does not have); draw then
+// draws the picture and returns true when it is complete (always true without a selection).
+function createHighlightPicture(createCellCanvas) {
+  let selected = { pattern: null, index: NO_HIGHLIGHT, picture: null };
+
+  function select(pattern, highlightedColor) {
+    const isInPattern = Number.isInteger(highlightedColor) && highlightedColor >= 0
+      && highlightedColor < pattern.legend.length;
+    const index = isInPattern ? highlightedColor : NO_HIGHLIGHT;
+    if (selected.pattern === pattern && selected.index === index) {
+      return index;
+    }
+    if (selected.picture !== null) {
+      selected.picture.release();
+    }
+    const picture = index === NO_HIGHLIGHT ? null : createPatternPicture({
+      createCellCanvas,
+      fillRows: (grid, level, region, rowStart, rowEnd, out) => fillHighlightRows(grid, index, level, region, rowStart, rowEnd, out),
+      levelFor: highlightLevel,
+      limits: { singlePictureMaxSide: HIGHLIGHT_SINGLE_PICTURE_MAX_SIDE, cacheBudgetBytes: HIGHLIGHT_CACHE_BUDGET_BYTES },
+    });
+    selected = { pattern, index, picture };
+    return index;
+  }
+
+  function draw(ctx, frame, pattern, range) {
+    if (selected.picture === null) {
+      return true;
+    }
+    ctx.imageSmoothingEnabled = false;
+    return selected.picture.draw(ctx, frame, pattern, range);
+  }
+
+  return { select, draw };
 }
 
 function createOffscreenCanvas(width, height) {
@@ -136,27 +194,41 @@ function drawEmptyHatch(ctx, pixelRatio, pattern, content, geometry, range) {
   ctx.stroke();
 }
 
-function drawNumbers(ctx, pattern, content, geometry, range, numberTexts) {
+// Numbers in two passes: black for every stitched cell but the highlighted color, then bold
+// white for the highlighted color (highlightIndex, or NO_HIGHLIGHT for none).
+function drawNumbers(ctx, pattern, content, geometry, range, numberTexts, highlightIndex) {
   const fontSize = numberFontSize(geometry.cellSize);
   if (fontSize === null) {
     return;
   }
-  ctx.font = `${fontSize}px ${FONT_FAMILY}`;
-  ctx.fillStyle = NUMBER_COLOR;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Column centres once per paint, so the loop below allocates nothing per cell.
+  // Column centres once per paint, so the loops below allocate nothing per cell.
   const columnCenters = new Float64Array(range.columnEnd - range.columnStart);
   for (let column = range.columnStart; column < range.columnEnd; column++) {
     columnCenters[column - range.columnStart] = cellCenter(content, pattern, column, 0).x;
   }
+  const cells = { pattern, content, range, numberTexts, columnCenters };
+  ctx.font = `${fontSize}px ${FONT_FAMILY}`;
+  ctx.fillStyle = NUMBER_COLOR;
+  fillNumbers(ctx, cells, (legendIndex) => legendIndex !== EMPTY_CELL && legendIndex !== highlightIndex);
+  if (highlightIndex !== NO_HIGHLIGHT) {
+    ctx.font = `bold ${fontSize}px ${FONT_FAMILY}`;
+    ctx.fillStyle = HIGHLIGHT_NUMBER_COLOR;
+    fillNumbers(ctx, cells, (legendIndex) => legendIndex === highlightIndex);
+  }
+}
+
+// One fillText, in the current font and color, per visible cell whose legend index passes isDrawn.
+function fillNumbers(ctx, cells, isDrawn) {
+  const { pattern, content, range, numberTexts, columnCenters } = cells;
   for (let row = range.rowStart; row < range.rowEnd; row++) {
     const y = cellCenter(content, pattern, range.columnStart, row).y;
     const rowOffset = row * pattern.width;
     for (let column = range.columnStart; column < range.columnEnd; column++) {
       const legendIndex = pattern.cells[rowOffset + column];
-      if (legendIndex !== EMPTY_CELL) {
+      if (isDrawn(legendIndex)) {
         ctx.fillText(numberTexts[legendIndex], columnCenters[column - range.columnStart], y);
       }
     }
