@@ -39,7 +39,7 @@
   - existing tests unchanged.
 
   Verify the new tests fail.
-- [ ] 2.2 Implement the `fillRows`, `levelFor` options and `release()` in `src/ui/layers/pattern-picture.js` and update its doc comment; verify `tests/integration/pattern-picture.test.js` passes
+- [x] 2.2 Implement the `fillRows`, `levelFor` options and `release()` in `src/ui/layers/pattern-picture.js` and update its doc comment; verify `tests/integration/pattern-picture.test.js` passes
 
 ## 3. Chart layer (ui)
 

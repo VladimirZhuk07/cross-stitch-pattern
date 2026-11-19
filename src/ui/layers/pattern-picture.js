@@ -1,4 +1,5 @@
-// The picture of a pattern that the DMC colors and Chart layers draw their cell colors from.
+// The picture of a pattern that the DMC colors and Chart layers draw their cell colors from,
+// and that the Chart layer also uses for its highlight overlay (custom fillRows and levelFor).
 // Behavior: openspec/specs/large-pattern-rendering/spec.md; numbers and choices: design of the
 // change tile-large-pattern-rendering. Geometry, pixels and budgets are pure core functions;
 // this module owns the canvases and runs the per-frame build plan.
@@ -37,18 +38,31 @@ const DEFAULT_LIMITS = Object.freeze({
  * Creates the picture cache of one layer.
  * options.createCellCanvas(width, height)  makes a canvas with a 2D context
  *                                          (createImageData, putImageData); e.g. OffscreenCanvas
- * options.colorTableOf(pattern)            the ColorTable (../../core/level-pixels.js) of a pattern
+ * options.colorTableOf(pattern)            the ColorTable (../../core/level-pixels.js) of a pattern;
+ *                                          its pixels are fillLevelRows averages
+ * options.fillRows(pattern, level, region, rowStart, rowEnd, out)
+ *                                          optional filler used instead of colorTableOf, with
+ *                                          fillLevelRows' meaning of the arguments and result
+ *                                          (e.g. fillHighlightRows of ../../core/highlight.js)
+ * options.levelFor(devicePxPerStitch, maxLevel)
+ *                                          optional level choice (default detailLevel of
+ *                                          ../../core/tile-pyramid.js)
  * options.limits                           optional { singlePictureMaxSide, tileSize,
  *                                          cacheBudgetBytes, buildBudgetStitches }; defaults are
  *                                          the core constants; tests pass smaller values
- * Returns { draw(ctx, frame, pattern, range) }: builds what the frame needs within the frame's
- * budget, draws the cell colors of the visible stitches `range` (a CellRange) into
- * frame.content with the context's current smoothing, and returns true when every picture it
- * needs is complete (false = call again next frame). Pictures are kept per pattern identity;
- * a new pattern releases all canvases of the old one.
+ * Returns { draw(ctx, frame, pattern, range), release() }. draw builds what the frame needs
+ * within the frame's budget, draws the cell colors of the visible stitches `range` (a
+ * CellRange) into frame.content with the context's current smoothing, and returns true when
+ * every picture it needs is complete (false = call again next frame). Pictures are kept per
+ * pattern identity; a new pattern releases all canvases of the old one, and release() frees
+ * them at once (the next draw builds again).
  */
 export function createPatternPicture(options) {
-  const { createCellCanvas, colorTableOf } = options;
+  const { createCellCanvas } = options;
+  const levelFor = options.levelFor ?? detailLevel;
+  const rowFillerFor = options.fillRows === undefined
+    ? colorTableFiller(options.colorTableOf)
+    : (pattern) => (level, region, rowStart, rowEnd, out) => options.fillRows(pattern, level, region, rowStart, rowEnd, out);
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   let current = null;
 
@@ -59,7 +73,7 @@ export function createPatternPicture(options) {
       }
       current = {
         pattern,
-        table: colorTableOf(pattern),
+        fillRows: rowFillerFor(pattern),
         maxLevel: overviewLevel(pattern, limits.singlePictureMaxSide),
         built: new Map(),
         frameNumber: 0,
@@ -74,7 +88,7 @@ export function createPatternPicture(options) {
       return true;
     }
     pictures.frameNumber += 1;
-    const level = detailLevel(devicePxPerStitch(frame, pattern), pictures.maxLevel);
+    const level = levelFor(devicePxPerStitch(frame, pattern), pictures.maxLevel);
     const tiles = level === pictures.maxLevel ? [] : visibleTileTargets(pattern, level, range, limits.tileSize);
     // Visible tiles first, then the overview: it is what pending tiles show meanwhile.
     runBuildPlan(pictures, [...tiles, overviewTarget(pattern, pictures.maxLevel)], limits.buildBudgetStitches, createCellCanvas);
@@ -97,7 +111,23 @@ export function createPatternPicture(options) {
     return isComplete(pictures, OVERVIEW_KEY) && tiles.every((tile) => isComplete(pictures, tile.key));
   }
 
-  return { draw };
+  function release() {
+    if (current !== null) {
+      releaseAll(current);
+      current = null;
+    }
+  }
+
+  return { draw, release };
+}
+
+// The default filler: averaged pixels of the pattern's ColorTable. Returns a function that,
+// for one pattern, gives the row filler of its pictures (the table is made once per pattern).
+function colorTableFiller(colorTableOf) {
+  return (pattern) => {
+    const table = colorTableOf(pattern);
+    return (level, region, rowStart, rowEnd, out) => fillLevelRows(pattern, table, level, region, rowStart, rowEnd, out);
+  };
 }
 
 // The smaller on-screen side of a stitch in device px.
@@ -171,7 +201,7 @@ function startPicture(target, createCellCanvas) {
 function buildRows(pictures, picture, rows) {
   const rowStart = picture.rowsDone;
   const rowEnd = rowStart + rows;
-  fillLevelRows(pictures.pattern, pictures.table, picture.level, picture.region, rowStart, rowEnd, picture.image.data);
+  pictures.fillRows(picture.level, picture.region, rowStart, rowEnd, picture.image.data);
   picture.context.putImageData(picture.image, 0, 0, 0, rowStart, picture.region.width, rows);
   picture.rowsDone = rowEnd;
   if (rowEnd === picture.region.height) {
