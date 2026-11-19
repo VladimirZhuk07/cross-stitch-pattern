@@ -33,6 +33,23 @@ export function parseSidePanelState(text) {
   return state;
 }
 
+/**
+ * Turns a SidePanelState into the text to store (the inverse of parseSidePanelState).
+ * state  a SidePanelState; fields other than settings and legend are ignored
+ * Returns JSON such as '{"settings":"folded","legend":"open"}'.
+ * Throws TypeError when a panel's value is not 'open' or 'folded'.
+ */
+export function serializeSidePanelState(state) {
+  const stored = {};
+  for (const name of PANEL_NAMES) {
+    if (!PANEL_STATES.includes(state[name])) {
+      throw new TypeError(`${name} must be 'open' or 'folded', got ${JSON.stringify(state[name])}`);
+    }
+    stored[name] = state[name];
+  }
+  return JSON.stringify(stored);
+}
+
 // Returns the parsed object, or an empty object for null, invalid JSON, arrays and non-objects.
 function parseJsonObject(text) {
   if (text === null) {

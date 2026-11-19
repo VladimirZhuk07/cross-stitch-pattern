@@ -5,7 +5,7 @@
 - [x] 1.1 Write failing `tests/unit/core/side-panels.test.js` for `parseSidePanelState`: `null` → `{ settings: 'open', legend: 'open' }`; `'{"settings":"open","legend":"folded"}'` → that object; `'not json'`, `'[]'`, `'null'`, `'42'` → both `'open'`; `'{"settings":"sideways"}'` → both `'open'`; `'{"legend":"folded","extra":1}'` → `{ settings: 'open', legend: 'folded' }` (no `extra`); the result is a fresh object each call (mutating it does not change `SIDE_PANEL_DEFAULTS`); verify `node --test tests/unit/core/side-panels.test.js` fails because the module is missing
 - [x] 1.2 Create `src/core/side-panels.js` with `SIDE_PANEL_DEFAULTS` (frozen) and `parseSidePanelState(text)`, plus a header comment describing the SidePanelState shape; verify 1.1 passes
 - [x] 1.3 Add failing tests for `serializeSidePanelState`: `{ settings: 'folded', legend: 'open' }` → `'{"settings":"folded","legend":"open"}'`; extra fields are dropped; `{ settings: 'closed', legend: 'open' }` throws `TypeError` whose message names `settings` and `closed`; round-trip `parse(serialize(x))` equals `x` for all four combinations; verify they fail
-- [ ] 1.4 Implement `serializeSidePanelState(state)`; verify 1.3 passes
+- [x] 1.4 Implement `serializeSidePanelState(state)`; verify 1.3 passes
 - [ ] 1.5 Add failing tests for `shouldOpenSettings(previousKind, kind)`: `('running', 'awaiting-confirmation')` → true; `('running', 'error')` → true; `('idle', 'awaiting-confirmation')` → true; `('error', 'error')` → false; `('awaiting-confirmation', 'awaiting-confirmation')` → false; `('running', 'done')`, `('idle', 'running')`, `('running', 'stopped')` → false; verify they fail
 - [ ] 1.6 Implement `shouldOpenSettings`; verify 1.5 passes and `npm run test:unit` passes
 
