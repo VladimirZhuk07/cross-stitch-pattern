@@ -19,8 +19,8 @@ zoom where numbers are hidden they cannot be found at all.
   stitch is smaller than a device pixel, any block that contains a selected stitch is drawn
   fully red, so a single stitch of a rare color is never averaged away.
 - **Selected row.** It is marked with a pressed number button. Its number box turns red with
-  a white number, just like its chart cells, and the row gets a thick border and bold text, so
-  the state is not shown by color alone.
+  a white number, just like its chart cells, and the row gets a light red background and a
+  thick left border, so the state is not shown by color alone. Row sizes do not change.
 - **Switching layers.** Selecting a color while `Original` or `DMC colors` is shown switches
   the view to `Chart`. The selection survives later layer switches. It is cleared whenever the
   pattern changes (a new image or new settings).

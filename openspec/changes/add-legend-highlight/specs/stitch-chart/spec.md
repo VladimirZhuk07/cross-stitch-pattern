@@ -98,14 +98,15 @@ cell colors.
 - **THEN** the cell colors stay visible while the highlight is being built over the following frames, and no single frame reads more stitches for the highlight than for the cell colors
 
 ### Requirement: The selected legend row stands out
-The selected row SHALL show its number box in `#B00000` with a bold white number, like its
-chart cells, bold text, and a 3 CSS px accent border on its left edge, so the selection is not
-shown by color alone. Other rows SHALL keep their normal look.
+The selected row SHALL show its number box in `#B00000` with a white number, like its chart
+cells, a light red background (`#F9EBEB`) and a 3 CSS px accent border on its left edge, so the
+selection is not shown by color alone. Selecting SHALL NOT change the size of any row or column.
+Other rows SHALL keep their normal look.
 
 #### Scenario: Selected row
 - **WHEN** color 2 (`321` "Red") is selected
-- **THEN** its number box is `#B00000` with a bold white `2`, its texts `321`, `Red` and `2` are bold, it has a 3 px left border, and the row of color 1 looks unchanged
+- **THEN** its number box is `#B00000` with a white `2`, the row has the background `#F9EBEB` and a 3 px left border, its height and the number box width are the same as before (29 px and 31 px for the default font), and the row of color 1 looks unchanged
 
 #### Scenario: Selection cleared
 - **WHEN** the selection is cleared
-- **THEN** every row's number box shows its pale tint with a black number again, and no row has the left border
+- **THEN** every row's number box shows its pale tint with a black number again, and no row has the light background or the left border

@@ -70,7 +70,7 @@
 
   Verify the file fails.
 - [x] 4.3 Implement D5 in `src/ui/legend.js` (`data-legend-index`, `aria-label`, delegated click, document Esc, clear on a new pattern, switch to Chart, update without rebuilding); update its header comment; verify 4.2 passes
-- [ ] 4.4 Add the selected-row CSS from D5 to `styles/main.css` (button reset so the number box looks as before, `cursor: pointer` on rows, `.legend__row--selected` bold text, the 3 px inset accent edge, `#B00000` number box with a bold white number, focus ring on the button); verify in the browser at 1440 × 900 that unselected rows look as on `main` and the selected row matches the spec
+- [x] 4.4 Add the selected-row CSS from D5 to `styles/main.css` (button reset so the number box looks as before, `cursor: pointer` on rows, `.legend__row--selected` light background `#F9EBEB`, the 3 px inset accent edge, `#B00000` number box with a white number, focus ring on the button; no bold, so no row changes size); verify in the browser at 1440 × 900 that unselected rows look as on `main` and the selected row matches the spec
 
 ## 5. Verification
 

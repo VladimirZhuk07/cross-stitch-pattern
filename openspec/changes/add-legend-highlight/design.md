@@ -122,9 +122,14 @@ for cell pictures.
   It does not call `preventDefault`, so other Esc behaviour is untouched.
 - On a `highlightedColor` change only `aria-pressed` and the row class `legend__row--selected`
   are updated. Rows are not rebuilt.
-- CSS: `.legend__row--selected` gets bold text and `box-shadow: inset 3px 0 0 var(--color-accent)`
-  on its first cell. Its `.legend__number` gets a `#B00000` background with a bold white
-  number. Rows get `cursor: pointer`. The button keeps the focus ring.
+- CSS: `.legend__row--selected` cells get the background `#F9EBEB`, and its first cell
+  `box-shadow: inset 3px 0 0 var(--color-accent)`. Its `.legend__number` gets a `#B00000`
+  background with a white number. Rows get `cursor: pointer`. The button keeps the focus
+  ring.
+  *Not bold:* the first browser check showed that bold text widens the DMC name, which then
+  wraps (row 29 → 40 px) and makes the rows below jump. Bold digits also widen the
+  `3ch`-based number box by 1 px. The chart numbers stay bold, because there the cell size
+  is fixed.
 
 ## Risks / Trade-offs
 
