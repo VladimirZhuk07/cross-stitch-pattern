@@ -97,7 +97,7 @@
 
   Verify it fails.
 - [x] 5.3 Implement `src/ui/progress.js` (design D1); verify 5.2 passes
-- [ ] 5.4 Extend `src/ui/viewer-input.js` (design D2):
+- [x] 5.4 Extend `src/ui/viewer-input.js` (design D2):
   - the options `{ onTap, onKeyToggle }`;
   - the tap tracker beside pan and pinch;
   - Space and Enter on Progress call `onKeyToggle` with `preventDefault`;

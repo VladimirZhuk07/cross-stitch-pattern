@@ -17,6 +17,8 @@ import { setupZoomControls } from './ui/zoom-controls.js';
 import { createOriginalLayer } from './ui/layers/original-layer.js';
 import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
+import { createProgressLayer } from './ui/layers/progress-layer.js';
+import { setupProgress } from './ui/progress.js';
 import { setupLegend } from './ui/legend.js';
 import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
 import { readPreference, writePreference } from './io/local-preferences.js';
@@ -25,7 +27,8 @@ const store = createStore(createInitialState());
 
 // The view layers. add-dmc-preview-layer and add-stitch-chart-layer replace the stub files
 // behind createDmcLayer and createChartLayer; this list does not change.
-const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer()];
+const progressLayer = createProgressLayer();
+const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer(), progressLayer];
 
 // Image input and status line.
 setupStatus(document, store);
@@ -37,9 +40,12 @@ const createPatternWorker = () => new Worker(new URL('./workers/pattern.worker.j
 setupSettingsForm(document, store);
 setupPatternGeneration(document, store, createPatternWorkerClient(createPatternWorker));
 
+// Marked stitches on the Progress layer (taps and keys come from the frame input below).
+const progress = setupProgress(document, store, progressLayer);
+
 // The shared view frame and its controls.
 setupViewer(document, store, layers);
-setupViewerInput(document, store);
+setupViewerInput(document, store, { onTap: progress.toggleAt, onKeyToggle: progress.toggleCentre });
 setupZoomControls(document, store);
 setupLayerSwitcher(document, store, layers);
 

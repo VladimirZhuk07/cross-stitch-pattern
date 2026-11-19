@@ -1,10 +1,21 @@
 // Turns pointer, wheel and keyboard input on the view frame into viewport changes.
 // The math lives in ../core/viewport.js and ../core/pinch-zoom.js; this module only reads events.
 
-import { zoomAt, zoomLimits, panBy, wheelZoomFactor, ZOOM_STEP } from '../core/viewport.js';
+import { zoomAt, zoomLimits, panBy, wheelZoomFactor, contentRect, ZOOM_STEP } from '../core/viewport.js';
+import { idleTap, startTap, moveTap, endTap, cancelTap } from '../core/tap.js';
 import {
   emptyGesture, startPointer, movePointer, endPointer, trackpadPinchFactor,
 } from '../core/pinch-zoom.js';
+
+const PROGRESS_LAYER = 'progress';
+
+/** Which way each arrow key scrolls the view: +1 right/down, −1 left/up. */
+const ARROW_DIRECTIONS = {
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+};
 
 /** Distance one arrow-key press scrolls the view, in CSS px. */
 const PAN_STEP = 50;
@@ -24,14 +35,21 @@ const DELTA_MODE_PAGE = 2;
  *   Safari pinch (gesture events)        zooms around the gesture position, not the page
  *   keys while the frame has focus       + or = zoom in, - zoom out, 0 fits,
  *                                        arrow keys scroll the view by 50 CSS px
+ *   on the Progress layer                a tap or click (moving at most 8 CSS px, one pointer)
+ *                                        calls options.onTap(point); Space or Enter calls
+ *                                        options.onKeyToggle(); Shift + arrow scrolls one cell
+ * Also writes state.isFrameKeyboardFocused: true while the frame has focus from the keyboard
+ * (:focus-visible), false after a pointer press or when it loses focus.
  * Does nothing while no image is shown.
- * root   element (or document) containing the viewer
- * store  the app store from ./store.js
+ * root     element (or document) containing the viewer
+ * store    the app store from ./store.js
+ * options  optional { onTap(point), onKeyToggle() } (point in CSS px from the frame's top-left)
  */
-export function setupViewerInput(root, store) {
+export function setupViewerInput(root, store, options = {}) {
   const viewer = root.querySelector('[data-role="viewer"]');
   const canvas = root.querySelector('[data-role="viewer-canvas"]');
-  const hasPointers = setupPointerGestures(viewer, canvas, store);
+  const hasPointers = setupPointerGestures(viewer, canvas, store, options.onTap);
+  setupFocusTracking(viewer, store);
   setupSafariGestures(viewer, canvas, store, hasPointers);
 
   viewer.addEventListener('wheel', (event) => {
@@ -51,7 +69,7 @@ export function setupViewerInput(root, store) {
     if (event.ctrlKey || event.metaKey || event.altKey || !canNavigate(store.getState())) {
       return; // leave browser shortcuts such as Ctrl + '+' alone
     }
-    const isHandled = handleKey(event.key, store);
+    const isHandled = handleProgressKey(event, store, options.onKeyToggle) || handleKey(event.key, store);
     if (isHandled) {
       event.preventDefault();
     }
@@ -103,6 +121,31 @@ function panView(store, dx, dy) {
   store.setState({ viewport: panBy(state.viewport, dx, dy) });
 }
 
+/**
+ * The Progress layer's keys: Space or Enter toggle the stitch under the centre marker, Shift +
+ * arrow scrolls the view by exactly one cell. Returns true if the key was handled.
+ */
+function handleProgressKey(event, store, onKeyToggle) {
+  const state = store.getState();
+  if (state.activeLayer !== PROGRESS_LAYER || state.pattern === null) {
+    return false;
+  }
+  if (event.key === ' ' || event.key === 'Enter') {
+    onKeyToggle?.();
+    return true;
+  }
+  const direction = ARROW_DIRECTIONS[event.key];
+  if (!event.shiftKey || direction === undefined) {
+    return false;
+  }
+  const content = contentRect(state.viewport, state.image);
+  const cellWidth = content.width / state.pattern.width;
+  const cellHeight = content.height / state.pattern.height;
+  // Scrolling the view right moves the content left, as for the plain arrow keys.
+  panView(store, -direction.x * cellWidth, -direction.y * cellHeight);
+  return true;
+}
+
 /** Returns true if the key was one of the frame's shortcuts. */
 function handleKey(key, store) {
   switch (key) {
@@ -137,9 +180,12 @@ function handleKey(key, store) {
  * Pans with one pointer and pinch-zooms with two (core/pinch-zoom.js does the bookkeeping).
  * Only the primary button (mouse) or a touch/pen contact starts tracking; a third finger is
  * ignored. pointercancel ends the whole gesture where it is (the browser took the touches).
+ * Beside it, a tap tracker (core/tap.js) reports a press that hardly moved to onTap; a press
+ * that starts while another pointer is down is never a tap.
  */
-function setupPointerGestures(viewer, canvas, store) {
+function setupPointerGestures(viewer, canvas, store, onTap) {
   let gesture = emptyGesture();
+  let tap = idleTap();
 
   function setGesture(next) {
     gesture = next;
@@ -150,7 +196,16 @@ function setupPointerGestures(viewer, canvas, store) {
     if (event.button !== 0 || !canNavigate(store.getState())) {
       return;
     }
-    const next = startPointer(gesture, event.pointerId, framePoint(canvas, event));
+    if (store.getState().isFrameKeyboardFocused) {
+      store.setState({ isFrameKeyboardFocused: false }); // the marker is for keyboard use only
+    }
+    const point = framePoint(canvas, event);
+    if (gesture.pointers.length === 0) {
+      tap = startTap(idleTap(), event.pointerId, point);
+    } else if (tap.pointerId !== null) {
+      tap = startTap(tap, event.pointerId, point); // a second finger: no tap
+    }
+    const next = startPointer(gesture, event.pointerId, point);
     if (next === gesture) {
       return; // third finger or a pointer that is already tracked
     }
@@ -162,6 +217,7 @@ function setupPointerGestures(viewer, canvas, store) {
     if (gesture.pointers.length === 0) {
       return;
     }
+    tap = moveTap(tap, event.pointerId, framePoint(canvas, event));
     const state = store.getState();
     if (!canNavigate(state)) {
       setGesture(emptyGesture()); // the image went away mid-gesture
@@ -178,12 +234,28 @@ function setupPointerGestures(viewer, canvas, store) {
 
   viewer.addEventListener('pointerup', (event) => {
     setGesture(endPointer(gesture, event.pointerId));
+    const result = endTap(tap, event.pointerId, framePoint(canvas, event));
+    tap = result.tracker;
+    if (result.tapPoint !== null && onTap) {
+      onTap(result.tapPoint);
+    }
   });
   viewer.addEventListener('pointercancel', () => {
     setGesture(emptyGesture());
+    tap = cancelTap();
   });
 
   return () => gesture.pointers.length > 0;
+}
+
+// Keeps state.isFrameKeyboardFocused: true when the frame got focus from the keyboard.
+function setupFocusTracking(viewer, store) {
+  viewer.addEventListener('focus', () => {
+    store.setState({ isFrameKeyboardFocused: viewer.matches(':focus-visible') });
+  });
+  viewer.addEventListener('blur', () => {
+    store.setState({ isFrameKeyboardFocused: false });
+  });
 }
 
 /**
