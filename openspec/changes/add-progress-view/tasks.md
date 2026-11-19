@@ -144,7 +144,7 @@
 
 - [x] 8.1 Run `npm run test:unit`; all tests pass
 - [x] 8.2 Run `npm run test:integration`; all tests pass
-- [ ] 8.3 Browser smoke check with `node scripts/serve.js`:
+- [x] 8.3 Browser smoke check with `node scripts/serve.js`:
   - 1440 × 900, photo at width 100, Progress: click cells. They turn into their DMC color without a number, and the counter counts. A click again unmarks. A drag pans without marking.
   - Zoom out to Fit: stitched areas show DMC colors.
   - Select a legend color: only its unstitched cells are red.
