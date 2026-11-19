@@ -82,4 +82,4 @@
   - Keyboard: Tab to a number button. Enter selects and Space clears; a focus ring is visible.
   - Width 4000 on a large photo: select the least-used color at Fit. Its stitches are visible as red dots, and zooming in shows the same stitches as red cells. No console errors.
   - 375 × 667: expand the legend and tap a row. The view switches to Chart with the highlight.
-- [ ] 5.4 Run `openspec validate add-legend-highlight --strict`; it passes
+- [x] 5.4 Run `openspec validate add-legend-highlight --strict`; it passes
