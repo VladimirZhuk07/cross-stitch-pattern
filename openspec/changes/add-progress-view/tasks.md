@@ -96,7 +96,7 @@
   - `hasMarkedStitches()` follows `stitchedCount`.
 
   Verify it fails.
-- [ ] 5.3 Implement `src/ui/progress.js` (design D1); verify 5.2 passes
+- [x] 5.3 Implement `src/ui/progress.js` (design D1); verify 5.2 passes
 - [ ] 5.4 Extend `src/ui/viewer-input.js` (design D2):
   - the options `{ onTap, onKeyToggle }`;
   - the tap tracker beside pan and pinch;
