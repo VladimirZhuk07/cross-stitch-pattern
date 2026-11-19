@@ -108,7 +108,7 @@
 
 ## 6. Markup and dialog (index.html, ui)
 
-- [ ] 6.1 Add failing markup checks to a new `tests/integration/progress-markup.test.js`:
+- [x] 6.1 Add failing markup checks to a new `tests/integration/progress-markup.test.js`:
   - a fourth radio `value="progress"` labelled `Progress`, disabled, after `chart`;
   - `<output class="progress-summary" data-role="progress-summary" aria-live="polite" hidden>`;
   - `<dialog class="confirm-dialog" data-role="progress-warning">` with a heading, `[data-role="progress-warning-text"]`, `<button type="button" data-action="keep-progress" autofocus>Keep my progress</button>` and `<button type="button" data-action="confirm-lose-progress">`;

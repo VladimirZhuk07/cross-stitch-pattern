@@ -87,6 +87,10 @@
             <input class="layer-switcher__input" type="radio" name="layer" value="chart" disabled>
             <span class="layer-switcher__text">Chart</span>
           </label>
+          <label class="layer-switcher__option">
+            <input class="layer-switcher__input" type="radio" name="layer" value="progress" disabled>
+            <span class="layer-switcher__text">Progress</span>
+          </label>
         </fieldset>
 
         <div class="zoom-controls" role="group" aria-label="Zoom">
@@ -98,12 +102,14 @@
       </div>
 
       <div class="viewer" data-role="viewer" tabindex="0" role="application"
-           aria-label="Image view. Drag or use the arrow keys to pan, the mouse wheel or + and − to zoom, 0 to fit.">
+           aria-label="Image view. Drag or use the arrow keys to pan, the mouse wheel or + and − to zoom, 0 to fit. On the Progress view, click a stitch or press Space or Enter to mark the stitch at the centre; Shift and an arrow key move by one stitch.">
         <canvas class="viewer__canvas" data-role="viewer-canvas" aria-hidden="true"></canvas>
         <p class="viewer__empty" data-role="viewer-empty">Choose an image or drop it here</p>
       </div>
 
       <output class="status" data-role="status" aria-live="polite"></output>
+      <!-- The stitched counter of the Progress layer (src/ui/progress.js); hidden on the other layers. -->
+      <output class="progress-summary" data-role="progress-summary" aria-live="polite" hidden></output>
     </section>
 
     <section class="legend collapsible" id="legend-panel" data-role="legend" aria-labelledby="legend-title" hidden>
@@ -146,5 +152,16 @@
       </template>
     </section>
   </main>
+
+  <!-- Asks before a new pattern replaces marked stitches (src/ui/progress-warning.js). The text and
+       the confirm label are set per question; a native modal dialog traps focus and closes on Esc. -->
+  <dialog class="confirm-dialog" data-role="progress-warning" aria-labelledby="progress-warning-title" aria-describedby="progress-warning-text">
+    <h2 class="confirm-dialog__title" id="progress-warning-title">Your progress will be lost</h2>
+    <p class="confirm-dialog__text" id="progress-warning-text" data-role="progress-warning-text"></p>
+    <div class="confirm-dialog__buttons">
+      <button type="button" class="confirm-dialog__button" data-action="keep-progress" autofocus>Keep my progress</button>
+      <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-lose-progress">Continue</button>
+    </div>
+  </dialog>
 </body>
 </html>
