@@ -154,4 +154,4 @@
     - drop a new image: the dialog appears. Keep leaves everything; Load replaces it.
   - Width 4000 on a large photo: marking a cell shows within a frame. No console errors.
   - 375 × 667 touch: a tap marks, a pinch does not, four segments.
-- [ ] 8.4 Run `openspec validate add-progress-view --strict`; it passes
+- [x] 8.4 Run `openspec validate add-progress-view --strict`; it passes
