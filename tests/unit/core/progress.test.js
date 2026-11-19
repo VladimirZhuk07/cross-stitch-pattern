@@ -3,7 +3,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { createProgress, isStitched, toggleStitch } from '../../../src/core/progress.js';
+import {
+  createProgress,
+  isStitched,
+  toggleStitch,
+  formatProgressSummary,
+  formatSettingsWarning,
+  formatImageWarning,
+} from '../../../src/core/progress.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -92,5 +99,45 @@ describe('toggleStitch and isStitched', () => {
       assert.throws(() => toggleStitch(progress, index), (error) => error instanceof RangeError && error.message.includes(String(index)), `for ${index}`);
       assert.throws(() => isStitched(progress, index), RangeError, `for ${index}`);
     }
+  });
+});
+
+describe('formatProgressSummary', () => {
+  it('shows stitched, total and a percent with one decimal, rounded down', () => {
+    assert.equal(formatProgressSummary(1234, 6700), 'Stitched 1,234 of 6,700 (18.4 %)');
+    assert.equal(formatProgressSummary(1, 3), 'Stitched 1 of 3 (33.3 %)');
+  });
+
+  it('never shows 100 % before the last stitch', () => {
+    assert.equal(formatProgressSummary(6699, 6700), 'Stitched 6,699 of 6,700 (99.9 %)');
+  });
+
+  it('writes 0 and 100 as whole numbers', () => {
+    assert.equal(formatProgressSummary(0, 6700), 'Stitched 0 of 6,700 (0 %)');
+    assert.equal(formatProgressSummary(6700, 6700), 'Stitched 6,700 of 6,700 (100 %)');
+  });
+
+  it('says so when there is nothing to stitch', () => {
+    assert.equal(formatProgressSummary(0, 0), 'Nothing to stitch in this pattern.');
+  });
+});
+
+describe('progress warnings', () => {
+  it('asks before the settings change', () => {
+    assert.equal(
+      formatSettingsWarning(12, 6700),
+      'Change the pattern settings? Your progress on this pattern (12 of 6,700 stitches) will be lost.',
+    );
+  });
+
+  it('asks before another image is loaded, naming it literally', () => {
+    assert.equal(
+      formatImageWarning('cat.png', 12, 6700),
+      'Load cat.png? Your progress on the current pattern (12 of 6,700 stitches) will be lost.',
+    );
+    assert.equal(
+      formatImageWarning('<b>x</b>.png', 1234, 6700),
+      'Load <b>x</b>.png? Your progress on the current pattern (1,234 of 6,700 stitches) will be lost.',
+    );
   });
 });
