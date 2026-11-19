@@ -13,7 +13,7 @@
 
 - [x] 2.1 Create `src/io/local-preferences.js` with `readPreference(key)` (string or `null`) and `writePreference(key, text)` (`true`/`false`), both wrapping `localStorage` in `try/catch` with a comment explaining the intended fallback; verify `tests/integration/served-site.test.js` still passes (it is not imported yet) and the file has no other exports
 - [x] 2.2 Add a failing test to `tests/integration/collapsible.test.js`: `setupCollapsible(toggle, onToggle)` calls `onToggle(true)` on the first click and `onToggle(false)` on the second, after `aria-expanded` changed; the existing three tests still pass without the callback; then add the optional parameter to `src/ui/collapsible.js` and update its comment; verify the file passes
-- [ ] 2.3 Write failing `tests/integration/side-panels.test.js` with a fake root (`querySelector` returning fake buttons from the collapsible test pattern, moved to `tests/helpers/fake-button.js`), a fake store (`getState`, `subscribe`) and a fake storage `{ read, write }`. Cover:
+- [x] 2.3 Write failing `tests/integration/side-panels.test.js` with a fake root (`querySelector` returning fake buttons from the collapsible test pattern, moved to `tests/helpers/fake-button.js`), a fake store (`getState`, `subscribe`) and a fake storage `{ read, write }`. Cover:
   - stored `{"settings":"folded","legend":"open"}` → settings toggle `aria-expanded="false"`, title `Show settings`, legend toggle `"true"`, title `Hide legend`;
   - a click on the legend toggle writes `{"settings":"folded","legend":"folded"}` and sets title `Show legend`;
   - `read` returning `null` → both `"true"`;

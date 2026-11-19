@@ -1,30 +1,11 @@
-// Checks src/ui/collapsible.js with a minimal stand-in for a <button>: only the attribute and
-// event methods the module uses (see openspec/specs/responsive-layout/spec.md, "Settings fold
-// into a summary button on compact screens").
+// Checks src/ui/collapsible.js with a minimal stand-in for a <button> (see
+// openspec/specs/responsive-layout/spec.md, "Settings fold into a summary button on compact
+// screens").
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { setupCollapsible } from '../../src/ui/collapsible.js';
-
-// A fake button: keeps attributes in a Map and calls 'click' listeners from click().
-function fakeButton(attributes = {}) {
-  const values = new Map(Object.entries(attributes));
-  const listeners = [];
-  return {
-    getAttribute: (name) => values.get(name) ?? null,
-    setAttribute: (name, value) => values.set(name, String(value)),
-    addEventListener: (type, listener) => {
-      if (type === 'click') {
-        listeners.push(listener);
-      }
-    },
-    click() {
-      for (const listener of listeners) {
-        listener({ type: 'click', currentTarget: this });
-      }
-    },
-  };
-}
+import { fakeButton } from '../helpers/fake-button.js';
 
 describe('setupCollapsible', () => {
   it('expands a collapsed panel on the first click and collapses it on the second', () => {
