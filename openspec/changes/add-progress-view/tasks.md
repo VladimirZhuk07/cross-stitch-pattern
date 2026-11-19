@@ -132,7 +132,7 @@
 
 ## 7. Styles and documentation
 
-- [ ] 7.1 Add the CSS:
+- [x] 7.1 Add the CSS:
   - `.confirm-dialog`: centred, max 28rem, buttons at least 44 px on coarse pointers, the confirm button in the accent color, and a `::backdrop`;
   - `.progress-summary`: under the frame on desktop, and as its own row in the compact portrait and landscape grids;
   - compact segments: four, `font-size: 0.875rem`.

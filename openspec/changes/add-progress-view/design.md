@@ -180,6 +180,9 @@ trap, Esc and the backdrop, with no extra code.
 - `index.html` gets a fourth radio, `value="progress"`, labelled `Progress`.
 - The frame's `aria-label` adds: "On the Progress view, click a stitch or press Space or Enter
   to mark the stitch at the centre."
+- In compact landscape the segments form a 2 × 2 block at `0.8125rem`. Stacked, four 44 px
+  segments (173 px) plus the zoom controls and the counter overflowed the 306 px column, and
+  the page scrolled by 32 px. The browser check of task 7.1 found this.
 - On compact screens the four segments get `font-size: 0.875rem` and less padding. 360 px
   leaves 86 px per segment and `DMC colors` needs about 76 px at 14 px. This is checked in the
   browser, and the spec requires one line per label.
