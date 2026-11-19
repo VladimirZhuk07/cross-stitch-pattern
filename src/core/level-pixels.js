@@ -50,13 +50,19 @@ export function colorTable(hexes, emptyHex) {
  *           ./tile-pyramid.js), inside the level picture
  * rowStart, rowEnd  region rows to fill, 0 ≤ rowStart ≤ rowEnd ≤ region.height
  * out       Uint8ClampedArray of region.width × region.height × 4 bytes (an ImageData.data)
+ * stitched  optional mask in the Progress bits layout (./progress.js: bit i & 7 of byte
+ *           i >> 3 for cell index i): cells whose bit is 0 count as table entry 0 (the empty
+ *           color), so with a transparent empty entry only stitched cells show and a block's
+ *           alpha is its stitched share. null (the default) uses every cell.
  * Throws RangeError for an invalid level, a region outside the level, rows outside the region,
  * or an `out` of the wrong length.
  */
-export function fillLevelRows(grid, table, level, region, rowStart, rowEnd, out) {
+export function fillLevelRows(grid, table, level, region, rowStart, rowEnd, out, stitched = null) {
   assertFillInput(grid, level, region, rowStart, rowEnd, out);
   if (level === 0) {
-    return copyStitchRows(grid, table, region, rowStart, rowEnd, out);
+    return stitched === null
+      ? copyStitchRows(grid, table, region, rowStart, rowEnd, out)
+      : copyStitchedRows(grid, table, stitched, region, rowStart, rowEnd, out);
   }
   const blockSide = 2 ** level;
   const weighted = premultipliedTable(table);
@@ -71,7 +77,11 @@ export function fillLevelRows(grid, table, level, region, rowStart, rowEnd, out)
     const endCellRow = Math.min(grid.height, firstCellRow + blockSide);
     // Walk the band of stitch rows in memory order, one block-wide segment per pixel.
     for (let cellRow = firstCellRow; cellRow < endCellRow; cellRow++) {
-      addRowSegments(grid.cells, cellRow * grid.width, firstColumn, endColumn, blockSide, weighted, sums);
+      if (stitched === null) {
+        addRowSegments(grid.cells, cellRow * grid.width, firstColumn, endColumn, blockSide, weighted, sums);
+      } else {
+        addStitchedRowSegments(grid.cells, stitched, cellRow * grid.width, firstColumn, endColumn, blockSide, weighted, sums);
+      }
     }
     const bandRows = endCellRow - firstCellRow;
     read += bandRows * (endColumn - firstColumn);
@@ -94,6 +104,35 @@ function addRowSegments(cells, rowOffset, firstColumn, endColumn, blockSide, wei
     let alpha = 0;
     for (let index = segmentStart; index < segmentEnd; index++) {
       const entry = (cells[index] - EMPTY_CELL) << 2;
+      red += weighted[entry];
+      green += weighted[entry + 1];
+      blue += weighted[entry + 2];
+      alpha += weighted[entry + 3];
+    }
+    sums[pixel] += red;
+    sums[pixel + 1] += green;
+    sums[pixel + 2] += blue;
+    sums[pixel + 3] += alpha;
+    pixel += 4;
+    segmentStart = segmentEnd;
+  }
+}
+
+// addRowSegments for a stitched mask: a cell whose bit is 0 adds table entry 0 (the empty
+// color). A copy of the loop, so the unmasked hot path has no per-stitch test of the mask.
+function addStitchedRowSegments(cells, stitched, rowOffset, firstColumn, endColumn, blockSide, weighted, sums) {
+  let pixel = 0;
+  let segmentStart = rowOffset + firstColumn;
+  const rowEnd = rowOffset + endColumn;
+  while (segmentStart < rowEnd) {
+    const segmentEnd = segmentStart + blockSide < rowEnd ? segmentStart + blockSide : rowEnd;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+    for (let index = segmentStart; index < segmentEnd; index++) {
+      const isStitched = (stitched[index >> 3] & (1 << (index & 7))) !== 0;
+      const entry = isStitched ? (cells[index] - EMPTY_CELL) << 2 : 0;
       red += weighted[entry];
       green += weighted[entry + 1];
       blue += weighted[entry + 2];
@@ -132,6 +171,22 @@ function copyStitchRows(grid, table, region, rowStart, rowEnd, out) {
     const pixelOffset = row * region.width;
     for (let column = 0; column < region.width; column++) {
       pixels[pixelOffset + column] = colors[grid.cells[cellOffset + column] - EMPTY_CELL];
+    }
+  }
+  return (rowEnd - rowStart) * region.width;
+}
+
+// copyStitchRows for a stitched mask: a cell whose bit is 0 gets table entry 0.
+function copyStitchedRows(grid, table, stitched, region, rowStart, rowEnd, out) {
+  const colors = new Uint32Array(table.buffer, table.byteOffset, table.length / BYTES_PER_PIXEL);
+  const pixels = new Uint32Array(out.buffer, out.byteOffset, out.length / BYTES_PER_PIXEL);
+  for (let row = rowStart; row < rowEnd; row++) {
+    const cellOffset = (region.y + row) * grid.width + region.x;
+    const pixelOffset = row * region.width;
+    for (let column = 0; column < region.width; column++) {
+      const index = cellOffset + column;
+      const isStitched = (stitched[index >> 3] & (1 << (index & 7))) !== 0;
+      pixels[pixelOffset + column] = colors[isStitched ? grid.cells[index] - EMPTY_CELL : 0];
     }
   }
   return (rowEnd - rowStart) * region.width;

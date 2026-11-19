@@ -59,7 +59,7 @@
   - the return value (stitches read) is unchanged by the mask.
 
   Verify they fail.
-- [ ] 3.2 Implement the mask with separate masked loops (design D4); update the doc comment; verify 3.1 and the whole file pass
+- [x] 3.2 Implement the mask with separate masked loops (design D4); update the doc comment; verify 3.1 and the whole file pass
 
 ## 4. Pictures and layers (ui)
 
