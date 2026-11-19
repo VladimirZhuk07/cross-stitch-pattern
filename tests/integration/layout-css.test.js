@@ -49,3 +49,69 @@ describe('layout stylesheet', () => {
     assert.ok(declarations.some((text) => /display:\s*none/.test(text)), '.collapsible__toggle { display: none }');
   });
 });
+
+// The exact complement of the compact layout query on screens (see design D2 of
+// add-collapsible-side-panels): wide and medium screens, where the side panels can fold.
+const SIDE_PANEL_MEDIA = 'screen and (width >= 48rem) and (height >= 30rem), screen and (width >= 60rem)';
+
+// Splits a stylesheet (comments removed) into its top-level text, outside every @media block,
+// and the bodies of the @media blocks, keyed by their condition.
+function splitMediaBlocks(css) {
+  const text = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [];
+  let topLevel = '';
+  let index = 0;
+  for (const match of text.matchAll(/@media\s+([^{]+)\{/g)) {
+    if (match.index < index) {
+      continue; // a nested @media, already part of the enclosing block
+    }
+    topLevel += text.slice(index, match.index);
+    let depth = 1;
+    let end = match.index + match[0].length;
+    while (depth > 0) {
+      depth += text[end] === '{' ? 1 : text[end] === '}' ? -1 : 0;
+      end += 1;
+    }
+    blocks.push({ condition: match[1].trim(), body: text.slice(match.index + match[0].length, end - 1) });
+    index = end;
+  }
+  topLevel += text.slice(index);
+  return { topLevel, blocks };
+}
+
+describe('side panel stylesheet', () => {
+  let mainCss;
+
+  before(async () => {
+    mainCss = await readFile(MAIN_CSS_URL, 'utf8');
+  });
+
+  it('hides the side toggles outside every @media block', () => {
+    const { topLevel } = splitMediaBlocks(mainCss);
+    const declarations = declarationsFor(topLevel, '.side-toggle');
+    assert.ok(declarations.some((text) => /display:\s*none/.test(text)), '.side-toggle { display: none }');
+  });
+
+  it('has exactly one block for wide and medium screens, the complement of the compact query', () => {
+    const matching = mediaConditions(mainCss).filter((condition) => condition === SIDE_PANEL_MEDIA);
+    assert.equal(matching.length, 1);
+  });
+
+  it('styles the folded state only inside that block', () => {
+    const { topLevel, blocks } = splitMediaBlocks(mainCss);
+    assert.ok(!topLevel.includes('.side-toggle[aria-expanded'), 'no folded rule at top level');
+    for (const block of blocks) {
+      if (block.condition !== SIDE_PANEL_MEDIA) {
+        assert.ok(!block.body.includes('.side-toggle[aria-expanded'), `no folded rule in @media ${block.condition}`);
+      }
+    }
+    const sideBlock = blocks.find((block) => block.condition === SIDE_PANEL_MEDIA);
+    assert.ok(sideBlock.body.includes('.side-toggle[aria-expanded="false"]'), 'the block styles folded panels');
+  });
+
+  it('hides the side toggles when printing', async () => {
+    const printCss = await readFile(PRINT_CSS_URL, 'utf8');
+    const declarations = declarationsFor(printCss, '.side-toggle');
+    assert.ok(declarations.some((text) => /display:\s*none/.test(text)), '.side-toggle { display: none }');
+  });
+});

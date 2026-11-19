@@ -31,7 +31,7 @@
 
 ## 4. Styles (main.css, print.css)
 
-- [ ] 4.1 Add failing checks to `tests/integration/layout-css.test.js`:
+- [x] 4.1 Add failing checks to `tests/integration/layout-css.test.js`:
   - `styles/main.css` has a rule `.side-toggle { display: none }` outside any `@media` block;
   - exactly one `@media` condition equals `screen and (width >= 48rem) and (height >= 30rem), screen and (width >= 60rem)`;
   - every rule that mentions `.side-toggle[aria-expanded` is inside that block;
