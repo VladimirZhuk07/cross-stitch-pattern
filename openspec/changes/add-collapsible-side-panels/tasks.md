@@ -7,7 +7,7 @@
 - [x] 1.3 Add failing tests for `serializeSidePanelState`: `{ settings: 'folded', legend: 'open' }` → `'{"settings":"folded","legend":"open"}'`; extra fields are dropped; `{ settings: 'closed', legend: 'open' }` throws `TypeError` whose message names `settings` and `closed`; round-trip `parse(serialize(x))` equals `x` for all four combinations; verify they fail
 - [x] 1.4 Implement `serializeSidePanelState(state)`; verify 1.3 passes
 - [x] 1.5 Add failing tests for `shouldOpenSettings(previousKind, kind)`: `('running', 'awaiting-confirmation')` → true; `('running', 'error')` → true; `('idle', 'awaiting-confirmation')` → true; `('error', 'error')` → false; `('awaiting-confirmation', 'awaiting-confirmation')` → false; `('running', 'done')`, `('idle', 'running')`, `('running', 'stopped')` → false; verify they fail
-- [ ] 1.6 Implement `shouldOpenSettings`; verify 1.5 passes and `npm run test:unit` passes
+- [x] 1.6 Implement `shouldOpenSettings`; verify 1.5 passes and `npm run test:unit` passes
 
 ## 2. Storage and toggle wiring (io, ui)
 

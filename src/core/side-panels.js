@@ -50,6 +50,22 @@ export function serializeSidePanelState(state) {
   return JSON.stringify(stored);
 }
 
+/**
+ * Generation statuses that need the user to see the settings panel: a large pattern waits
+ * for the Generate button, or generation failed (kinds described in ../ui/app-state.js).
+ */
+const SETTINGS_ATTENTION_KINDS = ['awaiting-confirmation', 'error'];
+
+/**
+ * Says whether folded settings must open because the generation status changed.
+ * previousKind, kind  the generation status kind before and after a state change
+ * Returns true only when kind needs the user and differs from previousKind, so a re-render
+ * with the same status never reopens a panel the user has just folded again.
+ */
+export function shouldOpenSettings(previousKind, kind) {
+  return kind !== previousKind && SETTINGS_ATTENTION_KINDS.includes(kind);
+}
+
 // Returns the parsed object, or an empty object for null, invalid JSON, arrays and non-objects.
 function parseJsonObject(text) {
   if (text === null) {
