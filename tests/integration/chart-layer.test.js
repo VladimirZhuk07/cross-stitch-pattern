@@ -381,3 +381,110 @@ describe('chart layer: left ruler width', () => {
     assert.equal(leftBand(recording, 72).width, 28);
   });
 });
+
+describe('chart layer: highlighted color', () => {
+  const CELLS_20 = { x: 0, y: 0, width: 60, height: 40 };
+  const FRAME = { width: 400, height: 300 };
+
+  // A layer with a fake canvas factory that renders states one after another.
+  function createTestLayer() {
+    const factory = createFakeCellCanvasFactory();
+    const layer = createChartLayer({ createCellCanvas: factory.createCellCanvas });
+    function renderState(state, content = CELLS_20, frameSize = FRAME) {
+      const recording = createRecordingContext();
+      const needsAnotherFrame = layer.render(recording.ctx, frameFor(content, frameSize, 1), { activeLayer: 'chart', ...state });
+      return { recording, needsAnotherFrame };
+    }
+    return { renderState, canvases: factory.canvases };
+  }
+
+  // RGBA bytes of pixel (column, row) of a fake cell canvas.
+  function pixelAt(canvas, column, row) {
+    const offset = (row * canvas.width + column) * 4;
+    return [...canvas.pixels.subarray(offset, offset + 4)];
+  }
+
+  it('draws the highlight picture over the tints, unsmoothed, red where color 2 is', () => {
+    const pattern = threeByTwoPattern();
+    const { renderState } = createTestLayer();
+    const { recording } = renderState({ pattern, highlightedColor: 1 });
+    assert.equal(recording.images.length, 2);
+    const [tints, highlight] = recording.images;
+    assert.deepEqual([...tints.image.pixels], [...tintedCellPixels(pattern)]);
+    assert.equal(highlight.imageSmoothingEnabled, false);
+    assert.deepEqual(highlight.args, [0, 0, 3, 2, 0, 0, 60, 40]);
+    const red = [176, 0, 0, 255];
+    const clear = [0, 0, 0, 0];
+    assert.deepEqual(
+      [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1]].map(([column, row]) => pixelAt(highlight.image, column, row)),
+      [red, clear, clear, clear, clear, red],
+    );
+  });
+
+  it('writes the highlighted numbers bold and white, the others as usual', () => {
+    const { renderState } = createTestLayer();
+    const { recording } = renderState({ pattern: threeByTwoPattern(), highlightedColor: 1 });
+    const numbers = cellNumbers(recording, 9);
+    const twos = numbers.filter((number) => number.text === '2');
+    const ones = numbers.filter((number) => number.text === '1');
+    assert.deepEqual(twos.map(({ x, y }) => [x, y]), [[10, 10], [50, 30]]);
+    for (const two of twos) {
+      assert.equal(two.fillStyle, '#FFFFFF');
+      assert.match(two.font, /^bold 9px /);
+    }
+    assert.equal(ones.length, 3);
+    for (const one of ones) {
+      assert.equal(one.fillStyle, '#000000');
+      assert.doesNotMatch(one.font, /bold/);
+    }
+  });
+
+  it('draws exactly as before without a selection', () => {
+    const { renderState } = createTestLayer();
+    for (const highlightedColor of [null, undefined]) {
+      const { recording } = renderState({ pattern: threeByTwoPattern(), highlightedColor });
+      assert.equal(recording.images.length, 1);
+      assert.ok(recording.texts.every((text) => !/bold/.test(text.font)));
+    }
+  });
+
+  it('keeps the highlight but draws no numbers in 10 px cells', () => {
+    const { renderState } = createTestLayer();
+    const { recording } = renderState({ pattern: threeByTwoPattern(), highlightedColor: 1 }, { x: 0, y: 0, width: 30, height: 20 });
+    assert.equal(recording.images.length, 2);
+    assert.equal(cellNumbers(recording, 4.5).length, 0);
+    assert.ok(recording.texts.every((text) => !['1', '2'].includes(text.text) || text.fontSize !== 4.5));
+  });
+
+  it('ignores a selection that is not in the pattern', () => {
+    const { renderState } = createTestLayer();
+    const { recording } = renderState({ pattern: threeByTwoPattern(), highlightedColor: 5 });
+    assert.equal(recording.images.length, 1);
+  });
+
+  it('releases the old highlight picture when the selection changes', () => {
+    const pattern = threeByTwoPattern();
+    const { renderState, canvases } = createTestLayer();
+    renderState({ pattern, highlightedColor: 1 });
+    assert.equal(canvases.length, 2);
+    const firstHighlight = canvases[1];
+    const { recording } = renderState({ pattern, highlightedColor: 0 });
+    assert.deepEqual([firstHighlight.width, firstHighlight.height], [0, 0]);
+    assert.equal(canvases.length, 3);
+    assert.deepEqual(pixelAt(recording.images[1].image, 1, 0), [176, 0, 0, 255]);
+    renderState({ pattern, highlightedColor: null });
+    assert.deepEqual([canvases[2].width, canvases[2].height], [0, 0]);
+  });
+
+  it('asks for another frame while the highlight is still being built', () => {
+    const pattern = solidPattern(1000, 1000); // 1,000,000 stitches: more than one frame's budget
+    const { renderState } = createTestLayer();
+    const content = { x: 0, y: 0, width: 1000, height: 1000 };
+    const frameSize = { width: 1000, height: 1000 };
+    while (renderState({ pattern, highlightedColor: null }, content, frameSize).needsAnotherFrame) {
+      // build the tints first
+    }
+    assert.equal(renderState({ pattern, highlightedColor: 0 }, content, frameSize).needsAnotherFrame, true);
+    assert.equal(renderState({ pattern, highlightedColor: 0 }, content, frameSize).needsAnotherFrame, false);
+  });
+});

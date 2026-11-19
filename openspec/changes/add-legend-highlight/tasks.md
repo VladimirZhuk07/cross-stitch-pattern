@@ -43,7 +43,7 @@
 
 ## 3. Chart layer (ui)
 
-- [ ] 3.1 Add failing tests to `tests/integration/chart-layer.test.js` (render with `highlightedColor` in the state):
+- [x] 3.1 Add failing tests to `tests/integration/chart-layer.test.js` (render with `highlightedColor` in the state):
   - 3 × 2 pattern in 20 px cells with `highlightedColor: 1`: a second cell picture is drawn after the tint picture with smoothing off, whose pixels at (0, 0) and (2, 1) are `#B00000`; the texts `2` are bold, `#FFFFFF`, 9 px; the texts `1` are normal and black;
   - `highlightedColor: null` draws exactly what it draws today (one picture, no bold text);
   - 10 px cells draw the overlay but no text;
