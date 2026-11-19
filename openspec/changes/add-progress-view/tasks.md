@@ -115,7 +115,7 @@
   - the frame's `aria-label` mentions Space or Enter on the Progress view.
 
   Then change `index.html` and update `tests/integration/view-layers.test.js` for four options. Verify the markup tests pass.
-- [ ] 6.2 Write failing `tests/integration/progress-warning.test.js` with a fake `<dialog>` (`showModal`, `close`, `returnValue`, `cancel` event). Cover:
+- [x] 6.2 Write failing `tests/integration/progress-warning.test.js` with a fake `<dialog>` (`showModal`, `close`, `returnValue`, `cancel` event). Cover:
   - `confirm({ text, confirmLabel })` sets the text and label, opens the dialog, and resolves `true` on the confirm button;
   - it resolves `false` on Keep and on `cancel`;
   - the text is set as text.
