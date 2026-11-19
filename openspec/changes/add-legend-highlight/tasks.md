@@ -69,7 +69,7 @@
   If a fake DOM turns out to be too large for `legend.js`, extract the decision logic into a pure helper in `core/highlight.js` and test that instead; tell the user.
 
   Verify the file fails.
-- [ ] 4.3 Implement D5 in `src/ui/legend.js` (`data-legend-index`, `aria-label`, delegated click, document Esc, clear on a new pattern, switch to Chart, update without rebuilding); update its header comment; verify 4.2 passes
+- [x] 4.3 Implement D5 in `src/ui/legend.js` (`data-legend-index`, `aria-label`, delegated click, document Esc, clear on a new pattern, switch to Chart, update without rebuilding); update its header comment; verify 4.2 passes
 - [ ] 4.4 Add the selected-row CSS from D5 to `styles/main.css` (button reset so the number box looks as before, `cursor: pointer` on rows, `.legend__row--selected` bold text, the 3 px inset accent edge, `#B00000` number box with a bold white number, focus ring on the button); verify in the browser at 1440 × 900 that unselected rows look as on `main` and the selected row matches the spec
 
 ## 5. Verification
