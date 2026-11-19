@@ -18,7 +18,7 @@
   - `-1`, `6` and `1.5` throw `RangeError` naming the value.
 
   Verify they fail.
-- [ ] 1.4 Implement `toggleStitch` and `isStitched`; verify 1.3 passes
+- [x] 1.4 Implement `toggleStitch` and `isStitched`; verify 1.3 passes
 - [ ] 1.5 Add failing tests for the texts:
   - `formatProgressSummary`: `(1234, 6700)` → `Stitched 1,234 of 6,700 (18.4 %)`; `(6699, 6700)` → `… (99.9 %)`; `(6700, 6700)` → `… (100 %)`; `(0, 6700)` → `Stitched 0 of 6,700 (0 %)`; `(1, 3)` → `… (33.3 %)`; `(0, 0)` → `Nothing to stitch in this pattern.`;
   - `formatSettingsWarning(12, 6700)` → `Change the pattern settings? Your progress on this pattern (12 of 6,700 stitches) will be lost.`;

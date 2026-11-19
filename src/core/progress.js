@@ -37,3 +37,44 @@ export function createProgress(pattern) {
     lastToggled: null,
   };
 }
+
+/**
+ * True when cell cellIndex (row × width + column) is marked as stitched.
+ * Throws RangeError when cellIndex is not an integer inside the pattern.
+ */
+export function isStitched(progress, cellIndex) {
+  assertCellIndex(progress, cellIndex);
+  return (progress.bits[cellIndex >> 3] & (1 << (cellIndex & 7))) !== 0;
+}
+
+/**
+ * Returns a new Progress in which cell cellIndex is stitched if it was not, and not stitched if
+ * it was; its version is one higher and lastToggled is cellIndex. An empty cell cannot be
+ * stitched: the same Progress is returned. The given Progress is not modified (its bits are
+ * copied, 12.5 MB at most, once per toggle).
+ * Throws RangeError when cellIndex is not an integer inside the pattern.
+ */
+export function toggleStitch(progress, cellIndex) {
+  assertCellIndex(progress, cellIndex);
+  if (progress.pattern.cells[cellIndex] === EMPTY_CELL) {
+    return progress;
+  }
+  const bits = progress.bits.slice();
+  const mask = 1 << (cellIndex & 7);
+  const wasStitched = (bits[cellIndex >> 3] & mask) !== 0;
+  bits[cellIndex >> 3] ^= mask;
+  return {
+    ...progress,
+    bits,
+    stitchedCount: progress.stitchedCount + (wasStitched ? -1 : 1),
+    version: progress.version + 1,
+    lastToggled: cellIndex,
+  };
+}
+
+function assertCellIndex(progress, cellIndex) {
+  const cellCount = progress.pattern.width * progress.pattern.height;
+  if (!Number.isInteger(cellIndex) || cellIndex < 0 || cellIndex >= cellCount) {
+    throw new RangeError(`cellIndex must be an integer 0–${cellCount - 1}, got ${String(cellIndex)}`);
+  }
+}
