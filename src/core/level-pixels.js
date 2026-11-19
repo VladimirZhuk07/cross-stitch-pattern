@@ -164,7 +164,13 @@ function writeAveragedRow(sums, bandRows, firstColumn, endColumn, blockSide, out
   }
 }
 
-function assertFillInput(grid, level, region, rowStart, rowEnd, out) {
+/**
+ * Checks the input of a level-picture filler (fillLevelRows, or fillHighlightRows in
+ * ./highlight.js): the level is valid for the grid, region lies inside the level picture,
+ * 0 ≤ rowStart ≤ rowEnd ≤ region.height, and out has region.width × region.height × 4 bytes.
+ * Throws RangeError naming the wrong value.
+ */
+export function assertFillInput(grid, level, region, rowStart, rowEnd, out) {
   const size = levelSize(grid, level);
   const isInside = Number.isInteger(region.x) && Number.isInteger(region.y)
     && Number.isInteger(region.width) && Number.isInteger(region.height)

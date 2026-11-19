@@ -3,6 +3,8 @@
 // be selected", "Highlighted cells are red with white numbers", "Highlighted stitches stay
 // visible at every zoom"); the choices are explained in design D2 of add-legend-highlight.
 
+import { hexToRgb } from './color.js';
+import { assertFillInput } from './level-pixels.js';
 import { assertLevelInput } from './tile-pyramid.js';
 
 /**
@@ -52,4 +54,60 @@ export function highlightLevel(devicePxPerStitch, maxLevel) {
   assertLevelInput(devicePxPerStitch, maxLevel);
   const level = Math.ceil(Math.log2(1 / devicePxPerStitch));
   return Math.min(maxLevel, Math.max(0, level));
+}
+
+const BYTES_PER_PIXEL = 4;
+const OPAQUE = 255;
+
+/**
+ * Writes rows rowStart … rowEnd − 1 of a region of the level-`level` highlight picture of a
+ * pattern into `out` (written in place, other rows untouched) and returns the number of
+ * stitches read. A pixel is opaque HIGHLIGHT_COLOR when any stitch of its 2^level × 2^level
+ * block (inside the pattern) has legendIndex, and 0, 0, 0, 0 otherwise: unlike the averaged
+ * cell pictures (./level-pixels.js), a single highlighted stitch is never thinned out. The
+ * returned count is the stitches covered by the rows, as fillLevelRows counts them, so both
+ * share one build budget; a block is actually scanned only up to its first match.
+ * grid         a Pattern (./pattern.js): width, height, row-major cells
+ * legendIndex  the highlighted legend index (an index not in the pattern highlights nothing)
+ * level, region, rowStart, rowEnd, out  as for fillLevelRows in ./level-pixels.js
+ * Throws RangeError for an invalid level, a region outside the level, rows outside the region,
+ * or an `out` of the wrong length.
+ */
+export function fillHighlightRows(grid, legendIndex, level, region, rowStart, rowEnd, out) {
+  assertFillInput(grid, level, region, rowStart, rowEnd, out);
+  const { r, g, b } = hexToRgb(HIGHLIGHT_COLOR);
+  const blockSide = 2 ** level;
+  let read = 0;
+  for (let row = rowStart; row < rowEnd; row++) {
+    const firstCellRow = (region.y + row) * blockSide;
+    const endCellRow = Math.min(grid.height, firstCellRow + blockSide);
+    let offset = row * region.width * BYTES_PER_PIXEL;
+    for (let column = 0; column < region.width; column++) {
+      const firstCellColumn = (region.x + column) * blockSide;
+      const endCellColumn = Math.min(grid.width, firstCellColumn + blockSide);
+      const isFound = blockHasIndex(grid, legendIndex, firstCellRow, endCellRow, firstCellColumn, endCellColumn);
+      out[offset] = isFound ? r : 0;
+      out[offset + 1] = isFound ? g : 0;
+      out[offset + 2] = isFound ? b : 0;
+      out[offset + 3] = isFound ? OPAQUE : 0;
+      offset += BYTES_PER_PIXEL;
+    }
+    const firstColumn = region.x * blockSide;
+    read += (endCellRow - firstCellRow) * (Math.min(grid.width, (region.x + region.width) * blockSide) - firstColumn);
+  }
+  return read;
+}
+
+// True when a stitch of one block (rows firstRow … endRow − 1, columns firstColumn …
+// endColumn − 1) has legendIndex; stops at the first match. Hot loop: no allocation.
+function blockHasIndex(grid, legendIndex, firstRow, endRow, firstColumn, endColumn) {
+  for (let row = firstRow; row < endRow; row++) {
+    const rowOffset = row * grid.width;
+    for (let cell = rowOffset + firstColumn; cell < rowOffset + endColumn; cell++) {
+      if (grid.cells[cell] === legendIndex) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

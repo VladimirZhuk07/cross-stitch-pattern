@@ -158,7 +158,7 @@ describe('fillHighlightRows', () => {
     assert.deepEqual([...out], [176, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
-  it('reads no more stitches than the cell colors for the same rows', () => {
+  it('counts the same stitches read as the cell colors for the same rows', () => {
     const pattern = grid([
       [1, 0, 0, 0, 0],
       [0, 0, 0, 0, 0],
@@ -172,7 +172,7 @@ describe('fillHighlightRows', () => {
       const region = { x: 0, y: 0, width: side, height: side };
       const cellsRead = fillLevelRows(pattern, table, level, region, 0, side, new Uint8ClampedArray(side * side * 4));
       const highlightRead = fillHighlightRows(pattern, 1, level, region, 0, side, new Uint8ClampedArray(side * side * 4));
-      assert.ok(highlightRead > 0 && highlightRead <= cellsRead, `level ${level}: ${highlightRead} vs ${cellsRead}`);
+      assert.equal(highlightRead, cellsRead, `level ${level}`);
     }
   });
 
