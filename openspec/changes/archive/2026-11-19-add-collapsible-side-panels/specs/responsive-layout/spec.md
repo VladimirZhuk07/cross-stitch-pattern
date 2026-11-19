@@ -6,9 +6,8 @@
 On wide and medium windows with both side panels open, the app SHALL keep its existing layout:
 wide shows settings (16rem), frame and legend (24rem) side by side; medium shows settings and
 frame side by side with the legend below them. The compact `Settings` and `Legend` toggle
-buttons SHALL NOT be shown there; the only panel controls are the side toggles (see "Side
-panels fold to their edge on wide and medium screens"). The settings fields and legend rows
-SHALL be visible whenever their panel is open.
+buttons SHALL NOT be shown there; the only panel controls are the side toggles. The settings
+fields and legend rows SHALL be visible whenever their panel is open.
 
 #### Scenario: Desktop window
 - **WHEN** the window is 1440 × 900 with a pattern and both panels open
