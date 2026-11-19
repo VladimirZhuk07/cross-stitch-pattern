@@ -22,7 +22,7 @@
 
   Verify the file fails because `src/ui/side-panels.js` is missing.
 - [x] 2.4 Create `src/ui/side-panels.js` exporting `setupSidePanels(root, store, storage)` and `SIDE_PANELS_STORAGE_KEY = 'cross-stitch-pattern-maker:side-panels'` as in design D3; verify 2.3 passes
-- [ ] 2.5 Call `setupSidePanels(document, store, { read: () => readPreference(SIDE_PANELS_STORAGE_KEY), write: (text) => writePreference(SIDE_PANELS_STORAGE_KEY, text) })` in a new group after the legend in `src/main.js` (or let the ui module close over the key, whichever keeps `main.js` shorter); verify `npm run test:integration` passes, including `served-site.test.js`, which now follows the new imports
+- [x] 2.5 Call `setupSidePanels(document, store, { read: () => readPreference(SIDE_PANELS_STORAGE_KEY), write: (text) => writePreference(SIDE_PANELS_STORAGE_KEY, text) })` in a new group after the legend in `src/main.js` (or let the ui module close over the key, whichever keeps `main.js` shorter); verify `npm run test:integration` passes, including `served-site.test.js`, which now follows the new imports
 
 ## 3. Markup (index.html)
 

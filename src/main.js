@@ -18,6 +18,8 @@ import { createOriginalLayer } from './ui/layers/original-layer.js';
 import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
 import { setupLegend } from './ui/legend.js';
+import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
+import { readPreference, writePreference } from './io/local-preferences.js';
 
 const store = createStore(createInitialState());
 
@@ -43,3 +45,10 @@ setupLayerSwitcher(document, store, layers);
 
 // The legend next to the frame.
 setupLegend(document, store);
+
+// Folding the settings and legend to their edge on wide and medium screens, remembered in
+// local storage.
+setupSidePanels(document, store, {
+  read: () => readPreference(SIDE_PANELS_STORAGE_KEY),
+  write: (text) => writePreference(SIDE_PANELS_STORAGE_KEY, text),
+});
