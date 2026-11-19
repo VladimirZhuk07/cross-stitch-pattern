@@ -48,4 +48,15 @@ describe('setupCollapsible', () => {
     setupCollapsible(toggle);
     assert.equal(toggle.getAttribute('aria-expanded'), 'false');
   });
+
+  it('reports every flip to onToggle after aria-expanded has changed', () => {
+    const toggle = fakeButton({ 'aria-expanded': 'false' });
+    const reports = [];
+    setupCollapsible(toggle, (isExpanded) => {
+      reports.push([isExpanded, toggle.getAttribute('aria-expanded')]);
+    });
+    toggle.click();
+    toggle.click();
+    assert.deepEqual(reports, [[true, 'true'], [false, 'false']]);
+  });
 });
