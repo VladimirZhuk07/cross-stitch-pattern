@@ -39,24 +39,16 @@ import {
   chartLineWidths,
   snapLine,
 } from '../../core/chart-layout.js';
-import {
-  HIGHLIGHT_NUMBER_COLOR,
-  HIGHLIGHT_SINGLE_PICTURE_MAX_SIDE,
-  HIGHLIGHT_CACHE_BUDGET_BYTES,
-  fillHighlightRows,
-  highlightLevel,
-} from '../../core/highlight.js';
+import { HIGHLIGHT_NUMBER_COLOR } from '../../core/highlight.js';
 import { drawRulers } from './chart-rulers.js';
 import { createPatternPicture } from './pattern-picture.js';
+import { createHighlightPicture, NO_HIGHLIGHT } from './highlight-picture.js';
 
 const HATCH_COLOR = '#909090';
 const NUMBER_COLOR = '#000000';
 const THIN_LINE_COLOR = '#A0A0A0';
 const BOLD_LINE_COLOR = '#000000';
 const FONT_FAMILY = 'system-ui, sans-serif';
-
-/** A legend index no cell has: no color is highlighted. */
-const NO_HIGHLIGHT = -2;
 
 /**
  * Creates the Chart layer. It is available once a pattern exists (state.pattern is not null).
@@ -104,44 +96,6 @@ export function createChartLayer(options = {}) {
       return !areCellsComplete || !isHighlightComplete;
     },
   };
-}
-
-// The highlight picture of one pattern and selected color. select(pattern, highlightedColor)
-// releases the old picture when the pattern or the color changed and returns the legend index
-// to highlight (NO_HIGHLIGHT for none, or for an index the pattern does not have); draw then
-// draws the picture and returns true when it is complete (always true without a selection).
-function createHighlightPicture(createCellCanvas) {
-  let selected = { pattern: null, index: NO_HIGHLIGHT, picture: null };
-
-  function select(pattern, highlightedColor) {
-    const isInPattern = Number.isInteger(highlightedColor) && highlightedColor >= 0
-      && highlightedColor < pattern.legend.length;
-    const index = isInPattern ? highlightedColor : NO_HIGHLIGHT;
-    if (selected.pattern === pattern && selected.index === index) {
-      return index;
-    }
-    if (selected.picture !== null) {
-      selected.picture.release();
-    }
-    const picture = index === NO_HIGHLIGHT ? null : createPatternPicture({
-      createCellCanvas,
-      fillRows: (grid, level, region, rowStart, rowEnd, out) => fillHighlightRows(grid, index, level, region, rowStart, rowEnd, out),
-      levelFor: highlightLevel,
-      limits: { singlePictureMaxSide: HIGHLIGHT_SINGLE_PICTURE_MAX_SIDE, cacheBudgetBytes: HIGHLIGHT_CACHE_BUDGET_BYTES },
-    });
-    selected = { pattern, index, picture };
-    return index;
-  }
-
-  function draw(ctx, frame, pattern, range) {
-    if (selected.picture === null) {
-      return true;
-    }
-    ctx.imageSmoothingEnabled = false;
-    return selected.picture.draw(ctx, frame, pattern, range);
-  }
-
-  return { select, draw };
 }
 
 function createOffscreenCanvas(width, height) {
