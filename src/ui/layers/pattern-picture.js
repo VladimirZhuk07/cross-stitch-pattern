@@ -50,12 +50,15 @@ const DEFAULT_LIMITS = Object.freeze({
  * options.limits                           optional { singlePictureMaxSide, tileSize,
  *                                          cacheBudgetBytes, buildBudgetStitches }; defaults are
  *                                          the core constants; tests pass smaller values
- * Returns { draw(ctx, frame, pattern, range), release() }. draw builds what the frame needs
+ * Returns { draw(ctx, frame, pattern, range), refreshCell(pattern, column, row), release() }.
+ * draw builds what the frame needs
  * within the frame's budget, draws the cell colors of the visible stitches `range` (a
  * CellRange) into frame.content with the context's current smoothing, and returns true when
  * every picture it needs is complete (false = call again next frame). Pictures are kept per
  * pattern identity; a new pattern releases all canvases of the old one, and release() frees
- * them at once (the next draw builds again).
+ * them at once (the next draw builds again). refreshCell re-fills, in every built picture of
+ * that pattern, the one pixel covering stitch (column, row), after what fillRows returns for it
+ * has changed (e.g. a stitch was marked); rows not built yet pick the change up anyway.
  */
 export function createPatternPicture(options) {
   const { createCellCanvas } = options;
@@ -111,6 +114,15 @@ export function createPatternPicture(options) {
     return isComplete(pictures, OVERVIEW_KEY) && tiles.every((tile) => isComplete(pictures, tile.key));
   }
 
+  function refreshCell(pattern, column, row) {
+    if (current === null || current.pattern !== pattern) {
+      return;
+    }
+    for (const picture of current.built.values()) {
+      refreshPixel(current, picture, column, row);
+    }
+  }
+
   function release() {
     if (current !== null) {
       releaseAll(current);
@@ -118,7 +130,21 @@ export function createPatternPicture(options) {
     }
   }
 
-  return { draw, release };
+  return { draw, refreshCell, release };
+}
+
+// Re-fills the pixel of one picture that covers stitch (column, row), if the picture contains
+// it and that row is already built: one 1 × 1 fill and one 1 × 1 putImageData.
+function refreshPixel(pictures, picture, column, row) {
+  const { level, region } = picture;
+  const x = Math.floor(column / 2 ** level) - region.x;
+  const y = Math.floor(row / 2 ** level) - region.y;
+  if (x < 0 || y < 0 || x >= region.width || y >= region.height || y >= picture.rowsDone) {
+    return;
+  }
+  const pixel = picture.context.createImageData(1, 1);
+  pictures.fillRows(level, { x: region.x + x, y: region.y + y, width: 1, height: 1 }, 0, 1, pixel.data);
+  picture.context.putImageData(pixel, x, y);
 }
 
 // The default filler: averaged pixels of the pattern's ColorTable. Returns a function that,
