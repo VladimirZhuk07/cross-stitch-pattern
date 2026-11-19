@@ -32,7 +32,7 @@
 
 ## 2. Overlay picture (ui)
 
-- [ ] 2.1 Add failing tests to `tests/integration/pattern-picture.test.js`:
+- [x] 2.1 Add failing tests to `tests/integration/pattern-picture.test.js`:
   - with `fillRows` given, the picture is filled by it and `colorTableOf` is not needed;
   - with `levelFor` given, it decides the level: a 4000 × 4000 pattern at 0.18 device px per stitch with `levelFor: highlightLevel` and `singlePictureMaxSide: 256` builds level-3 tiles;
   - `release()` sets every built canvas to 0 × 0 and the next `draw` builds again;

@@ -10,6 +10,7 @@ import { patternToStitchImage } from '../../src/core/pattern-image.js';
 import { colorTable } from '../../src/core/level-pixels.js';
 import { visibleCellRange } from '../../src/core/chart-layout.js';
 import { createPatternPicture } from '../../src/ui/layers/pattern-picture.js';
+import { highlightLevel } from '../../src/core/highlight.js';
 import { createRecordingContext, createFakeCellCanvasFactory } from '../helpers/recording-context.js';
 
 // Hex values are test fixtures, not palette data.
@@ -32,7 +33,7 @@ function createTestPicture(limits) {
     const isComplete = picture.draw(recording.ctx, frame, pattern, visibleCellRange(frame.content, frame, pattern));
     return { isComplete, recording };
   }
-  return { draw, canvases: factory.canvases };
+  return { draw, canvases: factory.canvases, picture };
 }
 
 function stripes(width, height) {
@@ -260,5 +261,56 @@ describe('pattern picture: tiles and overview', () => {
     completeOverview(picture, pattern);
     const pixels = picture.canvases[0].pixels;
     assert.deepEqual([...pixels.slice(0, 8)], [0, 0, 0, 0, 199, 43, 59, 255]);
+  });
+});
+
+describe('pattern picture: custom fillers and release (highlight overlay)', () => {
+  it('fills pictures with fillRows when it is given, without a color table', () => {
+    const factory = createFakeCellCanvasFactory();
+    const calls = [];
+    const picture = createPatternPicture({
+      createCellCanvas: factory.createCellCanvas,
+      fillRows(pattern, level, region, rowStart, rowEnd, out) {
+        calls.push({ level, rowStart, rowEnd });
+        out.fill(9, rowStart * region.width * 4, rowEnd * region.width * 4);
+        return (rowEnd - rowStart) * region.width;
+      },
+    });
+    const pattern = stripes(4, 3);
+    const frame = frameFor({ x: 0, y: 0, width: 40, height: 30 });
+    picture.draw(createRecordingContext().ctx, frame, pattern, visibleCellRange(frame.content, frame, pattern));
+    assert.deepEqual(calls, [{ level: 0, rowStart: 0, rowEnd: 3 }]);
+    assert.ok(factory.canvases[0].pixels.every((value) => value === 9));
+  });
+
+  it('lets levelFor choose the detail level', () => {
+    const pattern = buildPattern({ width: 4000, height: 4000, cells: new Int16Array(4000 * 4000), colors: [BLACK] });
+    const frame = frameFor({ x: 8, y: 14, width: 720, height: 720 }, { width: 736, height: 748 }); // 0.18 px per stitch
+    const range = visibleCellRange(frame.content, frame, pattern);
+    const limits = { singlePictureMaxSide: 256, buildBudgetStitches: 2 ** 26 };
+    const sizesWith = (levelFor) => {
+      const factory = createFakeCellCanvasFactory();
+      const picture = createPatternPicture({ createCellCanvas: factory.createCellCanvas, colorTableOf: stitchColors, levelFor, limits });
+      picture.draw(createRecordingContext().ctx, frame, pattern, range);
+      return factory.canvases.map((canvas) => `${canvas.width}×${canvas.height}`).sort();
+    };
+    // Overview: level 4 (250 × 250). Rounding up (highlightLevel) picks level 3: one 500 × 500 tile.
+    assert.deepEqual(sizesWith(highlightLevel), ['250×250', '500×500']);
+    // The default (nearest level) picks level 2: a 1000 × 1000 picture in 512 px tiles.
+    assert.deepEqual(sizesWith(undefined), ['250×250', '488×488', '488×512', '512×488', '512×512']);
+  });
+
+  it('releases every canvas on release() and builds again on the next draw', () => {
+    const { draw, canvases, picture } = createTestPicture();
+    const pattern = stripes(4, 3);
+    const frame = frameFor({ x: 0, y: 0, width: 40, height: 30 });
+    draw(pattern, frame);
+    assert.equal(canvases.length, 1);
+    picture.release();
+    assert.deepEqual([canvases[0].width, canvases[0].height], [0, 0]);
+    const { isComplete } = draw(pattern, frame);
+    assert.equal(isComplete, true);
+    assert.equal(canvases.length, 2);
+    assert.deepEqual([canvases[1].width, canvases[1].height], [4, 3]);
   });
 });
