@@ -12,10 +12,14 @@ const SUPPORTED_FORMATS_TEXT = 'Try a JPG, PNG, WebP, GIF, BMP or AVIF file.';
  * is selected and the viewport is reset so the viewer fits the new image.
  * On failure the previous image stays and the status shows an error.
  * Drops outside the viewer are blocked so the browser does not navigate away to the file.
+ * Before a chosen or dropped file is loaded, guard.confirmImage(file.name) is awaited; when it
+ * resolves false (the user keeps the marked stitches) nothing is loaded.
  * root   element (or document) containing the file chooser and the viewer
  * store  the app store from ./store.js
+ * guard  optional { confirmImage(fileName) → Promise<boolean> } (see createProgressGuard in
+ *        ./progress-warning.js); null loads every file at once
  */
-export function setupImageInput(root, store) {
+export function setupImageInput(root, store, guard = null) {
   const fileInput = root.querySelector('[data-role="file-input"]');
   const viewer = root.querySelector('[data-role="viewer"]');
   let latestLoadId = 0;
@@ -48,6 +52,14 @@ export function setupImageInput(root, store) {
     previousImage?.bitmap.close();
   }
 
+  // Loads a chosen or dropped file once the guard (if any) agrees.
+  async function requestFile(file) {
+    if (guard !== null && !(await guard.confirmImage(file.name))) {
+      return;
+    }
+    loadFile(file);
+  }
+
   function reportLoadError(fileName, error, isLatest) {
     const isExpected = error instanceof ImageDecodeError;
     if (!isExpected) {
@@ -64,13 +76,13 @@ export function setupImageInput(root, store) {
 
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0];
-    fileInput.value = ''; // allows choosing the same file again
+    fileInput.value = ''; // allows choosing the same file again, also after "keep my progress"
     if (file !== undefined) {
-      loadFile(file);
+      requestFile(file);
     }
   });
 
-  setupDropTarget(viewer, loadFile);
+  setupDropTarget(viewer, requestFile);
 }
 
 /** Makes viewer accept dropped files and blocks file drops everywhere else on the page. */

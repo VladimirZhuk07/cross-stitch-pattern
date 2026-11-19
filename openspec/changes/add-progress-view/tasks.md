@@ -127,7 +127,7 @@
   - wire the guard in `main.js` with `formatSettingsWarning`.
 
   Verify in the browser: with 12 marks, typing `120` + Enter opens the dialog once; Keep restores `100`; Change generates one 120-wide pattern.
-- [ ] 6.4 Guard the image input: `setupImageInput(root, store, guard)` awaits `guard.confirmImage(file.name)` before loading a chosen or dropped file (only while stitches are marked), and resets the file input on "keep"; wire it with `formatImageWarning`. Verify in the browser that dropping a file with marks opens the dialog, Keep leaves everything as is, and choosing the same file again re-opens it.
+- [x] 6.4 Guard the image input: `setupImageInput(root, store, guard)` awaits `guard.confirmImage(file.name)` before loading a chosen or dropped file (only while stitches are marked), and resets the file input on "keep"; wire it with `formatImageWarning`. Verify in the browser that dropping a file with marks opens the dialog, Keep leaves everything as is, and choosing the same file again re-opens it.
 - [ ] 6.5 In `src/ui/legend.js` switch to Chart only from `original` and `dmc`; add a test to `tests/integration/legend-highlight.test.js` that a click on Progress keeps `activeLayer: 'progress'`; verify it passes
 
 ## 7. Styles and documentation
