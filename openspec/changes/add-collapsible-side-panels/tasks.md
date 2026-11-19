@@ -59,4 +59,4 @@
   - Print preview with a folded legend: no toggles, and the legend rows are printed.
   - 150 % page zoom at 1440 × 900 (960 × 600 CSS px, medium layout): the rail labels are readable and not clipped. At 200 % the window is 720 CSS px wide, which is the compact layout without rails.
   - DevTools → Application → Local Storage: the key `cross-stitch-pattern-maker:side-panels` holds the expected JSON. Set it to `garbage` and reload: both panels are open.
-- [ ] 6.4 Run `openspec validate add-collapsible-side-panels --strict`; it passes
+- [x] 6.4 Run `openspec validate add-collapsible-side-panels --strict`; it passes
