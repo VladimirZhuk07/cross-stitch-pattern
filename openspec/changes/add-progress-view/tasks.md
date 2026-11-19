@@ -86,7 +86,7 @@
 
 ## 5. Progress state, input and counter (ui)
 
-- [ ] 5.1 Add `progress: null` and `isFrameKeyboardFocused: false` to `createInitialState`, with descriptions in the header of `src/ui/app-state.js`; add both to `needsPaint` in `src/ui/viewer.js`; verify `npm run test:integration` passes
+- [x] 5.1 Add `progress: null` and `isFrameKeyboardFocused: false` to `createInitialState`, with descriptions in the header of `src/ui/app-state.js`; add both to `needsPaint` in `src/ui/viewer.js`; verify `npm run test:integration` passes
 - [ ] 5.2 Write failing `tests/integration/progress.test.js` for `setupProgress(root, store)`, with a fake root holding the counter output and the real store. Cover:
   - a new pattern creates a fresh Progress, and `null` gives `null`;
   - `toggleAt(point)` on the Progress layer at (50, 30) with 20 px cells toggles index 5;
