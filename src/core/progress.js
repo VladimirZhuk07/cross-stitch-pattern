@@ -78,3 +78,40 @@ function assertCellIndex(progress, cellIndex) {
     throw new RangeError(`cellIndex must be an integer 0–${cellCount - 1}, got ${String(cellIndex)}`);
   }
 }
+
+// Locale-independent thousands separators, as the other texts of the app.
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+const PERCENT_STEPS = 1000; // one decimal
+
+/**
+ * The counter line, e.g. 'Stitched 1,234 of 6,700 (18.4 %)'.
+ * stitched, total  stitched and stitchable (non-empty) cells, 0 ≤ stitched ≤ total
+ * The percent is floor(1000 × stitched / total) / 10, so it reads 100 only when every stitch
+ * is done; 0 and 100 have no decimal. Without stitchable cells it reads
+ * 'Nothing to stitch in this pattern.'
+ */
+export function formatProgressSummary(stitched, total) {
+  if (total === 0) {
+    return 'Nothing to stitch in this pattern.';
+  }
+  const tenths = Math.floor((PERCENT_STEPS * stitched) / total);
+  const percent = tenths % 10 === 0 ? String(tenths / 10) : (tenths / 10).toFixed(1);
+  return `Stitched ${COUNT_FORMAT.format(stitched)} of ${COUNT_FORMAT.format(total)} (${percent} %)`;
+}
+
+/** The question before a width or max colors change replaces a pattern with marked stitches. */
+export function formatSettingsWarning(stitched, total) {
+  return `Change the pattern settings? Your progress on this pattern (${stitchesText(stitched, total)}) will be lost.`;
+}
+
+/**
+ * The question before another image replaces a pattern with marked stitches.
+ * fileName  the chosen file's name, kept literally (plain text, never markup)
+ */
+export function formatImageWarning(fileName, stitched, total) {
+  return `Load ${fileName}? Your progress on the current pattern (${stitchesText(stitched, total)}) will be lost.`;
+}
+
+function stitchesText(stitched, total) {
+  return `${COUNT_FORMAT.format(stitched)} of ${COUNT_FORMAT.format(total)} stitches`;
+}

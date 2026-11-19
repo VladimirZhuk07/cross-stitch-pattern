@@ -25,7 +25,7 @@
   - `formatImageWarning('cat.png', 12, 6700)` → `Load cat.png? Your progress on the current pattern (12 of 6,700 stitches) will be lost.`; a name `<b>x</b>.png` is kept literally.
 
   Verify they fail.
-- [ ] 1.6 Implement the three formatters (locale-independent thousands separators, as in the existing formatters); verify 1.5 passes and `npm run test:unit` passes
+- [x] 1.6 Implement the three formatters (locale-independent thousands separators, as in the existing formatters); verify 1.5 passes and `npm run test:unit` passes
 
 ## 2. Taps and cells under a point (core)
 
