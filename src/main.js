@@ -19,6 +19,7 @@ import { createDmcLayer } from './ui/layers/dmc-layer.js';
 import { createChartLayer } from './ui/layers/chart-layer.js';
 import { createProgressLayer } from './ui/layers/progress-layer.js';
 import { setupProgress } from './ui/progress.js';
+import { createProgressWarning, createProgressGuard } from './ui/progress-warning.js';
 import { setupLegend } from './ui/legend.js';
 import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
 import { readPreference, writePreference } from './io/local-preferences.js';
@@ -30,18 +31,20 @@ const store = createStore(createInitialState());
 const progressLayer = createProgressLayer();
 const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer(), progressLayer];
 
+// Marked stitches on the Progress layer (taps and keys come from the frame input below), and
+// the question asked before a new image or new settings would replace them.
+const progress = setupProgress(document, store, progressLayer);
+const progressGuard = createProgressGuard(progress, createProgressWarning(document));
+
 // Image input and status line.
 setupStatus(document, store);
-setupImageInput(document, store);
+setupImageInput(document, store, progressGuard);
 
 // Pattern settings and generation (the worker runs the pipeline off the main thread; the
 // client creates a fresh worker after a stop, so it gets a factory).
 const createPatternWorker = () => new Worker(new URL('./workers/pattern.worker.js', import.meta.url), { type: 'module' });
-setupSettingsForm(document, store);
+setupSettingsForm(document, store, progressGuard);
 setupPatternGeneration(document, store, createPatternWorkerClient(createPatternWorker));
-
-// Marked stitches on the Progress layer (taps and keys come from the frame input below).
-const progress = setupProgress(document, store, progressLayer);
 
 // The shared view frame and its controls.
 setupViewer(document, store, layers);

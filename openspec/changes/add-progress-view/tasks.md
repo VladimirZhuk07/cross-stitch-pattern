@@ -121,7 +121,7 @@
   - the text is set as text.
 
   Then implement `src/ui/progress-warning.js`; verify it passes.
-- [ ] 6.3 Guard the settings (design D6):
+- [x] 6.3 Guard the settings (design D6):
   - `setupSettingsForm(root, store, guard)`: while `guard.hasMarkedStitches()`, number fields only validate on `input`, and on `change` a valid new value awaits `guard.confirmSettings()`, then updates or restores the field;
   - fabric is never guarded;
   - wire the guard in `main.js` with `formatSettingsWarning`.

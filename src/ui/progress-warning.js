@@ -4,6 +4,8 @@
 // modal dialog traps the focus, starts on the autofocus button (Keep my progress) and closes
 // on Esc; this module only sets the texts and turns the answer into a Promise.
 
+import { formatImageWarning, formatSettingsWarning } from '../core/progress.js';
+
 /**
  * Connects the warning dialog.
  * root  element (or document) containing [data-role="progress-warning"]
@@ -44,4 +46,32 @@ export function createProgressWarning(root) {
   }
 
   return { confirm };
+}
+
+/**
+ * The guard the settings form and the image input ask before replacing the pattern.
+ * progress  the object returned by setupProgress (./progress.js)
+ * warning   the object returned by createProgressWarning
+ * Returns {
+ *   hasMarkedStitches()       true while at least one stitch is marked
+ *   confirmSettings()         Promise<boolean>: may the settings change?
+ *   confirmImage(fileName)    Promise<boolean>: may fileName replace the image? (true at once
+ *                             without marked stitches)
+ * }
+ */
+export function createProgressGuard(progress, warning) {
+  return {
+    hasMarkedStitches: progress.hasMarkedStitches,
+    confirmSettings() {
+      const { stitched, total } = progress.markedCounts();
+      return warning.confirm({ text: formatSettingsWarning(stitched, total), confirmLabel: 'Change settings' });
+    },
+    async confirmImage(fileName) {
+      if (!progress.hasMarkedStitches()) {
+        return true;
+      }
+      const { stitched, total } = progress.markedCounts();
+      return warning.confirm({ text: formatImageWarning(fileName, stitched, total), confirmLabel: 'Load image' });
+    },
+  };
 }

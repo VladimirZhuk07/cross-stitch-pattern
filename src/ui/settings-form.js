@@ -35,10 +35,15 @@ const NUMBER_FIELDS = {
  * output [data-role="generation-status"] shows state.generation. The toggle
  * [data-action="toggle-settings"] folds the fields on phones; its [data-role="settings-summary"]
  * shows the settings in use (last valid values), in the error color when the grid is too large.
+ * While guard.hasMarkedStitches() is true, a width or max colors value applies only on its
+ * change event (Enter or leaving the field) and only after guard.confirmSettings() resolves
+ * true; otherwise the field shows the value in use again. The fabric count is never guarded.
  * root   element (or document) containing the form
  * store  the app store from ./store.js
+ * guard  optional { hasMarkedStitches(), confirmSettings() → Promise<boolean> } (see
+ *        createProgressGuard in ./progress-warning.js); null applies every valid value at once
  */
-export function setupSettingsForm(root, store) {
+export function setupSettingsForm(root, store, guard = null) {
   const form = root.querySelector('[data-role="settings"]');
   const sizeOutput = form.querySelector('[data-role="pattern-size"]');
   const statusOutput = form.querySelector('[data-role="generation-status"]');
@@ -58,10 +63,29 @@ export function setupSettingsForm(root, store) {
     input.addEventListener('input', () => {
       const value = parseWholeNumber(input.value, rules.range);
       showFieldError(input, message, value === null ? rules.invalidText : '');
-      if (value !== null) {
+      if (value !== null && !isGuarded()) {
         updateSetting(store, field, value);
       }
     });
+    // While stitches are marked, a value applies only when committed (Enter or leaving the
+    // field) and confirmed, so the warning appears once and not at every digit.
+    input.addEventListener('change', async () => {
+      const value = parseWholeNumber(input.value, rules.range);
+      const inUse = store.getState().settings[field];
+      if (!isGuarded() || value === null || value === inUse) {
+        return;
+      }
+      if (await guard.confirmSettings()) {
+        updateSetting(store, field, value);
+      } else {
+        input.value = String(inUse);
+        showFieldError(input, message, '');
+      }
+    });
+  }
+
+  function isGuarded() {
+    return guard !== null && guard.hasMarkedStitches();
   }
 
   fabricSelect.value = String(store.getState().settings.fabricCount);
