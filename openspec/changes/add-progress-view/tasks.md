@@ -2,7 +2,7 @@
 
 ## 1. Progress data and texts (core)
 
-- [ ] 1.1 Write failing `tests/unit/core/progress.test.js` for `createProgress(pattern)`. Cover:
+- [x] 1.1 Write failing `tests/unit/core/progress.test.js` for `createProgress(pattern)`. Cover:
   - the 3 × 2 pattern (one empty cell): `bits` has 1 byte, all 0; `stitchedCount` 0; `totalCount` 5; `version` 0; `lastToggled` null; `pattern` is the same object;
   - a 3 × 3 pattern has 2 bytes;
   - a pattern without stitches has `totalCount` 0;
