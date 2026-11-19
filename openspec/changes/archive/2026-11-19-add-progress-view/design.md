@@ -118,7 +118,8 @@ Functions:
 
   Drawing the stitched picture **over** the highlight gives "highlight only what is left"
   without a second highlight filler.
-- `render` returns `true` while any picture is still incomplete.
+- `render` returns `true` while any picture is still incomplete. Without any stitch, there is no stitched picture
+  at all, so a fresh Progress layer draws exactly what the Chart draws.
 
 ### D4. Stitched pixels: a mask in `fillLevelRows` (core, `level-pixels.js`)
 

@@ -15,18 +15,23 @@ time; the other layers SHALL not be drawn.
 - **WHEN** `photo.png` is loaded and the Original layer is active
 - **THEN** the frame shows `photo.png` and nothing from the DMC colors or Chart layers
 
-### Requirement: Layer switcher offers Original, DMC colors and Chart
-The app SHALL show a labelled, keyboard-operable layer switcher with exactly three options in
-this order: `Original`, `DMC colors`, `Chart`. `Original` SHALL always be selectable.
-`DMC colors` and `Chart` SHALL be disabled while no pattern exists and enabled once one exists.
+### Requirement: Layer switcher offers Original, DMC colors, Chart and Progress
+The app SHALL show a labelled, keyboard-operable layer switcher with exactly four options in
+this order: `Original`, `DMC colors`, `Chart`, `Progress`. `Original` SHALL always be selectable.
+`DMC colors`, `Chart` and `Progress` SHALL be disabled while no pattern exists and enabled once
+one exists.
 
 #### Scenario: No pattern yet
 - **WHEN** the app has just started, or an image is loaded but no pattern has been generated
-- **THEN** `Original` is selected, and `DMC colors` and `Chart` are visible but disabled
+- **THEN** `Original` is selected, and `DMC colors`, `Chart` and `Progress` are visible but disabled
 
 #### Scenario: Pattern becomes available
 - **WHEN** a pattern is stored in the application state
-- **THEN** `DMC colors` and `Chart` become enabled and can be selected with mouse or keyboard
+- **THEN** `DMC colors`, `Chart` and `Progress` become enabled and can be selected with mouse or keyboard
+
+#### Scenario: Pattern is cleared while Progress is active
+- **WHEN** the Progress layer is active and the pattern is cleared (for example by loading a new image)
+- **THEN** the Original layer becomes active and `Progress` is disabled
 
 ### Requirement: An unavailable active layer falls back to Original
 If the active layer becomes unavailable, the app SHALL switch to the Original layer.

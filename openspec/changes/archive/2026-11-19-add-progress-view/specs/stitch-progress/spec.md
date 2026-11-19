@@ -132,7 +132,7 @@ open a modal dialog before any new pattern is generated. It reads
 `Change the pattern settings? Your progress on this pattern (S of T stitches) will be lost.`
 and has the buttons `Keep my progress` (focused first) and `Change settings`. `Change settings`
 SHALL apply the new value. `Keep my progress`, Esc or closing the dialog SHALL put the field
-back to the value in use and keep pattern and progress. Changing the fabric count never asks.
+back to the value in use and keep pattern and progress.
 
 #### Scenario: Width change confirmed
 - **WHEN** 12 stitches are marked, the user types `120` into the width (in use: 100), presses Enter and then `Change settings`

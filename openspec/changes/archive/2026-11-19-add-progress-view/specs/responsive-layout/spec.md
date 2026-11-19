@@ -7,9 +7,7 @@ On a compact screen the view switcher SHALL show `Original`, `DMC colors`, `Char
 `Progress` as four adjacent segments filling the row, with the selected one marked by a thicker
 accent border and bold text (not by color alone). Its `View` caption SHALL stay available to
 screen readers. It SHALL remain a radio group operable with the keyboard, with a visible focus
-ring. Down to 360 px every segment label SHALL fit on one line without horizontal scrolling. In
-the compact landscape column the four segments SHALL form a 2 × 2 block, so the column still
-holds the zoom controls, the stitched counter and the status line without the page scrolling.
+ring. Down to 360 px every segment label SHALL fit on one line without horizontal scrolling.
 
 #### Scenario: Selected segment
 - **WHEN** a pattern exists at 375 px and the user taps `Chart`
@@ -22,6 +20,13 @@ holds the zoom controls, the stitched counter and the status line without the pa
 #### Scenario: Four segments on a small phone
 - **WHEN** a pattern exists at 360 × 640
 - **THEN** the four segments are each at least 44 × 44 px, every label is on one line, and the page's scroll width is 360 px
+
+## ADDED Requirements
+
+### Requirement: View switcher is a 2 × 2 block in compact landscape
+In the compact landscape layout the four view segments SHALL form a 2 × 2 block in the 9rem
+column, with the same marking of the selected segment, so that the column still holds the zoom
+controls, the stitched counter and the status line without the page scrolling.
 
 #### Scenario: Four segments in landscape
 - **WHEN** a pattern exists at 667 × 375 and the Progress layer is shown

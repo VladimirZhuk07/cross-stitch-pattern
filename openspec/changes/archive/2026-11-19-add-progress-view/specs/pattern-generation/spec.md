@@ -5,9 +5,7 @@
 ### Requirement: Patterns are generated automatically
 A pattern of at most 4,000,000 stitches SHALL be generated, without a button press, as soon as
 an image has loaded, and again 300 ms after the last valid change of the width or the max
-colors. While stitches are marked on the Progress layer, a width or max colors change SHALL
-instead apply only when the field is committed (Enter or leaving the field) and the user has
-confirmed losing the progress (see the stitch-progress spec). A request that is overtaken by a
+colors (but see "Settings apply on commit while stitches are marked"). A request that is overtaken by a
 newer image or setting change SHALL be stopped at once and its result never shown. While a newer pattern is generated, the current pattern SHALL stay
 visible.
 
@@ -26,6 +24,13 @@ visible.
 #### Scenario: New image during generation
 - **WHEN** `a.png`'s pattern is being generated and the user loads `b.png`
 - **THEN** `a.png`'s job is stopped, its result is never stored, and the pattern of `b.png` is generated
+
+## ADDED Requirements
+
+### Requirement: Settings apply on commit while stitches are marked
+While stitches are marked on the Progress layer, a width or max colors value SHALL apply only
+when its field is committed (Enter or leaving the field) and the user has confirmed losing the
+progress (see the stitch-progress spec), not 300 ms after typing.
 
 #### Scenario: Typing while stitches are marked
 - **WHEN** 12 stitches are marked and the user types `1`, `2`, `0` into the width (in use: 100), waiting 1 s between keys
