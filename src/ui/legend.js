@@ -14,6 +14,8 @@ import { setupCollapsible } from './collapsible.js';
 
 const SELECTED_ROW_CLASS = 'legend__row--selected';
 const CHART_LAYER = 'chart';
+/** The layers that show no highlight: selecting a color there switches to the Chart. */
+const LAYERS_WITHOUT_HIGHLIGHT = ['original', 'dmc'];
 
 /**
  * Renders the legend of state.pattern into [data-role="legend"] and keeps it up to date.
@@ -22,7 +24,8 @@ const CHART_LAYER = 'chart';
  * Rows are rebuilt only when the pattern object changes. The toggle [data-action="toggle-legend"]
  * folds the rows on phones; its [data-role="legend-summary"] shows the number of colors.
  * Owns state.highlightedColor: sets it from row clicks (switching to the Chart layer when a
- * color is selected on another layer), clears it on Esc and whenever the pattern changes.
+ * color is selected on Original or DMC colors, which show no highlight; Chart and Progress
+ * stay), clears it on Esc and whenever the pattern changes.
  * root   the document (Esc is listened for on it), or an element containing the legend
  * store  the app store from ./store.js
  */
@@ -68,7 +71,7 @@ export function setupLegend(root, store) {
     }
     const state = store.getState();
     const highlightedColor = toggleHighlight(state.highlightedColor, Number(row.dataset.legendIndex));
-    const switchesToChart = highlightedColor !== null && state.activeLayer !== CHART_LAYER;
+    const switchesToChart = highlightedColor !== null && LAYERS_WITHOUT_HIGHLIGHT.includes(state.activeLayer);
     store.setState(switchesToChart ? { highlightedColor, activeLayer: CHART_LAYER } : { highlightedColor });
   });
 

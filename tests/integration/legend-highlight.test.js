@@ -84,6 +84,13 @@ describe('legend highlight selection', () => {
     assert.equal(store.getState().highlightedColor, 1);
   });
 
+  it('keeps the Progress layer, which shows the highlight too', () => {
+    const { rowElements, store } = setup({ activeLayer: 'progress' });
+    rowElements()[1].dispatch('click');
+    assert.equal(store.getState().activeLayer, 'progress');
+    assert.equal(store.getState().highlightedColor, 1);
+  });
+
   it('does not switch the layer when the selection is cleared', () => {
     const { rowElements, store } = setup({ activeLayer: 'chart' });
     rowElements()[1].dispatch('click');
