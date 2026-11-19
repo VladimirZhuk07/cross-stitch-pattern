@@ -580,6 +580,14 @@ body {
     font-weight: 600;
   }
 
+  /* Touch tablets: the open-state toggles get a full tap target (the rails already have one). */
+  @media (pointer: coarse) {
+    .side-toggle {
+      min-width: var(--touch-target);
+      min-height: var(--touch-target);
+    }
+  }
+
   /* Chevrons point to where the panel goes: ‹ folds the settings left, › the legend right. */
   .side-toggle[aria-expanded="false"] .side-toggle__icon {
     transform: rotate(180deg);
