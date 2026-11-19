@@ -53,7 +53,7 @@
 
   Verify they fail.
 - [x] 3.2 Implement D4 in `src/ui/layers/chart-layer.js` (overlay cache per pattern + index, release on change, number passes) and update its header comment's paint order; verify 3.1 and the whole file pass
-- [ ] 3.3 Add `highlightedColor` to `needsPaint` in `src/ui/viewer.js`, and add `highlightedColor: null` to `createInitialState` with its description in the header of `src/ui/app-state.js`; verify `npm run test:integration` passes
+- [x] 3.3 Add `highlightedColor` to `needsPaint` in `src/ui/viewer.js`, and add `highlightedColor: null` to `createInitialState` with its description in the header of `src/ui/app-state.js`; verify `npm run test:integration` passes
 
 ## 4. Legend selection (markup, ui, CSS)
 

@@ -89,7 +89,8 @@ function needsPaint(state, previous) {
     || state.pattern !== previous.pattern
     || state.activeLayer !== previous.activeLayer
     || state.viewport !== previous.viewport
-    || state.frame !== previous.frame;
+    || state.frame !== previous.frame
+    || state.highlightedColor !== previous.highlightedColor;
 }
 
 /** The state change for a new frame size: keep the zoom and the point at the frame center. */

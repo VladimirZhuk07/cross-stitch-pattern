@@ -23,6 +23,8 @@
 //                  'done'                   the newest pattern is ready
 //                  'error'                  generation failed
 //                text is shown as is. Written only by ./pattern-generation.js.
+//   highlightedColor  the legend index (0 … N − 1) of the color highlighted on the Chart, or
+//                null. Written only by ./legend.js, which clears it whenever the pattern changes.
 
 import { DEFAULT_SETTINGS } from '../core/generation-settings.js';
 
@@ -40,5 +42,6 @@ export function createInitialState() {
     status: { kind: 'idle', text: IDLE_STATUS_TEXT },
     settings: { ...DEFAULT_SETTINGS },
     generation: { kind: 'idle', text: '' },
+    highlightedColor: null,
   };
 }
