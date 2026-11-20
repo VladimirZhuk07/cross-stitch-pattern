@@ -55,7 +55,7 @@
 
   Verify they fail.
 - [x] 3.6 Implement `src/core/pdf-writer.js` (design D2); verify 3.5 passes
-- [ ] 3.7 Add failing tests `tests/unit/core/pdf-pictures.test.js`:
+- [x] 3.7 Add failing tests `tests/unit/core/pdf-pictures.test.js`:
   - `readJpegInfo` on hand-made bytes (SOI, APP0, SOF0 1200 × 804 × 3) → `{ width: 1200, height: 804, components: 3 }`;
   - SOF2 (progressive) works;
   - missing SOI and 4 components → `TypeError`;
