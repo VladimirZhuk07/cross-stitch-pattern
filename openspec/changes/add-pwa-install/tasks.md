@@ -136,7 +136,7 @@
     dismissed beating iOS;
   - `isOfferDismissed`: true for `'dismissed'`, false for `null` and `'yes'`;
   - the exact texts and the dismiss labels.
-- [ ] 7.2 Implement `src/core/install-offer.js` (design D8) and verify that 7.1 passes
+- [x] 7.2 Implement `src/core/install-offer.js` (design D8) and verify that 7.1 passes
 - [ ] 7.3 Write failing `tests/integration/install-offer.test.js` with a fake window
   (EventTarget, `matchMedia`, `navigator`), a fake offer DOM and in-memory storage. Verify that
   it fails. Cover:
