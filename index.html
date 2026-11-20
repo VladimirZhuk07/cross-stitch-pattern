@@ -16,6 +16,7 @@
     <details class="export-menu" data-role="export-menu">
       <summary class="export-menu__toggle">Export</summary>
       <div class="export-menu__items" role="group" aria-label="Export and progress files">
+        <button class="export-menu__item" type="button" data-action="export-xlsx" disabled>Excel workbook</button>
         <button class="export-menu__item" type="button" data-action="export-progress" disabled>Save progress (.stitch)</button>
         <label class="export-menu__item export-menu__file">Load progress (.stitch)<input class="export-menu__input" type="file" accept=".stitch" data-role="progress-file-input" disabled></label>
       </div>
@@ -172,6 +173,17 @@
       <button type="button" class="confirm-dialog__button" data-action="keep-progress" autofocus>Keep my progress</button>
       <button type="button" class="confirm-dialog__button" data-action="save-progress-first">Save progress first</button>
       <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-lose-progress">Continue</button>
+    </div>
+  </dialog>
+
+  <!-- Asks before a large Excel workbook is created (src/ui/excel-export.js). The text is set per
+       pattern; a native modal dialog traps focus, starts on Cancel and closes on Esc. -->
+  <dialog class="confirm-dialog" data-role="xlsx-warning" aria-labelledby="xlsx-warning-title" aria-describedby="xlsx-warning-text">
+    <h2 class="confirm-dialog__title" id="xlsx-warning-title">Large workbook</h2>
+    <p class="confirm-dialog__text" id="xlsx-warning-text" data-role="xlsx-warning-text"></p>
+    <div class="confirm-dialog__buttons">
+      <button type="button" class="confirm-dialog__button" data-action="cancel-xlsx" autofocus>Cancel</button>
+      <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-xlsx">Create workbook</button>
     </div>
   </dialog>
 </body>
