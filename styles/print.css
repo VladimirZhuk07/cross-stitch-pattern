@@ -27,12 +27,12 @@ body {
   display: none;
 }
 
-/* The Export menu (shared by the export changes). */
-.export-menu {
+/* The install offer (add-pwa-install) is never printed. */
+.install-offer {
   display: none;
 }
 
-/* The install offer (add-pwa-install) is never printed. */
-.install-offer {
+/* The Export menu (shared by the export changes). */
+.export-menu {
   display: none;
 }
