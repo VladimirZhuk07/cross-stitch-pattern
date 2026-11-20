@@ -132,7 +132,7 @@
 
   Verify they fail.
 - [x] 5.8 Implement `src/core/pdf-page-map.js` (design D6); verify 5.7 passes
-- [ ] 5.9 Add failing tests `tests/unit/core/pdf-info-page.test.js`:
+- [x] 5.9 Add failing tests `tests/unit/core/pdf-info-page.test.js`:
   - the title `Cross-stitch pattern` in F2, and the file name, with `Ёлка.png` shown as `????.png`;
   - the captions `Original` and `DMC colors`;
   - the images drawn as `/Im1 Do` and `/Im2 Do`, each 90 mm wide and 60.3 mm high for 1200 × 804 pictures, top-aligned at 35 mm;
