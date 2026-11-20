@@ -181,6 +181,22 @@ body {
   outline-offset: 2px;
 }
 
+/* On compact screens the Export button sits in the middle of the header, so its list drops from
+   the header's right edge instead and never runs off the left side of a 360 px screen. */
+@media screen and (width < 48rem), screen and (height < 30rem) and (width < 60rem) {
+  .app-header {
+    position: relative;
+  }
+
+  .export-menu {
+    position: static;
+  }
+
+  .export-menu__items {
+    right: var(--space-2);
+  }
+}
+
 .file-picker__label {
   font-weight: 600;
 }
