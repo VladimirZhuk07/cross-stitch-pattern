@@ -67,7 +67,7 @@
 
 - [x] 5.1 Run `npm run test:unit`; all tests pass
 - [x] 5.2 Run `npm run test:integration`; all tests pass
-- [ ] 5.3 Browser smoke check with `node scripts/serve.js`:
+- [x] 5.3 Browser smoke check with `node scripts/serve.js`:
   - Load a photo, mark 12 stitches on Progress, and reload. Load the same photo: the 12 stitches come back with the note. DevTools → Application → IndexedDB shows one record.
   - Load another photo and tap a stitch: the replace question appears. Keep marks nothing; Start new progress marks it and replaces the record.
   - Mark, then change the width and confirm, then change it back: nothing is restored.
