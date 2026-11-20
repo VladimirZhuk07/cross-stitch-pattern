@@ -66,10 +66,17 @@ export function parseWholeNumber(text, range) {
 // Text for a grid size { width, height } in stitches on fabric with fabricCount stitches
 // per inch, e.g. '100 × 67 stitches — 7.1 × 4.8 in (18.1 × 12.2 cm) on 14 ct'.
 export function formatPatternSize(size, fabricCount) {
+  return `${size.width} × ${size.height} stitches — ${formatFinishedSize(size, fabricCount)}`;
+}
+
+// The finished size alone of a grid size { width, height } in stitches on fabric with
+// fabricCount stitches per inch, e.g. '7.1 × 4.8 in (18.1 × 12.2 cm) on 14 ct' (also used by the
+// PDF info page).
+export function formatFinishedSize(size, fabricCount) {
   const finished = finishedSize(size, fabricCount);
   const inches = `${round(finished.widthInches)} × ${round(finished.heightInches)} in`;
   const centimetres = `${round(finished.widthCm)} × ${round(finished.heightCm)} cm`;
-  return `${size.width} × ${size.height} stitches — ${inches} (${centimetres}) on ${fabricCount} ct`;
+  return `${inches} (${centimetres}) on ${fabricCount} ct`;
 }
 
 // Note for a grid wider than the image it comes from: more stitches than pixels only repeat

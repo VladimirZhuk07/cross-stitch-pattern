@@ -17,7 +17,7 @@
   - `formatPatternSize` output is unchanged for the same input.
 
   Verify they fail.
-- [ ] 2.2 Extract `formatFinishedSize` in `src/core/generation-settings.js` (design D12) and use it in `formatPatternSize`; verify 2.1 and all existing generation-settings tests pass
+- [x] 2.2 Extract `formatFinishedSize` in `src/core/generation-settings.js` (design D12) and use it in `formatPatternSize`; verify 2.1 and all existing generation-settings tests pass
 
 ## 3. PDF text, writer, pictures and content builder (core)
 
