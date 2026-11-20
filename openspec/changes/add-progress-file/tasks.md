@@ -56,7 +56,7 @@
   - a rejecting `saveFirst` shows `Could not save the progress file.`;
   - a new `confirm` clears the line;
   - `createProgressGuard(progress, warning, persistence, saver)` passes `saver.saveCurrent` with the settings and image questions.
-- [ ] 4.2 Implement the `saveFirst` option in `createProgressWarning` and the `saver` parameter of `createProgressGuard` (design D4); verify 4.1 passes
+- [x] 4.2 Implement the `saveFirst` option in `createProgressWarning` and the `saver` parameter of `createProgressGuard` (design D4); verify 4.1 passes
 - [ ] 4.3 Extend the dialog check in `tests/integration/progress-markup.test.js` for three buttons in the order Keep (autofocus), `Save progress first` (`data-action="save-progress-first"`), confirm, and the hidden polite note `data-role="progress-warning-note"`. Add them to `index.html`, style `.confirm-dialog__note` in `styles/main.css`, and verify the test passes
 
 ## 5. Loaded progress in persistence (ui)
