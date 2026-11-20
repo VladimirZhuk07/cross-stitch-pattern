@@ -74,4 +74,4 @@
   - Unmark all: the record is deleted.
   - In a profile with storage blocked (or with `indexedDB.open` stubbed to throw), marking works and the note shows the error text once.
   - Width 4000: mark, reload and restore within a few seconds. No console errors.
-- [ ] 5.4 Run `openspec validate persist-progress --strict`; it passes
+- [x] 5.4 Run `openspec validate persist-progress --strict`; it passes
