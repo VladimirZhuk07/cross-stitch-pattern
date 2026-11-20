@@ -128,7 +128,7 @@ first, keep the existing files: they must already be identical.
   - a `{ type: 'xlsx', id: 7, pattern, pictures }` request → `{ type: 'xlsx', id: 7, bytes }` with `transfer` = `[bytes.buffer]`, and `bytes` unzips (helper) to the 13 parts;
   - an unknown type, a missing pattern, and a 2000 × 2000 pattern → `{ type: 'error', id, message }` with a message naming the problem;
   - the handler never rejects.
-- [ ] 7.2 Implement `src/workers/xlsx-worker-handler.js` and the entry `src/workers/xlsx.worker.js` (design D9); verify 7.1 passes
+- [x] 7.2 Implement `src/workers/xlsx-worker-handler.js` and the entry `src/workers/xlsx.worker.js` (design D9); verify 7.1 passes
 - [ ] 7.3 Write failing `tests/integration/xlsx-worker-client.test.js` with a fake worker, then verify it fails. Cover `createWorkbookInWorker`:
   - posts one request with the PNG buffers in the transfer list;
   - resolves with the bytes;
