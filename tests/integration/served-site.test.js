@@ -125,6 +125,33 @@ describe('served site under a GitHub Pages-like sub-path', () => {
     assert.deepEqual(withoutExtension.map((entry) => `${entry.reference} in ${entry.from}`), []);
   });
 
+  it('reaches the PDF worker and the PDF export modules', () => {
+    const reached = new Set(site.resources.filter((resource) => resource.status === 200).map((resource) => resource.url));
+    const expected = [
+      'src/workers/pdf.worker.js',
+      'src/workers/pdf-worker-handler.js',
+      'src/ui/pdf-export.js',
+      'src/io/pdf-worker-client.js',
+      'src/io/pdf-picture-encoder.js',
+      'src/io/download.js',
+      'src/core/pdf-document.js',
+      'src/core/pdf-chart-page.js',
+      'src/core/pdf-legend-pages.js',
+      'src/core/pdf-info-page.js',
+      'src/core/pdf-page-map.js',
+      'src/core/pdf-page-plan.js',
+      'src/core/pdf-content.js',
+      'src/core/pdf-text.js',
+      'src/core/pdf-writer.js',
+      'src/core/pdf-pictures.js',
+      'src/core/compression.js',
+      'src/core/file-names.js',
+      'src/core/pattern-summary.js',
+    ];
+    const missing = expected.filter((path) => !reached.has(new URL(path, server.url).href));
+    assert.deepEqual(missing, []);
+  });
+
   it('never resolves a reference outside the base path', () => {
     const outside = site.references.filter(
       (entry) => !entry.reference.startsWith('data:') && !entry.resolved.startsWith(server.url),

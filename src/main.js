@@ -30,6 +30,9 @@ import { downloadProgressFile, readFileBytes } from './io/progress-file.js';
 import { setupExcelExport } from './ui/excel-export.js';
 import { encodeSummaryPictures } from './io/summary-pictures.js';
 import { createWorkbookInWorker } from './io/xlsx-worker-client.js';
+import { setupPdfExport } from './ui/pdf-export.js';
+import { createPdfWorkerClient } from './io/pdf-worker-client.js';
+import { encodePdfPictures } from './io/pdf-picture-encoder.js';
 import { downloadBlob } from './io/download.js';
 
 const store = createStore(createInitialState());
@@ -88,4 +91,13 @@ setupExcelExport(document, store, {
   encodePictures: encodeSummaryPictures,
   createWorkbook: (request) => createWorkbookInWorker(createXlsxWorker, request),
   download: (blob, fileName) => downloadBlob(blob, fileName),
+});
+
+// The PDF chart export from the Export menu (a new PDF worker per export; pictures and download
+// happen on the main thread).
+const createPdfWorker = () => new Worker(new URL('./workers/pdf.worker.js', import.meta.url), { type: 'module' });
+setupPdfExport(document, store, {
+  client: createPdfWorkerClient(createPdfWorker),
+  encodePictures: encodePdfPictures,
+  download: downloadBlob,
 });
