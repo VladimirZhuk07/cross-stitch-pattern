@@ -14,6 +14,10 @@ function rgbOf(hex) {
 const FABRIC = rgbOf(ICON_COLORS.fabric);
 const WEAVE = rgbOf(ICON_COLORS.weave);
 
+// Rendered once and only read: a 512 px render takes a third of a second.
+const ANY_512 = renderIcon(512, 'any');
+const MASKABLE_512 = renderIcon(512, 'maskable');
+
 function pixelAt(image, x, y) {
   const start = (y * image.width + x) * 3;
   return [...image.rgb.subarray(start, start + 3)];
@@ -60,7 +64,7 @@ describe('ICON_COLORS', () => {
 
 describe('renderIcon', () => {
   it('returns a 512 × 512 RGB image of 786,432 bytes for layout any', () => {
-    const image = renderIcon(512, 'any');
+    const image = ANY_512;
     assert.equal(image.width, 512);
     assert.equal(image.height, 512);
     assert.ok(image.rgb instanceof Uint8Array);
@@ -68,50 +72,50 @@ describe('renderIcon', () => {
   });
 
   it('shows fabric or weave in the top-left corner', () => {
-    const corner = pixelAt(renderIcon(512, 'any'), 0, 0);
+    const corner = pixelAt(ANY_512, 0, 0);
     assert.ok([FABRIC, WEAVE].some((color) => color.join() === corner.join()), `got ${corner}`);
   });
 
   it('shows the heart red at (256, 234), the centre of the stitch in row 4, column 5', () => {
-    assert.deepEqual(pixelAt(renderIcon(512, 'any'), 256, 234), rgbOf(ICON_COLORS.red));
+    assert.deepEqual(pixelAt(ANY_512, 256, 234), rgbOf(ICON_COLORS.red));
   });
 
   it('shows a white highlight stitch at the centre of row 2, column 3', () => {
     // Cell 44 px, origin (58, 80): the centre of column 3 is x = 58 + 2.5 × 44 = 168, row 2 is y = 146.
-    assert.deepEqual(pixelAt(renderIcon(512, 'any'), 168, 146), rgbOf(ICON_COLORS.white));
+    assert.deepEqual(pixelAt(ANY_512, 168, 146), rgbOf(ICON_COLORS.white));
   });
 
   it('shows the dark red shade at the centre of the bottom stitch (row 8, column 5)', () => {
-    assert.deepEqual(pixelAt(renderIcon(512, 'any'), 256, 410), rgbOf(ICON_COLORS.darkRed));
+    assert.deepEqual(pixelAt(ANY_512, 256, 410), rgbOf(ICON_COLORS.darkRed));
   });
 
   it('leaves the edge midpoints of a stitch cell as fabric, as with a real cross stitch', () => {
     // Top edge midpoint of the cell in row 4, column 5: (256, 212) is 0.5 cell above the centre.
-    assert.ok(isBackground(pixelAt(renderIcon(512, 'any'), 256, 213)));
+    assert.ok(isBackground(pixelAt(ANY_512, 256, 213)));
   });
 
   it('draws the weave grid outside the heart in layout any', () => {
     // A vertical weave line is centred on x = 58 (the heart origin), 2.64 px wide.
-    assert.deepEqual(pixelAt(renderIcon(512, 'any'), 57, 10), WEAVE);
+    assert.deepEqual(pixelAt(ANY_512, 57, 10), WEAVE);
   });
 
   it('draws a heart at least 360 px wide in layout any at 512', () => {
-    const { width } = heartColumns(renderIcon(512, 'any'));
+    const { width } = heartColumns(ANY_512);
     assert.ok(width >= 360, `heart is ${width} px wide`);
   });
 
   it('draws the heart centred horizontally', () => {
-    const { first, last } = heartColumns(renderIcon(512, 'any'));
+    const { first, last } = heartColumns(ANY_512);
     assert.ok(Math.abs(first - (511 - last)) <= 1, `first ${first}, last ${last}`);
   });
 
   it('draws a heart at most 290 px wide in layout maskable at 512', () => {
-    const { width } = heartColumns(renderIcon(512, 'maskable'));
+    const { width } = heartColumns(MASKABLE_512);
     assert.ok(width <= 290, `heart is ${width} px wide`);
   });
 
   it('keeps every heart pixel of the maskable icon within 204.8 px of the centre', () => {
-    const image = renderIcon(512, 'maskable');
+    const image = MASKABLE_512;
     for (let y = 0; y < 512; y++) {
       for (let x = 0; x < 512; x++) {
         const distance = Math.hypot(x + 0.5 - 256, y + 0.5 - 256);
@@ -123,7 +127,7 @@ describe('renderIcon', () => {
   });
 
   it('fills the corners of the maskable icon with fabric or weave', () => {
-    const image = renderIcon(512, 'maskable');
+    const image = MASKABLE_512;
     for (const [x, y] of [[0, 0], [511, 0], [0, 511], [511, 511]]) {
       assert.ok(isBackground(pixelAt(image, x, y)), `corner (${x}, ${y})`);
     }

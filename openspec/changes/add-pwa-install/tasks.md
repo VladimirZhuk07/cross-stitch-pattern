@@ -32,7 +32,7 @@
   - two calls give equal bytes;
   - `iconSvg()` has `viewBox="0 0 32 32"`, 1 + 49 `<rect>`s, and no `http` other than the SVG
     namespace.
-- [ ] 1.8 Implement `src/core/app-icon.js` (design D1: grid, colors, layouts, X geometry, 4 × 4
+- [x] 1.8 Implement `src/core/app-icon.js` (design D1: grid, colors, layouts, X geometry, 4 × 4
   supersampling, `iconSvg`) and verify that 1.7 passes
 
 ## 2. Icon files
