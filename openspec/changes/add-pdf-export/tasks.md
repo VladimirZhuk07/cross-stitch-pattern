@@ -97,7 +97,7 @@
 
 ## 5. Page content (core)
 
-- [ ] 5.1 Add failing tests `tests/unit/core/pdf-chart-page.test.js` for cells and numbers, using `readContent`:
+- [x] 5.1 Add failing tests `tests/unit/core/pdf-chart-page.test.js` for cells and numbers, using `readContent`:
   - 3 × 2 page 1: cell (0, 0) at (85.04, 767.62), 9.07 pt, filled `#FFC0BB`, with `2` centred at (89.57, 772.16) within 0.01;
   - the empty cell is `#E0E0E0` with a diagonal (85.04, 758.55) → (94.11, 767.62) and no number;
   - exactly 5 numbers;
