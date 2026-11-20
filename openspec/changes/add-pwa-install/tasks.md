@@ -9,7 +9,7 @@
 - [x] 1.3 Add `tests/unit/core/compression.test.js` byte for byte from section 7 of
   `shared-export-conventions.md`. Run `node --test tests/unit/core/compression.test.js` and
   verify that it fails because the module is missing.
-- [ ] 1.4 Add `src/core/compression.js` byte for byte from section 7 and verify that 1.3 passes
+- [x] 1.4 Add `src/core/compression.js` byte for byte from section 7 and verify that 1.3 passes
 - [ ] 1.5 Write failing `tests/unit/core/png.test.js` and verify that it fails. Cover:
   - `await encodePng(...)` of a 2 × 1 RGB image: the signature, the IHDR fields (2, 1, depth 8,
     color type 2, 0, 0, 0), IEND last, and `inflateSync` of the IDAT = `[0, r,g,b, r,g,b]`;
