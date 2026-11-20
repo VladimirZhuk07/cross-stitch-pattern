@@ -49,3 +49,12 @@ export function columnName(columnNumber) {
 export function cellReference(column, row) {
   return `${columnName(column)}${row}`;
 }
+
+/** The first line of every part of the workbook package. */
+export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+
+/** SpreadsheetML main namespace (ECMA-376 Part 1, §18). */
+export const SPREADSHEETML_NAMESPACE = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+
+/** Namespace of r:id attributes that point to package relationships. */
+export const RELATIONSHIPS_NAMESPACE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';

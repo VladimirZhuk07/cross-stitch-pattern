@@ -48,7 +48,7 @@ first, keep the existing files: they must already be identical.
   - `legendNumberStyle(i)`, `swatchStyle(i)`, `BOLD_STYLE`, `COUNT_STYLE` (numFmtId 3);
   - every `count` attribute equals its child count;
   - for 489 legend entries the cellXfs count is 8,821 (≤ 64,000).
-- [ ] 4.2 Implement `src/core/xlsx-styles.js` (design D4; element and border child order as in D3); verify 4.1 passes
+- [x] 4.2 Implement `src/core/xlsx-styles.js` (design D4; element and border child order as in D3); verify 4.1 passes
 - [ ] 4.3 Write failing `tests/unit/core/xlsx-limits.test.js`, then verify it fails. Cover:
   - `workbookSizeCheck` gives 500 × 500 → `'ok'`, 501 × 500 → `'confirm'`, 1000 × 1000 → `'confirm'`, 2000 × 2000 → `'too-large'`, 10000 × 101 → `'too-large'`;
   - `formatLargeWorkbookQuestion({ width: 800, height: 800 })` and `formatWorkbookTooLarge({ width: 2000, height: 2000 })` → the exact spec texts;
