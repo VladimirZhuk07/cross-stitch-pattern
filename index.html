@@ -13,6 +13,13 @@
 <body>
   <header class="app-header">
     <h1 class="app-header__title">Cross-Stitch Pattern Maker</h1>
+    <details class="export-menu" data-role="export-menu">
+      <summary class="export-menu__toggle">Export</summary>
+      <div class="export-menu__items" role="group" aria-label="Export and progress files">
+        <button class="export-menu__item" type="button" data-action="export-progress" disabled>Save progress (.stitch)</button>
+        <label class="export-menu__item export-menu__file">Load progress (.stitch)<input class="export-menu__input" type="file" accept=".stitch" data-role="progress-file-input" disabled></label>
+      </div>
+    </details>
     <label class="file-picker">
       <span class="file-picker__label">Choose image</span>
       <input class="file-picker__input" type="file" accept="image/*" data-role="file-input">

@@ -61,6 +61,24 @@ describe('progress markup', () => {
     assert.ok(dialog.indexOf('keep-progress') < dialog.indexOf('confirm-lose-progress'), 'Keep comes first');
   });
 
+  it('has the shared Export menu right after the title, before Choose image', () => {
+    const header = /<header\b[\s\S]*?<\/header>/.exec(html)[0];
+    const title = header.indexOf('<h1 class="app-header__title">');
+    const menu = header.indexOf('<details class="export-menu" data-role="export-menu">');
+    const picker = header.indexOf('<label class="file-picker">');
+    assert.ok(title !== -1 && menu !== -1 && picker !== -1, 'title, menu and picker exist');
+    assert.ok(title < menu && menu < picker, 'the menu sits between the title and the picker');
+    assert.match(header, /<\/h1>\n {4}<details class="export-menu" data-role="export-menu">/);
+    assert.match(header, /<summary class="export-menu__toggle">Export<\/summary>/);
+  });
+
+  it('offers only this change\'s two progress items in the Export menu, both disabled', () => {
+    const items = /<div class="export-menu__items"[^>]*>([\s\S]*?)<\/div>/.exec(html)[1];
+    assert.match(items, /<button class="export-menu__item" type="button" data-action="export-progress" disabled>Save progress \(\.stitch\)<\/button>/);
+    assert.match(items, /<label class="export-menu__item export-menu__file">Load progress \(\.stitch\)<input class="export-menu__input" type="file" accept="\.stitch" data-role="progress-file-input" disabled><\/label>/);
+    assert.doesNotMatch(items, /export-pdf|export-xlsx/);
+  });
+
   it('tells screen readers how to mark stitches in the frame', () => {
     const label = /aria-label="([^"]*)"/.exec(tagWith('data-role="viewer"'))[1];
     assert.match(label, /Progress view/);
