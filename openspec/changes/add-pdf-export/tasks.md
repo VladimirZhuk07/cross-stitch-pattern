@@ -208,7 +208,7 @@
   - a rejected `encodePictures` → `Could not create the PDF: …`.
 
   Verify it fails.
-- [ ] 9.3 Implement `src/ui/pdf-export.js` (design D11); verify 9.2 passes
+- [x] 9.3 Implement `src/ui/pdf-export.js` (design D11); verify 9.2 passes
 - [ ] 9.4 Append the PDF export group at the end of `src/main.js`, with a one-line comment. It creates the PDF worker, the client, `encodePdfPictures` and `downloadBlob`. Verify `tests/integration/served-site.test.js` reaches `pdf.worker.js` and all new modules with 200 and relative `.js` imports.
 
 ## 10. Verification
