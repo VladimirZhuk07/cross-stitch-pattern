@@ -55,7 +55,7 @@ first, keep the existing files: they must already be identical.
   - `CREATING_WORKBOOK_TEXT` = `Creating Excel workbook…`;
   - `formatWorkbookReady('cat.xlsx')` = `Excel workbook ready: cat.xlsx`;
   - `formatWorkbookError('out of memory')` = `Could not create the Excel workbook: out of memory`.
-- [ ] 4.4 Implement `src/core/xlsx-limits.js`; verify 4.3 passes
+- [x] 4.4 Implement `src/core/xlsx-limits.js`; verify 4.3 passes
 
 ## 5. Sheets and package (core)
 
