@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_FABRIC_COUNT, FABRIC_COUNTS, MAX_PATTERN_COLORS, buildPattern, compareDmcCodes, finishedSize, legendEntryAt } from '../../../src/core/pattern.js';
+import { DEFAULT_FABRIC_COUNT, FABRIC_COUNTS, MAX_PATTERN_COLORS, buildPattern, compareDmcCodes, finishedSize, legendEntryAt, patternFingerprint } from '../../../src/core/pattern.js';
 import { DMC_COLORS } from '../../../src/data/dmc.js';
 
 // Hex values are test fixtures, not palette data.
@@ -441,5 +441,20 @@ describe('pattern fingerprint', () => {
   it('survives structured cloning', () => {
     const pattern = build();
     assert.equal(structuredClone(pattern).fingerprint, pattern.fingerprint);
+  });
+});
+
+describe('patternFingerprint', () => {
+  it('is what buildPattern stores, from size, cells and legend codes only', () => {
+    const pattern = buildPattern({ width: 3, height: 2, cells: [0, 1, 1, -1, 1, 0], colors: [RED, BLACK, WHITE] });
+    assert.equal(patternFingerprint(3, 2, pattern.cells, pattern.legend), pattern.fingerprint);
+    const renamed = pattern.legend.map((entry) => ({ ...entry, name: 'Other name', hex: '#123456', stitchCount: 99 }));
+    assert.equal(patternFingerprint(3, 2, pattern.cells, renamed), pattern.fingerprint);
+  });
+
+  it('pads small hashes to 14 digits', () => {
+    for (let width = 1; width <= 40; width++) {
+      assert.equal(patternFingerprint(width, 1, new Int16Array(width).fill(-1), []).length, 14);
+    }
   });
 });

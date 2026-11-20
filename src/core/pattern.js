@@ -44,6 +44,9 @@ const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
 //                  Treat it as read-only.
 //   legend         LegendEntry list in number order: most stitches first, equal counts
 //                  ordered by compareDmcCodes.
+//   fingerprint    14 lowercase hex digits identifying the pattern: a 53-bit hash of width,
+//                  height, cells and the legend's DMC codes (see patternFingerprint). The same
+//                  input always gives the same fingerprint; saved progress is matched by it.
 //   Plain data: safe for structuredClone/postMessage; transfer cells.buffer to avoid a copy.
 
 // Builds a Pattern from a PatternInput: counts stitches, drops unused colors, merges colors
@@ -59,7 +62,56 @@ export function buildPattern(input) {
   checkColors(colors);
   const stitchCounts = countStitchesPerColor(cells, width, colors.length);
   const legend = buildLegend(colors, stitchCounts);
-  return { width, height, cells: remapCells(cells, legend.legendIndexOfColor), legend: legend.entries };
+  const patternCells = remapCells(cells, legend.legendIndexOfColor);
+  return {
+    width,
+    height,
+    cells: patternCells,
+    legend: legend.entries,
+    fingerprint: patternFingerprint(width, height, patternCells, legend.entries),
+  };
+}
+
+// Version of what the fingerprint hashes; a change of the inputs must change this tag.
+const FINGERPRINT_FORMAT = 1;
+const FINGERPRINT_HEX_DIGITS = 14; // 53 bits
+const HIGH_BITS_MASK = 0x1fffff; // the 21 high bits of a 53-bit result
+const TWO_TO_32 = 2 ** 32;
+
+/**
+ * The fingerprint of a pattern: cyrb53 (a public-domain 53-bit hash by bryc, built on
+ * Math.imul) over the format tag, width, height, every cell (legend index or −1) and the
+ * character codes of each legend code followed by 0. Names, hex colors and stitch counts follow
+ * from codes and cells and are not hashed. Returns 14 lowercase hex digits.
+ * cells  Int16Array of legend indexes (as built by buildPattern); legend  LegendEntry list
+ */
+export function patternFingerprint(width, height, cells, legend) {
+  let h1 = 0xdeadbeef;
+  let h2 = 0x41c6ce57;
+  const add = (value) => {
+    h1 = Math.imul(h1 ^ value, 2654435761);
+    h2 = Math.imul(h2 ^ value, 1597334677);
+  };
+  add(FINGERPRINT_FORMAT);
+  add(width);
+  add(height);
+  for (let index = 0; index < cells.length; index++) {
+    // Inlined add(): this loop runs once per stitch, up to 100 million times.
+    h1 = Math.imul(h1 ^ cells[index], 2654435761);
+    h2 = Math.imul(h2 ^ cells[index], 1597334677);
+  }
+  for (const entry of legend) {
+    for (let index = 0; index < entry.code.length; index++) {
+      add(entry.code.charCodeAt(index));
+    }
+    add(0);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const hash = TWO_TO_32 * (HIGH_BITS_MASK & h2) + (h1 >>> 0);
+  return hash.toString(16).padStart(FINGERPRINT_HEX_DIGITS, '0');
 }
 
 // Turns the used input colors into numbered legend entries. Also returns, for every input
