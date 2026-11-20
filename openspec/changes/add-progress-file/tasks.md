@@ -50,7 +50,7 @@
 
 ## 4. Save progress first in the dialog (ui, markup)
 
-- [ ] 4.1 Add failing tests to `tests/integration/progress-warning.test.js` (extend the fake dialog with the new button and note) and verify they fail. Cover:
+- [x] 4.1 Add failing tests to `tests/integration/progress-warning.test.js` (extend the fake dialog with the new button and note) and verify they fail. Cover:
   - without `saveFirst` the button is hidden;
   - with it the button shows; pressing it calls `saveFirst` once, disables the button while it runs, then shows `Saved cat.stitch.`, keeps the dialog open and leaves the answer pending;
   - a rejecting `saveFirst` shows `Could not save the progress file.`;
