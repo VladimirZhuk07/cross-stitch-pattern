@@ -102,13 +102,14 @@ with a `Close` button. No page SHALL be written and nothing SHALL be downloaded.
 
 ### Requirement: The export shows its progress and can be cancelled
 While the PDF is created, the dialog SHALL show a progress bar from 0 to 100 % of the pages
-written and a `Cancel` button. The page stays responsive. `Cancel` or Esc SHALL stop the work at
+written and a `Cancel` button. The page stays responsive: the work runs off the main thread, and the
+modal dialog keeps the settings and the image unchanged meanwhile. `Cancel` or Esc SHALL stop the work at
 once, download nothing and close the dialog. When the PDF is ready, it SHALL be downloaded and the
 dialog SHALL close. A failure SHALL show `Could not create the PDF: <reason>` with a `Close` button.
 
 #### Scenario: Progress of an 806-page PDF
 - **WHEN** the 806-page PDF is being created and 403 pages are written
-- **THEN** the progress bar shows 50 %, and the view frame still pans and zooms
+- **THEN** the progress bar shows 50 %, and the page keeps drawing frames (no gap of a quarter second), while the modal dialog keeps input away from the page behind it
 
 #### Scenario: Cancel
 - **WHEN** the user presses `Cancel` while the 806-page PDF is being created

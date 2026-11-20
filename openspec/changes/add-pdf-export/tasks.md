@@ -222,7 +222,7 @@
     - the legend page has the tinted number boxes, swatches, codes, names and counts;
     - chart pages have tints, black numbers, grey hatched empty cells, thin and bold lines, rulers with absolute numbers, the centre triangles, the header and `Page n of N`.
   - Print chart page 1 on A4 at 100 % scale: the cells measure 3.2 mm, the numbers are readable, and nothing is clipped.
-  - Width 500 on a tall photo (more than 100 pages): the question appears; `Cancel` exports nothing; `Create PDF` shows progress while the view still pans; the download works.
+  - Width 500 on a tall photo (more than 100 pages): the question appears; `Cancel` exports nothing; `Create PDF` shows progress while the page keeps drawing frames (the modal dialog blocks panning behind it); the download works.
   - Width 2000 (a square photo): the too-large text appears and nothing downloads. Width 1600 (around 800 pages): `Cancel` mid-way stops at once with no download. Run it again to the end and note the file size and the time in the report.
   - A file named with Cyrillic letters: the pages show `?`, and the document title in the viewer shows the real name.
   - Phone width 360 px: the Export menu and the dialog fit with no horizontal scroll. Keyboard: Tab to `Export`, Enter, Tab to `PDF chart`, Enter; Esc cancels the dialog. Print preview of the app hides the Export menu. No console errors.
