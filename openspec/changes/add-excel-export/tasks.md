@@ -99,7 +99,7 @@ first, keep the existing files: they must already be identical.
 
 ## 6. Export format integration tests
 
-- [ ] 6.1 Add `tests/helpers/unzip.js`. It:
+- [x] 6.1 Add `tests/helpers/unzip.js`. It:
   - parses an archive from its EOCD;
   - checks that local and central headers agree;
   - inflates with `zlib.inflateRawSync`;
