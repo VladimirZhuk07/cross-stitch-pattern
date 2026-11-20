@@ -59,7 +59,7 @@
   - `background_color` = `--color-bg`, and `theme_color` = `--color-surface` = the
     `theme-color` meta tag (read from `styles/main.css` and `index.html`);
   - `index.html` has the five head lines of design D4 and no `href="data:,"`.
-- [ ] 3.3 Create `manifest.webmanifest` and replace the `data:,` icon in `index.html` with the
+- [x] 3.3 Create `manifest.webmanifest` and replace the `data:,` icon in `index.html` with the
   head lines of design D4. Verify that 3.2 passes.
 
 ## 4. Finding the app's files (core) and the served-site test

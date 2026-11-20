@@ -1,0 +1,16 @@
+{
+  "name": "Cross-Stitch Pattern Maker",
+  "short_name": "Cross-Stitch",
+  "description": "Turn an image into a cross-stitch pattern with DMC floss colors, on your device.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F4F0",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
