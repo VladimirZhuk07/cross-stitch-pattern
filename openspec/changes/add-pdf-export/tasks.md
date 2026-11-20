@@ -226,4 +226,4 @@
   - Width 2000 (a square photo): the too-large text appears and nothing downloads. Width 1600 (around 800 pages): `Cancel` mid-way stops at once with no download. Run it again to the end and note the file size and the time in the report.
   - A file named with Cyrillic letters: the pages show `?`, and the document title in the viewer shows the real name.
   - Phone width 360 px: the Export menu and the dialog fit with no horizontal scroll. Keyboard: Tab to `Export`, Enter, Tab to `PDF chart`, Enter; Esc cancels the dialog. Print preview of the app hides the Export menu. No console errors.
-- [ ] 10.4 Run `openspec validate add-pdf-export --strict`; it passes
+- [x] 10.4 Run `openspec validate add-pdf-export --strict`; it passes
