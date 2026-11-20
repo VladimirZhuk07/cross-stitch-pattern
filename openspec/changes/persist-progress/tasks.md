@@ -40,7 +40,7 @@
 ## 3. Storage and persistence (io, ui)
 
 - [x] 3.1 Create `src/io/progress-store.js` (design D3) with a header comment (one record, fixed key, why IndexedDB); verify `tests/integration/served-site.test.js` passes once it is imported (task 3.4)
-- [ ] 3.2 Write failing `tests/integration/progress-persistence.test.js` with fake timers (`node:test` `mock.timers`), the real store, a fake note, a fake warning, and an in-memory fake of the `{ load, save, clear }` store. Cover:
+- [x] 3.2 Write failing `tests/integration/progress-persistence.test.js` with fake timers (`node:test` `mock.timers`), the real store, a fake note, a fake warning, and an in-memory fake of the `{ load, save, clear }` store. Cover:
   - three toggles within 1 s → one save after 500 ms with the right record;
   - unmarking the last stitch → `clear`;
   - a page-hidden event flushes at once;
