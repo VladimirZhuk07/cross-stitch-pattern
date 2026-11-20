@@ -125,7 +125,7 @@
 
   Verify they fail.
 - [x] 5.6 Implement `src/core/pdf-legend-pages.js` (design D4); verify 5.5 passes
-- [ ] 5.7 Add failing tests `tests/unit/core/pdf-page-map.test.js`:
+- [x] 5.7 Add failing tests `tests/unit/core/pdf-page-map.test.js`:
   - the 120 × 90 diagram: 6 tiles numbered 1–6 row-major, column ranges `1–50`, `51–100`, `101–120`, row ranges `1–80`, `81–90`;
   - the 750 × 2000 diagram: 15 × 25 tiles, each label inside its tile or header;
   - the 1000 × 1000 table: 2 pages, 224 entries on the first, first entry `1` `1–50` `1–80`, last `260` `951–1000` `961–1000`, and the headings `Page map` / `Page map (continued)`.
