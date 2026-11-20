@@ -149,7 +149,7 @@
   - standalone → never shown;
   - the iOS user agent → hint text with `Got it` and no `Install`;
   - a storage write that returns false → the bar hides, and there is no error.
-- [ ] 7.4 Implement `src/ui/install-offer.js` (design D9) and verify that 7.3 passes
+- [x] 7.4 Implement `src/ui/install-offer.js` (design D9) and verify that 7.3 passes
 
 ## 8. Markup, styles and wiring
 
