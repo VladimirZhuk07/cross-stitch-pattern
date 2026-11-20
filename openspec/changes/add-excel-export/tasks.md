@@ -136,7 +136,7 @@ first, keep the existing files: they must already be identical.
   - rejects with `The Excel worker stopped: …` on `error`/`messageerror`;
   - terminates the worker in every case;
   - ignores messages with another id.
-- [ ] 7.4 Implement `src/io/xlsx-worker-client.js`; verify 7.3 passes
+- [x] 7.4 Implement `src/io/xlsx-worker-client.js`; verify 7.3 passes
 - [ ] 7.5 Implement `src/io/summary-pictures.js`, `encodeSummaryPictures(image, pattern)` (design D7, using `fitInside`, `stitchBlockSize`, `patternToStitchImage`; header comment on why PNG and the main thread). It is not unit-tested (canvas); it is covered by the smoke check. Verify the served-site test passes once it is imported (task 8.4).
 
 ## 8. Menu, dialog and UI (index.html, CSS, ui, main.js)
