@@ -2,7 +2,7 @@
 
 ## 1. Pattern fingerprint (core)
 
-- [ ] 1.1 Add failing tests to `tests/unit/core/pattern.test.js` for `fingerprint`:
+- [x] 1.1 Add failing tests to `tests/unit/core/pattern.test.js` for `fingerprint`:
   - the 3 × 2 pattern built twice → equal, matching `^[0-9a-f]{14}$`;
   - cell 3 set to `0` → different;
   - colors `[326, 310, BLANC]` → different;

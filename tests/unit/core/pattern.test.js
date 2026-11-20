@@ -408,3 +408,38 @@ describe('finishedSize', () => {
     });
   }
 });
+
+describe('pattern fingerprint', () => {
+  // The pattern-model spec's 3 × 2 example: colors [321, 310, BLANC], cells [0, 1, 1, -1, 1, 0].
+  const PURPLE_RED = { code: '326', name: 'Rose Very Dark', hex: '#B33B4B' };
+  const build = (overrides = {}) => buildPattern({ width: 3, height: 2, cells: [0, 1, 1, -1, 1, 0], colors: [RED, BLACK, WHITE], ...overrides });
+
+  it('is the same 14 lowercase hex digits for the same input', () => {
+    const first = build().fingerprint;
+    assert.match(first, /^[0-9a-f]{14}$/);
+    assert.equal(build().fingerprint, first);
+  });
+
+  it('changes when one cell changes', () => {
+    assert.notEqual(build({ cells: [0, 1, 1, 0, 1, 0] }).fingerprint, build().fingerprint);
+  });
+
+  it('changes when another DMC code takes the same place', () => {
+    assert.notEqual(build({ colors: [PURPLE_RED, BLACK, WHITE] }).fingerprint, build().fingerprint);
+  });
+
+  it('changes when the same cells form another size', () => {
+    assert.notEqual(build({ width: 2, height: 3 }).fingerprint, build().fingerprint);
+  });
+
+  it('exists for a pattern without stitches', () => {
+    const empty = buildPattern({ width: 2, height: 2, cells: [-1, -1, -1, -1], colors: [BLACK] });
+    assert.match(empty.fingerprint, /^[0-9a-f]{14}$/);
+    assert.notEqual(empty.fingerprint, build().fingerprint);
+  });
+
+  it('survives structured cloning', () => {
+    const pattern = build();
+    assert.equal(structuredClone(pattern).fingerprint, pattern.fingerprint);
+  });
+});
