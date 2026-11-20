@@ -219,7 +219,11 @@ server and an in-memory fake of `caches`:
 - `install()`:
   - runs `collectAppFiles(scopeUrl, scopeUrl, …)`;
   - each fetch uses `cache: 'no-cache'`, so it revalidates instead of trusting the HTTP cache;
-  - the responses are kept in a map;
+  - the responses are kept in a map, and each body is read as soon as its response arrives
+    (`response.clone().arrayBuffer()`): a browser holds a connection until the body is read and
+    opens only six per host, so responses kept unread until `put` would stall the remaining
+    requests for good. The browser smoke check found this; Node's `fetch` does not show it, so
+    `service-worker.test.js` models a browser with two connections;
   - only when every one succeeded with a cacheable response are they all `put` into the
     current cache;
   - otherwise it rejects, and the browser discards the new worker and retries on a later
