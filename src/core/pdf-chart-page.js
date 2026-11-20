@@ -259,6 +259,7 @@ function headerAndFooter(area, pageNumber, chartPages, fileName) {
   const range = `Columns ${area.columnStart + 1}–${area.columnEnd} · rows ${area.rowStart + 1}–${area.rowEnd}`;
   const footer = `Page ${pageNumber} of ${chartPages}`;
   return [
+    '0 g',
     textAt(name, FONT_REGULAR, HEADER_SIZE, GRID_LEFT_MM, HEADER_BASELINE_MM),
     textAt(range, FONT_REGULAR, HEADER_SIZE, HEADER_RIGHT_MM, HEADER_BASELINE_MM, 'right'),
     textAt(footer, FONT_REGULAR, FOOTER_SIZE, FOOTER_CENTRE_MM, FOOTER_BASELINE_MM, 'center'),

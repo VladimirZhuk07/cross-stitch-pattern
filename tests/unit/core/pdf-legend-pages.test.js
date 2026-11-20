@@ -40,6 +40,7 @@ describe('legendPageContents', () => {
     assert.deepEqual(numbers.map((text) => text.text), ['1', '2']);
     const counts = page.texts.filter((text) => text.size === 9 && text.x > 150 * MM);
     assert.deepEqual(counts.map((text) => text.text), ['3', '2']);
+    assert.ok(page.texts.every((text) => text.color === '#000000'), 'all texts black');
   });
 
   it('places the first row box 10 × 4 mm at x 10 mm with grey borders and a centred number', () => {
