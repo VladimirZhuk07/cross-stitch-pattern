@@ -31,7 +31,7 @@
 
   Verify they fail.
 - [x] 3.2 Implement the encoding and string functions in `src/core/pdf-text.js` (design D3); verify 3.1 passes
-- [ ] 3.3 Add failing tests for `textWidth` and `fitText`:
+- [x] 3.3 Add failing tests for `textWidth` and `fitText`:
   - digits are 556 in both fonts;
   - `textWidth('489', 'F1', 4.08)` ≈ 6.805;
   - space 278, `W` 944, `i` 222; Bold `W` 944, `i` 278;
