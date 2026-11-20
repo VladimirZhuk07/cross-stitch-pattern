@@ -21,7 +21,7 @@
 - [x] 1.6 Implement `src/core/png.js` using `crc32` from `src/core/crc32.js` and
   `compressBytes(raw, 'deflate')` from `src/core/compression.js` (design D2). It has no CRC or
   compressor of its own. Verify that 1.5 passes.
-- [ ] 1.7 Write failing `tests/unit/core/app-icon.test.js` and verify that it fails. Cover:
+- [x] 1.7 Write failing `tests/unit/core/app-icon.test.js` and verify that it fails. Cover:
   - `renderIcon(512, 'any')` is 512 × 512 with 786,432 bytes;
   - pixel (0, 0) is fabric or weave, and (256, 234) is red `#C72B3B`;
   - the heart is ≥ 360 px wide in `any`;
