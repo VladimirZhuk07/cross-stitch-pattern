@@ -358,9 +358,12 @@ The markup goes right after `</main>`, before the progress dialog:
   - `Install` is filled with the accent color, like `Choose image`. `Not now` is outlined.
   - `.install-offer[hidden] { display: none; }` is needed because `display: flex` would
     otherwise beat the `hidden` attribute.
-- **Compact screens** (the existing compact media query): the icon is hidden, the text is
-  0.875rem, and the buttons are `min-height`/`min-width: var(--touch-target)`. On coarse
-  pointers the buttons are added to the existing 44 px list. At 360 px the row is the text
+- **Compact screens** (the same condition as the existing compact media query): the icon is
+  hidden, the text is 0.875rem, and the buttons are `min-height`/`min-width: var(--touch-target)`.
+  On coarse pointers the buttons get the same 44 px minimum. Both rules sit in their own
+  `@media` blocks inside the install-offer section appended at the end of `main.css`, rather
+  than in the existing selector lists, so the parallel changes that edit those lists merge
+  without conflicts. At 360 px the row is the text
   (about 160 px, two lines of about 40 px) and the two buttons (about 170 px). Its height is
   44 + 2 × 8 + 1 = 61 px, under the 64 px of the spec. In compact landscape, the body is
   already `100dvh` and `.app-main` is a grid, so the bar's 61 px come out of the frame row
