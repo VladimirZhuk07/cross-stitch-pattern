@@ -141,7 +141,7 @@ first, keep the existing files: they must already be identical.
 
 ## 8. Menu, dialog and UI (index.html, CSS, ui, main.js)
 
-- [ ] 8.1 Write a failing `tests/integration/export-menu-markup.test.js`, then verify it fails. It checks:
+- [x] 8.1 Write a failing `tests/integration/export-menu-markup.test.js`, then verify it fails. It checks:
   - `index.html` contains the shared `<details class="export-menu" data-role="export-menu">` block right after the `<h1>`, with `<button class="export-menu__item" type="button" data-action="export-xlsx" disabled>Excel workbook</button>` (items in the conventions' order if others exist);
   - the `xlsx-warning` dialog with title `Large workbook`, text paragraph, `Cancel` (autofocus) and `Create workbook`;
   - `styles/main.css` contains the shared block right after the `.file-picker:has(.file-picker__input:focus-visible)` rule;
