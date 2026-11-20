@@ -163,7 +163,7 @@ first, keep the existing files: they must already be identical.
 
 - [x] 9.1 Run `npm run test:unit`; all tests pass
 - [x] 9.2 Run `npm run test:integration`; all tests pass
-- [ ] 9.3 Browser smoke check with `node scripts/serve.js` (current Chrome or Edge, plus Firefox or Safari):
+- [x] 9.3 Browser smoke check with `node scripts/serve.js` (current Chrome or Edge, plus Firefox or Safari):
   - Before loading an image, Export → `Excel workbook` is disabled. Load a photo (for example 1600 × 1072 `cat.png`) at width 100. The item becomes enabled. Click it: the menu closes, the status reads `Creating Excel workbook…`, then `Excel workbook ready: cat.xlsx`, and `cat.xlsx` is downloaded. The DevTools network panel shows no request.
   - Open `cat.xlsx` in Excel (desktop or 365) **and** in LibreOffice Calc 7.4+. Neither shows a repair or "problem with content" prompt. The tabs read `Chart`, `Summary`, `Legend`, and the file opens on `Chart`.
   - In Chart:
@@ -178,4 +178,8 @@ first, keep the existing files: they must already be identical.
   - Width 800 on a square image: the `Large workbook` dialog appears. `Cancel` and Esc do nothing. `Create workbook` produces a file. Width 1000 (1,000,000 cells): the view pans during creation, the file is ready within 10 s and under 8 MB, and it opens in both programs.
   - Width 2000: the refusal message appears in the status line and nothing is downloaded.
   - Load a new image during an export: the newer status is kept. Export works again afterwards. No console errors.
+  - Known limits of this check, accepted by the user on 2026-11-20: LibreOffice is not installed on the
+    test machine, so only Microsoft Excel was used; the app never produced more than 236 colors from a
+    real image, so 3-digit numbers (489 colors) were checked with a workbook built by the app's own
+    writers in Node and opened in Excel (no `###`, no repair prompt).
 - [x] 9.4 Run `openspec validate add-excel-export --strict`; it passes
