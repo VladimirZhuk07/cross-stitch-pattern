@@ -73,7 +73,7 @@
     worker → its imports, HTML → CSS, and manifest → icons; it visits a cycle once; it skips
     `data:` and out-of-scope URLs; it returns sorted absolute URLs including leaves; a
     rejected `readText` rejects.
-- [ ] 4.2 Create `src/core/app-files.js` with the moved extractors and the new functions
+- [x] 4.2 Create `src/core/app-files.js` with the moved extractors and the new functions
   (design D5). Delete `tests/helpers/site-references.js` and point
   `tests/integration/served-site.test.js` at core. Verify that 4.1 and the served-site test
   pass.

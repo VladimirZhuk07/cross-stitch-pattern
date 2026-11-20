@@ -10,7 +10,7 @@ import {
   extractJsReferences,
   extractCssReferences,
   isRelativeReference,
-} from '../helpers/site-references.js';
+} from '../../src/core/app-files.js';
 
 const BASE_PATH = '/cross-stitch-pattern/';
 
