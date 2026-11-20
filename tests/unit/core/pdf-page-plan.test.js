@@ -10,6 +10,12 @@ import {
   MAP_ENTRIES_PER_PAGE,
   MAX_PDF_PAGES,
   chartPageArea,
+  formatPdfConfirm,
+  formatPdfError,
+  formatPdfRunning,
+  formatPdfTooLarge,
+  isPdfTooLarge,
+  needsPdfConfirmation,
   planPdfPages,
 } from '../../../src/core/pdf-page-plan.js';
 
@@ -119,5 +125,46 @@ describe('chartPageArea', () => {
     for (const pageNumber of [0, 7, 1.5, -1, NaN]) {
       assert.throws(() => chartPageArea(plan, pattern, pageNumber), RangeError, String(pageNumber));
     }
+  });
+});
+
+describe('needsPdfConfirmation and isPdfTooLarge', () => {
+  it('asks above 100 pages', () => {
+    assert.equal(needsPdfConfirmation({ totalPages: 100 }), false);
+    assert.equal(needsPdfConfirmation({ totalPages: 102 }), true);
+  });
+
+  it('refuses above 1000 pages and allows exactly 1000', () => {
+    assert.equal(isPdfTooLarge({ totalPages: 1000 }), false);
+    assert.equal(isPdfTooLarge({ totalPages: 1001 }), true);
+  });
+});
+
+describe('export dialog texts', () => {
+  it('names the page counts while the PDF is created', () => {
+    assert.equal(formatPdfRunning(planPdfPages(fakePattern(450, 800))), 'Creating the PDF: 92 pages (90 chart pages)…');
+    assert.equal(formatPdfRunning(planPdfPages(fakePattern(3, 2, 2))), 'Creating the PDF: 3 pages (1 chart page)…');
+  });
+
+  it('asks before a large PDF', () => {
+    assert.equal(
+      formatPdfConfirm(planPdfPages(fakePattern(500, 800))),
+      'This PDF will have 102 pages (100 chart pages). Large PDFs take a while to create and print. Create it?',
+    );
+  });
+
+  it('explains why a PDF is too large, with thousands separators', () => {
+    assert.equal(
+      formatPdfTooLarge(planPdfPages(fakePattern(2000, 2000))),
+      'This pattern needs 1,007 PDF pages, but a PDF can have at most 1,000. Choose a smaller width to export a PDF.',
+    );
+    assert.equal(
+      formatPdfTooLarge(planPdfPages(fakePattern(10000, 10000))),
+      'This pattern needs 25,114 PDF pages, but a PDF can have at most 1,000. Choose a smaller width to export a PDF.',
+    );
+  });
+
+  it('reports a failure with its reason', () => {
+    assert.equal(formatPdfError('JPEG encoding failed'), 'Could not create the PDF: JPEG encoding failed');
   });
 });
