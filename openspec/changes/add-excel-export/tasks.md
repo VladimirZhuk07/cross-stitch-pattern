@@ -30,7 +30,7 @@ first, keep the existing files: they must already be identical.
   - a method-8 entry keeps its `size` as the uncompressed size;
   - names `''`, `/a.xml`, `ä.xml` throw `TypeError`;
   - 65,536 entries throw `RangeError`.
-- [ ] 3.2 Implement `zipArchive` in `src/core/zip.js`; verify 3.1 passes
+- [x] 3.2 Implement `zipArchive` in `src/core/zip.js`; verify 3.1 passes
 - [ ] 3.3 Add failing tests for `buildZip(files, { useCompression })`, then verify they fail. Cover:
   - string-chunk content gets the UTF-8 bytes' CRC and size;
   - `shouldCompress: true` (default `useCompression`, i.e. `canCompress()`) → method 8, and `zlib.inflateRawSync` gives the bytes back;
