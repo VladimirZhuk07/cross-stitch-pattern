@@ -7,7 +7,7 @@ import { assertClose } from '../../helpers/assert-close.js';
 import { readContent } from '../../helpers/pdf-reader.js';
 import { buildPattern } from '../../../src/core/pattern.js';
 import { planPdfPages } from '../../../src/core/pdf-page-plan.js';
-import { chartPageContent } from '../../../src/core/pdf-chart-page.js';
+import { chartPageContent, legendTints } from '../../../src/core/pdf-chart-page.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
 const BLACK = { code: '310', name: 'Black', hex: '#000000' };
@@ -106,5 +106,11 @@ describe('chartPageContent cells', () => {
     assertClose(left, 85.04, 0.01, 'left');
     assertClose(right, 85.04 + 20 * CELL, 0.01, 'right');
     assert.equal(cellNumbers(page).length, 20 * 80);
+  });
+});
+
+describe('legendTints', () => {
+  it('gives the pale tint of every legend entry by legend index', () => {
+    assert.deepEqual(legendTints(smallPattern()), ['#B0B0B0', '#FFC0BB']);
   });
 });

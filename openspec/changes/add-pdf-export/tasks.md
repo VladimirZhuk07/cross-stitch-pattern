@@ -105,7 +105,7 @@
   - page 3 of 120 × 90 starts at x 85.04.
 
   Verify they fail.
-- [ ] 5.2 Implement the fills, hatch and numbers of `chartPageContent` in `src/core/pdf-chart-page.js` (design D7); verify 5.1 passes
+- [x] 5.2 Implement the fills, hatch and numbers of `chartPageContent` in `src/core/pdf-chart-page.js` (design D7); verify 5.1 passes
 - [ ] 5.3 Add failing tests for lines, rulers, the centre and the header and footer:
   - 120 × 90 page 3: 3 bold and 18 thin vertical lines, 9 bold and 72 thin horizontal ones, with widths 0.9 and 0.3;
   - 23 × 12: bold at 0, 10, 20, 23 and at 0, 10, 12;
