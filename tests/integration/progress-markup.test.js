@@ -81,11 +81,16 @@ describe('progress markup', () => {
     assert.match(header, /<summary class="export-menu__toggle">Export<\/summary>/);
   });
 
-  it('offers only this change\'s two progress items in the Export menu, both disabled', () => {
+  it('offers the two progress items, disabled, last in the Export menu (after any export items)', () => {
     const items = /<div class="export-menu__items"[^>]*>([\s\S]*?)<\/div>/.exec(html)[1];
     assert.match(items, /<button class="export-menu__item" type="button" data-action="export-progress" disabled>Save progress \(\.stitch\)<\/button>/);
     assert.match(items, /<label class="export-menu__item export-menu__file">Load progress \(\.stitch\)<input class="export-menu__input" type="file" accept="\.stitch" data-role="progress-file-input" disabled><\/label>/);
-    assert.doesNotMatch(items, /export-pdf|export-xlsx/);
+    // The shared menu order is PDF, Excel, Save progress, Load progress; other changes add the first two.
+    const order = ['export-pdf', 'export-xlsx', 'export-progress', 'progress-file-input']
+      .map((hook) => items.indexOf(hook))
+      .filter((position) => position !== -1);
+    assert.deepEqual(order, [...order].sort((a, b) => a - b));
+    assert.ok(items.trimEnd().endsWith('</label>'), 'Load progress is the last item');
   });
 
   it('tells screen readers how to mark stitches in the frame', () => {
