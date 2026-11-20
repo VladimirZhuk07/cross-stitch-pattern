@@ -2,7 +2,7 @@
 
 ## 1. Shared modules, PNG encoding and icon design (core)
 
-- [ ] 1.1 Add `tests/unit/core/crc32.test.js` byte for byte from section 8 of
+- [x] 1.1 Add `tests/unit/core/crc32.test.js` byte for byte from section 8 of
   `shared-export-conventions.md`. Run `node --test tests/unit/core/crc32.test.js` and verify
   that it fails because the module is missing.
 - [ ] 1.2 Add `src/core/crc32.js` byte for byte from section 8 and verify that 1.1 passes
