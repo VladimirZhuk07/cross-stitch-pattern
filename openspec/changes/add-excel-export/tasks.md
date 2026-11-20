@@ -20,7 +20,7 @@ first, keep the existing files: they must already be identical.
   - `columnName` 1 → `A`, 26 → `Z`, 27 → `AA`, 52 → `AZ`, 702 → `ZZ`, 703 → `AAA`, 10000 → `NTP`, 16384 → `XFD`;
   - `columnName(0)` and `columnName(16385)` throw `RangeError` naming the value;
   - `cellReference(3, 2)` → `C2`.
-- [ ] 2.2 Implement `src/core/xml.js`; verify 2.1 passes
+- [x] 2.2 Implement `src/core/xml.js`; verify 2.1 passes
 
 ## 3. ZIP writer (core)
 
