@@ -5,12 +5,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer } from '../../scripts/serve.js';
-import {
-  extractHtmlReferences,
-  extractJsReferences,
-  extractCssReferences,
-  isRelativeReference,
-} from '../../src/core/app-files.js';
+import { referencesOf, isRelativeReference } from '../../src/core/app-files.js';
 
 const BASE_PATH = '/cross-stitch-pattern/';
 
@@ -18,7 +13,21 @@ const EXPECTED_CONTENT_TYPES = {
   '.html': 'text/html',
   '.js': 'text/javascript',
   '.css': 'text/css',
+  '.webmanifest': 'application/manifest+json',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
 };
+
+// Files the install support needs: the manifest and every icon (app-install spec).
+const INSTALL_FILES = [
+  'manifest.webmanifest',
+  'icons/favicon-32.png',
+  'icons/favicon.svg',
+  'icons/apple-touch-icon.png',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
+  'icons/icon-maskable-512.png',
+];
 
 function extensionOf(url) {
   const pathname = new URL(url).pathname;
@@ -27,19 +36,6 @@ function extensionOf(url) {
   }
   const dot = pathname.lastIndexOf('.');
   return dot === -1 ? '' : pathname.slice(dot);
-}
-
-function referencesIn(extension, body) {
-  if (extension === '.html') {
-    return extractHtmlReferences(body);
-  }
-  if (extension === '.js') {
-    return extractJsReferences(body);
-  }
-  if (extension === '.css') {
-    return extractCssReferences(body);
-  }
-  return [];
 }
 
 /**
@@ -66,7 +62,7 @@ async function crawl(startUrl) {
     }
 
     const kind = extensionOf(url);
-    for (const reference of referencesIn(kind, body)) {
+    for (const reference of referencesOf(url, body)) {
       const resolved = new URL(reference, url).href;
       references.push({ from: url, reference, resolved, kind });
       if (reference.startsWith('data:') || seen.has(resolved)) {
@@ -103,7 +99,13 @@ describe('served site under a GitHub Pages-like sub-path', () => {
     assert.deepEqual(failed.map((resource) => `${resource.status} ${resource.url}`), []);
   });
 
-  it('sends the right content type for html, js and css files', () => {
+  it('reaches the manifest and every icon file', () => {
+    const reached = new Set(site.resources.map((resource) => resource.url));
+    const missing = INSTALL_FILES.filter((file) => !reached.has(new URL(file, server.url).href));
+    assert.deepEqual(missing, []);
+  });
+
+  it('sends the right content type for html, js, css, manifest, png and svg files', () => {
     const wrong = site.resources.filter((resource) => {
       const expected = EXPECTED_CONTENT_TYPES[extensionOf(resource.url)];
       return expected !== undefined && !resource.contentType.startsWith(expected);

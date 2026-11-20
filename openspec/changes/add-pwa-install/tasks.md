@@ -77,7 +77,7 @@
   (design D5). Delete `tests/helpers/site-references.js` and point
   `tests/integration/served-site.test.js` at core. Verify that 4.1 and the served-site test
   pass.
-- [ ] 4.3 Extend `served-site.test.js`:
+- [x] 4.3 Extend `served-site.test.js`:
   - follow `.webmanifest` references through `referencesOf`;
   - expect `application/manifest+json` for `.webmanifest`, `image/png` for `.png` and
     `image/svg+xml` for `.svg`;
