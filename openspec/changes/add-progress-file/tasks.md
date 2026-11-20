@@ -95,7 +95,7 @@
 
 ## 7. Verification
 
-- [ ] 7.1 Run `npm run test:unit`; all tests pass
+- [x] 7.1 Run `npm run test:unit`; all tests pass
 - [ ] 7.2 Run `npm run test:integration`; all tests pass
 - [ ] 7.3 Browser smoke check with `node scripts/serve.js` (desktop width and a 360 px phone viewport in DevTools):
   - Before an image: `Export` opens with both progress items disabled.
