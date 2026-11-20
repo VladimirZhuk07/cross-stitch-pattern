@@ -46,7 +46,7 @@
 
 ## 3. Browser glue (io)
 
-- [ ] 3.1 Create `src/io/progress-file.js` with `downloadProgressFile(bytes, fileName, doc)` (uses `downloadBlob`, type `application/octet-stream`) and `readFileBytes(file)` (design D3), with header comments; it is checked by served-site once imported (task 6.5)
+- [x] 3.1 Create `src/io/progress-file.js` with `downloadProgressFile(bytes, fileName, doc)` (uses `downloadBlob`, type `application/octet-stream`) and `readFileBytes(file)` (design D3), with header comments; it is checked by served-site once imported (task 6.5)
 
 ## 4. Save progress first in the dialog (ui, markup)
 
