@@ -93,8 +93,12 @@ describe('progress file saver', () => {
   });
 });
 
-// Lets pending promise callbacks run.
-const settle = () => new Promise((resolve) => setImmediate(resolve));
+// Lets pending promise callbacks and the (de)compression streams run: they need several turns.
+async function settle() {
+  for (let turn = 0; turn < 20; turn++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+}
 
 // The Export menu of index.html with this change's two items, as fake elements.
 function createMenuDom() {
