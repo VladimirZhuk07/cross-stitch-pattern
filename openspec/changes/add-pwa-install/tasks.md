@@ -119,7 +119,7 @@
     (`service-worker.js` is added to this check in 6.3, when it exists).
 - [x] 6.2 Implement `src/workers/service-worker-handler.js` (`install`, `refresh`, `activate`,
   `respond`; design D6) and verify that 6.1 passes
-- [ ] 6.3 Create `service-worker.js` at the root (module entry, design D6, header comment with
+- [x] 6.3 Create `service-worker.js` at the root (module entry, design D6, header comment with
   the rollback note), and add it to the string-literal check of `service-worker.test.js`.
   Create `src/io/service-worker-registration.js` (design D7). Verify that
   `served-site.test.js` follows the `new URL('../../service-worker.js', import.meta.url)`

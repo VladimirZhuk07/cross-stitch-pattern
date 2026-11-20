@@ -271,8 +271,9 @@ describe('service worker sources', () => {
   // A string literal starting with a slash or http would point outside the GitHub Pages sub-path.
   const ABSOLUTE_LITERAL = /(['"`])(\/|http)/;
 
-  it('src/workers/service-worker-handler.js has no absolute string literal', async () => {
-    const source = await repoText('src/workers/service-worker-handler.js');
-    assert.doesNotMatch(source, ABSOLUTE_LITERAL);
-  });
+  for (const path of ['service-worker.js', 'src/workers/service-worker-handler.js']) {
+    it(`${path} has no absolute string literal`, async () => {
+      assert.doesNotMatch(await repoText(path), ABSOLUTE_LITERAL);
+    });
+  }
 });
