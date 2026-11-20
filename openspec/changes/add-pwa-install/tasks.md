@@ -97,7 +97,7 @@
     `data:…`;
   - `isCacheableResponse`: true only for status 200 with type `basic` (false for 404, 206 and
     `opaque`).
-- [ ] 5.2 Implement `src/core/offline-cache.js` (design D6, pure rules) and verify that 5.1
+- [x] 5.2 Implement `src/core/offline-cache.js` (design D6, pure rules) and verify that 5.1
   passes
 
 ## 6. Service worker (workers, io)
