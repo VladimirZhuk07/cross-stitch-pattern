@@ -63,7 +63,7 @@
   - `dmcPictureScale` → 12 for 100 × 67, 400 for 3 × 2, and 1 (downscaled to 1200 × 960) for 2000 × 1600.
 
   Verify they fail.
-- [ ] 3.8 Implement `src/core/pdf-pictures.js` (design D9); verify 3.7 passes
+- [x] 3.8 Implement `src/core/pdf-pictures.js` (design D9); verify 3.7 passes
 - [ ] 3.9 Add failing tests `tests/unit/core/pdf-content.test.js` for the content builder:
   - `fillColor('#FFC0BB')` → `1 0.753 0.733 rg`;
   - a rect in mm-from-top coordinates becomes PDF points from the bottom (x 30 mm, y 23 mm, 3.2 mm → `85.04 767.62 9.07 9.07 re`);
