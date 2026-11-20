@@ -107,4 +107,4 @@
   - Load a renamed `.png` as `x.stitch`: `it is not a progress file (.stitch).` Load a `.stitch` with its last bytes cut off (e.g. with a hex editor or `head -c`): `the file is damaged.`
   - Load `dog.png`, then tap the first stitch: the replace question shows `Save progress first`, and pressing it downloads `cat.stitch` from the saved record.
   - 4000-wide pattern: mark, save, reload, load the file back within a few seconds. Keyboard: Tab to `Export`, open it with Enter, Tab to both items, and focus is visible. Print preview hides the menu. No console errors.
-- [ ] 7.4 Run `openspec validate add-progress-file --strict`; it passes
+- [x] 7.4 Run `openspec validate add-progress-file --strict`; it passes
