@@ -12,6 +12,7 @@ import {
   MAX_PROGRESS_FILE_BYTES,
   encodeProgressFile,
   decodeProgressFile,
+  ProgressFileError,
 } from '../../../src/core/progress-file.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -181,5 +182,94 @@ describe('decodeProgressFile', () => {
     const copy = bytes.slice();
     await decodeProgressFile(bytes, pattern);
     assert.deepEqual(bytes, copy);
+  });
+});
+
+// Asserts that promise rejects with a ProgressFileError of the reason (and the extra fields).
+async function assertProgressFileError(promise, reason, fields = {}) {
+  await assert.rejects(promise, (error) => {
+    assert.ok(error instanceof ProgressFileError, `expected ProgressFileError, got ${error}`);
+    assert.ok(error instanceof Error);
+    assert.equal(error.reason, reason);
+    for (const [name, value] of Object.entries(fields)) {
+      assert.equal(error[name], value, name);
+    }
+    return true;
+  });
+}
+
+// A valid file of the 3 × 2 pattern with cells 0 and 4 stitched.
+async function validThreeByTwoFile(pattern) {
+  return encodeProgressFile(fileInput(progressWith(pattern, [0, 4])));
+}
+
+describe('decodeProgressFile errors', () => {
+  it('refuses files shorter than the header', async () => {
+    await assertProgressFileError(decodeProgressFile(new Uint8Array(29), threeByTwoPattern()), 'not-progress-file');
+  });
+
+  it('refuses files without the magic, such as a text file', async () => {
+    const notes = new TextEncoder().encode('Buy more floss: 310, 321, BLANC. Start the border on Sunday.');
+    await assertProgressFileError(decodeProgressFile(notes, threeByTwoPattern()), 'not-progress-file');
+  });
+
+  it('refuses files over MAX_PROGRESS_FILE_BYTES, even with a valid header', async () => {
+    const pattern = threeByTwoPattern();
+    const huge = new Uint8Array(MAX_PROGRESS_FILE_BYTES + 1);
+    huge.set(await validThreeByTwoFile(pattern));
+    await assertProgressFileError(decodeProgressFile(huge, pattern), 'not-progress-file');
+  });
+
+  it('tells a newer format version from a damaged one', async () => {
+    const pattern = threeByTwoPattern();
+    const data = await compressBytes(Uint8Array.of(0x11), 'deflate');
+    const header = { width: 3, height: 2, fingerprint: pattern.fingerprint, data };
+    await assertProgressFileError(decodeProgressFile(handMadeFile({ ...header, version: 2 }), pattern), 'newer-version');
+    await assertProgressFileError(decodeProgressFile(handMadeFile({ ...header, version: 0 }), pattern), 'damaged');
+  });
+
+  it('refuses a file of another size and names that size', async () => {
+    const pattern = solidPattern(100, 67);
+    const data = await compressBytes(new Uint8Array(1200), 'deflate');
+    const bytes = handMadeFile({ width: 120, height: 80, fingerprint: pattern.fingerprint, data });
+    await assertProgressFileError(decodeProgressFile(bytes, pattern), 'other-pattern', { fileWidth: 120, fileHeight: 80 });
+  });
+
+  it('refuses a file of the same size with another fingerprint', async () => {
+    const pattern = threeByTwoPattern();
+    const data = await compressBytes(Uint8Array.of(0x11), 'deflate');
+    const bytes = handMadeFile({ width: 3, height: 2, fingerprint: '0123456789abcd', data });
+    await assertProgressFileError(decodeProgressFile(bytes, pattern), 'other-pattern', { fileWidth: 3, fileHeight: 2 });
+  });
+
+  it('reports a cut-short stream as damaged', async () => {
+    const pattern = threeByTwoPattern();
+    const bytes = await validThreeByTwoFile(pattern);
+    await assertProgressFileError(decodeProgressFile(bytes.subarray(0, bytes.length - 3), pattern), 'damaged');
+  });
+
+  it('reports junk bytes after the stream as damaged', async () => {
+    const pattern = threeByTwoPattern();
+    const bytes = await validThreeByTwoFile(pattern);
+    const withJunk = new Uint8Array(bytes.length + 2);
+    withJunk.set(bytes);
+    withJunk.set([0xde, 0xad], bytes.length);
+    await assertProgressFileError(decodeProgressFile(withJunk, pattern), 'damaged');
+  });
+
+  it('reports bits one byte short as damaged', async () => {
+    const pattern = threeByTwoPattern();
+    const data = await compressBytes(new Uint8Array(0), 'deflate');
+    const bytes = handMadeFile({ width: 3, height: 2, fingerprint: pattern.fingerprint, data });
+    await assertProgressFileError(decodeProgressFile(bytes, pattern), 'damaged');
+  });
+
+  it('stops a stream that would inflate to 10 MB as damaged, quickly', async () => {
+    const pattern = threeByTwoPattern();
+    const data = await compressBytes(new Uint8Array(10 * 1024 * 1024), 'deflate');
+    const bytes = handMadeFile({ width: 3, height: 2, fingerprint: pattern.fingerprint, data });
+    const started = performance.now();
+    await assertProgressFileError(decodeProgressFile(bytes, pattern), 'damaged');
+    assert.ok(performance.now() - started < 1000, 'stopped by the length guard');
   });
 });

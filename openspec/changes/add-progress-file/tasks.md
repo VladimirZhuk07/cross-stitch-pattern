@@ -27,7 +27,7 @@
   - a file whose bits set empty cell 3 and padding bit 7 marks only the real cells and recounts;
   - the input bytes are not modified.
 - [x] 2.4 Implement the header parsing, the `decompressBytes(data, 'deflate', expectedLength)` call and the `restoreProgress` reuse (design D2); no stream code of its own; verify 2.3 passes
-- [ ] 2.5 Write failing tests for `ProgressFileError` reasons and verify they fail. Cover:
+- [x] 2.5 Write failing tests for `ProgressFileError` reasons and verify they fail. Cover:
   - fewer than 30 bytes, wrong magic and `MAX_PROGRESS_FILE_BYTES + 1` bytes → `'not-progress-file'`;
   - version 2 → `'newer-version'`, version 0 → `'damaged'`;
   - width 120 / height 80 against a 100 × 67 pattern → `'other-pattern'` with `fileWidth` 120 and `fileHeight` 80;
