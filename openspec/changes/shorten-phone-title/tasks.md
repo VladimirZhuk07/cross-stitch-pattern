@@ -2,7 +2,7 @@
 
 ## 1. Markup and styles
 
-- [ ] 1.1 Add a failing test to `tests/integration/layout-css.test.js`: `styles/main.css` has a `@media screen and (width < 32rem)` block in which `.app-header__title-rest` is visually hidden (`position: absolute`, `clip-path: inset(50%)`) and `.app-header` has `gap: var(--space-1)`; verify it fails
+- [x] 1.1 Add a failing test to `tests/integration/layout-css.test.js`: `styles/main.css` has a `@media screen and (width < 32rem)` block in which `.app-header__title-rest` is visually hidden (`position: absolute`, `clip-path: inset(50%)`) and `.app-header` has `gap: var(--space-1)`; verify it fails
 - [ ] 1.2 Change the h1 in `index.html` to `Cross-Stitch<span class="app-header__title-rest"> Pattern Maker</span>`, add the CSS block (design D1–D3), and update the h1 expectations in `tests/integration/export-menu-markup.test.js`, `pdf-export-markup.test.js` and `progress-markup.test.js` (the heading text is still `Cross-Stitch Pattern Maker`); verify 1.1 and `npm run test:integration` pass
 
 ## 2. Verification

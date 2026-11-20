@@ -126,3 +126,27 @@ describe('side panel stylesheet', () => {
     assert.ok(declarations.some((text) => /display:\s*none/.test(text)), '.side-toggle { display: none }');
   });
 });
+
+describe('short header title on narrow screens', () => {
+  let block;
+
+  before(async () => {
+    const mainCss = await readFile(MAIN_CSS_URL, 'utf8');
+    block = splitMediaBlocks(mainCss).blocks.find((candidate) => candidate.condition === 'screen and (width < 32rem)');
+  });
+
+  it('has one block for screens narrower than 32rem', () => {
+    assert.ok(block, '@media screen and (width < 32rem) exists');
+  });
+
+  it('hides the rest of the title visually, keeping it for screen readers', () => {
+    const rest = declarationsFor(block.body, '.app-header__title-rest').join(';');
+    assert.match(rest, /position:\s*absolute/);
+    assert.match(rest, /clip-path:\s*inset\(50%\)/);
+    assert.doesNotMatch(rest, /display:\s*none/);
+  });
+
+  it('narrows the header gap to make room for "Cross-Stitch"', () => {
+    assert.ok(declarationsFor(block.body, '.app-header').some((text) => /gap:\s*var\(--space-1\)/.test(text)));
+  });
+});
