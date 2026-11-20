@@ -3,6 +3,9 @@
 // Layout: PKWARE APPNOTE.TXT 6.3.x, §4.3 (local file header, data, central directory, end of
 // central directory record).
 
+import { canCompress, compressBytes } from './compression.js';
+import { crc32 } from './crc32.js';
+
 const LOCAL_HEADER_SIGNATURE = 0x04034b50;
 const CENTRAL_HEADER_SIGNATURE = 0x02014b50;
 const END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;
@@ -69,6 +72,57 @@ export function zipArchive(entries) {
     offset = writeCentralHeader(view, offset, entries[index], names[index], localOffsets[index]);
   }
   writeEndOfCentralDirectory(view, offset, entries.length, centralLength, localLength);
+  return out;
+}
+
+// ZipFile, the input of buildZip:
+//   name            the entry name (see ZipEntry)
+//   content         a Uint8Array, or an iterable of strings (e.g. a generator of XML chunks)
+//                   that is encoded as UTF-8 one chunk at a time
+//   shouldCompress  true to deflate the entry when compression is used (XML), false to store
+//                   it (PNGs, which are compressed already)
+
+/**
+ * Builds a ZIP archive from files (a list of ZipFile, in archive order): encodes each file,
+ * computes its CRC-32 and size, deflates it with the platform's CompressionStream when both
+ * shouldCompress and useCompression are true, and lays out the archive with zipArchive.
+ * options.useCompression  default canCompress(); false stores every entry (still a valid ZIP)
+ * Resolves to a new Uint8Array; rejects with the errors of zipArchive.
+ */
+export async function buildZip(files, { useCompression = canCompress() } = {}) {
+  const entries = [];
+  for (const file of files) {
+    const bytes = file.content instanceof Uint8Array ? file.content : encodeChunks(file.content);
+    const isDeflated = file.shouldCompress === true && useCompression;
+    entries.push({
+      name: file.name,
+      method: isDeflated ? METHOD_DEFLATE : METHOD_STORED,
+      crc: crc32(bytes),
+      size: bytes.length,
+      data: isDeflated ? await compressBytes(bytes, 'deflate-raw') : bytes,
+    });
+  }
+  return zipArchive(entries);
+}
+
+// Encodes string chunks into one Uint8Array. The text is never joined into one string (a large
+// chart sheet would be tens of MB of UTF-16); the encoded chunks are copied together once.
+function encodeChunks(chunks) {
+  const encoder = new TextEncoder();
+  const parts = [];
+  let length = 0;
+  for (const chunk of chunks) {
+    const part = encoder.encode(chunk);
+    parts.push(part);
+    length += part.length;
+  }
+  const out = new Uint8Array(length);
+  let offset = 0;
+  for (let index = 0; index < parts.length; index++) {
+    out.set(parts[index], offset);
+    offset += parts[index].length;
+    parts[index] = null; // lets the collector free each chunk once it is copied
+  }
   return out;
 }
 

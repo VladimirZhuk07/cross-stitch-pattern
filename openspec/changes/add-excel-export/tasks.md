@@ -37,7 +37,7 @@ first, keep the existing files: they must already be identical.
   - `useCompression: false` → every entry method 0;
   - `Uint8Array` content with `shouldCompress: false` is stored unchanged;
   - two runs give byte-identical archives.
-- [ ] 3.4 Implement `buildZip` using `compressBytes(bytes, 'deflate-raw')` from `src/core/compression.js` (design D2); verify 3.3 passes and `src/core/zip.js` stays under ~300 lines
+- [x] 3.4 Implement `buildZip` using `compressBytes(bytes, 'deflate-raw')` from `src/core/compression.js` (design D2); verify 3.3 passes and `src/core/zip.js` stays under ~300 lines
 
 ## 4. Workbook styles and limits (core)
 
