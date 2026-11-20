@@ -78,7 +78,7 @@ first, keep the existing files: they must already be identical.
   - `summarySheetXml(summaryLines(…), layout, styles)` has A1:B3 as inline strings with bold labels, A5/A24 bold captions, `<drawing r:id="rId1"/>` after `pageMargins`;
   - `summaryDrawingXml(layout)` has two `xdr:oneCellAnchor` with `from` col 0 / row 5 and col 0 / row 24, `ext cx="4572000" cy="3067050"`, `r:embed` `rId1`/`rId2`, `cNvPr` ids 2 and 3 with the captions;
   - text is escaped.
-- [ ] 5.6 Implement `src/core/xlsx-summary-sheet.js` (design D7); verify 5.5 passes
+- [x] 5.6 Implement `src/core/xlsx-summary-sheet.js` (design D7); verify 5.5 passes
 - [ ] 5.7 Write failing `tests/unit/core/xlsx-legend-sheet.test.js`, then verify it fails. Cover:
   - 3 × 2 pattern → header row with bold `No.` … `Stitches`;
   - row 2 = number 1 (legend number style 0), swatch style 0 without a value, inline `310`, inline `Black`, number 3 with `COUNT_STYLE`;

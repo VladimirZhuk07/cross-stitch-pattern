@@ -61,3 +61,14 @@ export const RELATIONSHIPS_NAMESPACE = 'http://schemas.openxmlformats.org/office
 
 /** Excel's default page margins in inches; every worksheet writes them after its sheetData. */
 export const WORKSHEET_PAGE_MARGINS = '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>';
+
+/**
+ * A worksheet cell holding text as an inline string (no shared-strings part needed).
+ * reference  e.g. 'A1'; text  any string (escaped here); style  cell format index or omitted.
+ * Leading or trailing spaces are kept with xml:space="preserve".
+ */
+export function inlineStringCell(reference, text, style = null) {
+  const styleAttribute = style === null ? '' : ` s="${style}"`;
+  const space = text.trim() === text ? '' : ' xml:space="preserve"';
+  return `<c r="${reference}"${styleAttribute} t="inlineStr"><is><t${space}>${escapeXml(text)}</t></is></c>`;
+}
