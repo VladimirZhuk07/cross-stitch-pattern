@@ -183,7 +183,7 @@
   - a new export after a stop starts a new worker.
 
   Verify it fails.
-- [ ] 7.4 Implement `src/io/pdf-worker-client.js`; verify 7.3 passes
+- [x] 7.4 Implement `src/io/pdf-worker-client.js`; verify 7.3 passes
 
 ## 8. Pictures (io)
 
