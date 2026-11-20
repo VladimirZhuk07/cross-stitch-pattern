@@ -1,17 +1,27 @@
 # Tasks
 
-## 1. Icon design and PNG encoding (core)
+## 1. Shared modules, PNG encoding and icon design (core)
 
-- [ ] 1.1 Write failing `tests/unit/core/png.test.js` and verify that it fails. Cover:
-  - `crc32` of `IEND` → `0xAE426082`, and equality with `zlib.crc32` on 1 KB of bytes;
-  - `encodePng` of a 2 × 1 RGB image with `zlib.deflateSync`: the signature, the IHDR fields
-    (2, 1, depth 8, color type 2, 0, 0, 0), a valid CRC for every chunk, IEND last, and
-    inflated IDAT = `[0, r,g,b, r,g,b]`;
+- [ ] 1.1 Add `tests/unit/core/crc32.test.js` byte for byte from section 8 of
+  `shared-export-conventions.md`. Run `node --test tests/unit/core/crc32.test.js` and verify
+  that it fails because the module is missing.
+- [ ] 1.2 Add `src/core/crc32.js` byte for byte from section 8 and verify that 1.1 passes
+- [ ] 1.3 Add `tests/unit/core/compression.test.js` byte for byte from section 7 of
+  `shared-export-conventions.md`. Run `node --test tests/unit/core/compression.test.js` and
+  verify that it fails because the module is missing.
+- [ ] 1.4 Add `src/core/compression.js` byte for byte from section 7 and verify that 1.3 passes
+- [ ] 1.5 Write failing `tests/unit/core/png.test.js` and verify that it fails. Cover:
+  - `await encodePng(...)` of a 2 × 1 RGB image: the signature, the IHDR fields (2, 1, depth 8,
+    color type 2, 0, 0, 0), IEND last, and `inflateSync` of the IDAT = `[0, r,g,b, r,g,b]`;
+  - every chunk's CRC equals `zlib.crc32` over its type and data, and the IEND CRC is
+    `0xAE426082`;
   - `readPngHeader` reads the IHDR back and throws for a wrong signature or a first chunk other
     than IHDR;
-  - `encodePng` throws a `RangeError` when `rgb.length` ≠ width × height × 3.
-- [ ] 1.2 Implement `src/core/png.js` (design D2) and verify that 1.1 passes
-- [ ] 1.3 Write failing `tests/unit/core/app-icon.test.js` and verify that it fails. Cover:
+  - `encodePng` rejects with a `RangeError` when `rgb.length` ≠ width × height × 3.
+- [ ] 1.6 Implement `src/core/png.js` using `crc32` from `src/core/crc32.js` and
+  `compressBytes(raw, 'deflate')` from `src/core/compression.js` (design D2). It has no CRC or
+  compressor of its own. Verify that 1.5 passes.
+- [ ] 1.7 Write failing `tests/unit/core/app-icon.test.js` and verify that it fails. Cover:
   - `renderIcon(512, 'any')` is 512 × 512 with 786,432 bytes;
   - pixel (0, 0) is fabric or weave, and (256, 234) is red `#C72B3B`;
   - the heart is ≥ 360 px wide in `any`;
@@ -22,8 +32,8 @@
   - two calls give equal bytes;
   - `iconSvg()` has `viewBox="0 0 32 32"`, 1 + 49 `<rect>`s, and no `http` other than the SVG
     namespace.
-- [ ] 1.4 Implement `src/core/app-icon.js` (design D1: grid, colors, layouts, X geometry, 4 × 4
-  supersampling, `iconSvg`) and verify that 1.3 passes
+- [ ] 1.8 Implement `src/core/app-icon.js` (design D1: grid, colors, layouts, X geometry, 4 × 4
+  supersampling, `iconSvg`) and verify that 1.7 passes
 
 ## 2. Icon files
 

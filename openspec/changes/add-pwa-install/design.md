@@ -94,23 +94,40 @@ favicon sharp at any zoom. The PNG favicon is there for browsers without SVG fav
   user asked for pixel art.
 - Reusing `buildPattern` on a tiny image: rejected. It couples the icon to the DMC matcher.
 
-### D2. PNG encoding (core, `src/core/png.js`)
+### D2. PNG encoding (core, `src/core/png.js`, shared `src/core/crc32.js` and `src/core/compression.js`)
 
-- `crc32(bytes)`: the table-driven CRC-32 of the PNG specification (ISO 3309, PNG spec annex
-  D).
-- `encodePng(image, deflate)` writes the PNG for an IconImage, as a `Uint8Array`:
-  - the signature;
-  - `IHDR`: width, height, bit depth 8, color type 2 (RGB), compression 0, filter 0,
-    interlace 0;
-  - one `IDAT`: `deflate(raw)`, where each row is a filter byte 0 followed by its pixels;
-  - `IEND`.
-- `readPngHeader(bytes)` returns `{ width, height, bitDepth, colorType }`, and throws for a bad
-  signature or a first chunk other than `IHDR`. The integration tests use it to read icon sizes.
+Two shared modules are added byte for byte as in sections 7 and 8 of
+`shared-export-conventions.md`, together with their unit tests. The export changes add the same
+files: `add-excel-export` adds `crc32.js`, and all three export changes add `compression.js`.
+Whichever change merges first adds them, and the others' copies are then identical, so a merge
+has nothing to resolve.
+- `crc32(bytes, previous)` from `src/core/crc32.js` is the IEEE CRC-32 that PNG chunks use (PNG
+  spec annex D). `png.js` has no CRC of its own.
+- `compressBytes(bytes, 'deflate')` from `src/core/compression.js` writes zlib format
+  (RFC 1950), which is exactly what a PNG `IDAT` holds. It uses the standard
+  `CompressionStream`, which Node 22 also has, so `core/` imports no Node module and no
+  compressor needs to be passed in.
 
-`deflate` is passed in (the script passes `zlib.deflateSync` with level 9), because `core/` may
-not import Node or browser APIs. Writing our own deflate would add code for nothing. RGB only:
-the icons are opaque, and iOS paints transparent touch-icon pixels black. Filter 0 only: the
-files stay small (large flat areas), and a decoder for the tests is trivial.
+`encodePng(image)` resolves to the PNG of an IconImage as a `Uint8Array`. It is async because
+`compressBytes` is. The PNG holds:
+- the signature;
+- `IHDR`: width, height, bit depth 8, color type 2 (RGB), compression 0, filter 0, interlace 0;
+- one `IDAT`: `await compressBytes(raw, 'deflate')`, where each row of `raw` is a filter byte 0
+  followed by its pixels;
+- `IEND`.
+
+Each chunk's CRC is `crc32` over its type and data.
+
+`readPngHeader(bytes)` returns `{ width, height, bitDepth, colorType }`, and throws for a bad
+signature or a first chunk other than `IHDR`. The integration tests use it to read icon sizes.
+
+Trade-offs:
+- **Compression level.** `CompressionStream` offers no level setting, and its default level
+  makes the icons a few hundred bytes larger than zlib level 9 would. That does not matter for
+  six small, mostly flat icons, and it is not worth a third compression path in the code base.
+- **RGB only.** The icons are opaque, and iOS paints transparent touch-icon pixels black.
+- **Filter 0 only.** The files stay small (large flat areas), and a decoder for the tests is
+  trivial.
 
 ### D3. Generator script (dev only, `scripts/make-icons.js`)
 
@@ -119,8 +136,9 @@ committed. It imports `src/core/app-icon.js` and `src/core/png.js`, and writes t
 the spec into `icons/` with `node:fs`. The browser never loads it. The test
 `tests/integration/app-icons.test.js` decodes each committed PNG (inflate, filter-0 rows; helper
 `tests/helpers/png-pixels.js`) and compares its pixels with `renderIcon`. A changed grid without
-regenerated files fails there. Pixels are compared, not file bytes, because zlib's byte output
-may differ between Node versions.
+regenerated files fails there. Pixels are compared, not file bytes, because the compressed byte
+output may differ between Node versions. The script awaits `encodePng`, and the only Node module
+it uses is `node:fs` (and `node:url` for paths).
 
 ### D4. Manifest (`manifest.webmanifest`, `scripts/serve.js`)
 
@@ -349,9 +367,10 @@ The markup goes right after `</main>`, before the progress dialog:
 - **Unit (`tests/unit/core/`):**
   - `app-icon.test.js`: sizes, layouts, centre and corner pixels, the maskable circle, and
     square favicon spans; the SVG has 49 stitch rects;
-  - `png.test.js`: `crc32` against known values (`IEND` → `0xAE426082`) and against
-    `zlib.crc32` (in the test only); `encodePng` signature, IHDR bytes, chunk CRCs, and a
-    round trip through `inflateSync`; `readPngHeader` errors;
+  - `crc32.test.js` and `compression.test.js`: the shared tests, byte for byte;
+  - `png.test.js`: the `encodePng` signature, IHDR bytes, chunk CRCs (checked with
+    `zlib.crc32` in the test, including `IEND` → `0xAE426082`), a round trip through
+    `inflateSync`, and `readPngHeader` errors;
   - `app-files.test.js`: the moved extractors, the manifest extractor, `referencesOf`, and
     `collectAppFiles` with a map-based fake `readText` (cycles, scope filter, `data:`,
     rejection);

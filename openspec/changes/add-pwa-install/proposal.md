@@ -51,7 +51,8 @@ are missing offline.
 
 - New files:
   - root: `manifest.webmanifest`, `service-worker.js`, `icons/*`, `scripts/make-icons.js`;
-  - core: `app-icon.js`, `png.js`, `app-files.js` (extractors moved from
+  - core: `crc32.js` and `compression.js` (shared byte for byte with the export changes),
+    `app-icon.js`, `png.js`, `app-files.js` (extractors moved from
     `tests/helpers/site-references.js`), `offline-cache.js`, `install-offer.js`;
   - other layers: `workers/service-worker-handler.js`, `io/service-worker-registration.js`,
     `ui/install-offer.js`.
