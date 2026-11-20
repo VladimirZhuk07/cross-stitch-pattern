@@ -24,7 +24,7 @@ first, keep the existing files: they must already be identical.
 
 ## 3. ZIP writer (core)
 
-- [ ] 3.1 Write failing `tests/unit/core/zip.test.js` for `zipArchive`, then verify it fails. Cover:
+- [x] 3.1 Write failing `tests/unit/core/zip.test.js` for `zipArchive`, then verify it fails. Cover:
   - one stored entry `a.txt` = `hi` → the exact expected bytes: local header `50 4B 03 04`, version 20, method 0, time 0, date `0x0021`, CRC, sizes 2/2, name, data, central directory, EOCD with 1 entry and the right offsets (written out byte by byte in the test);
   - two entries → the second local header offset equals the first header + name + data;
   - a method-8 entry keeps its `size` as the uncompressed size;
