@@ -7,6 +7,7 @@ import { assertClose } from '../../helpers/assert-close.js';
 import { readContent } from '../../helpers/pdf-reader.js';
 import { buildPattern } from '../../../src/core/pattern.js';
 import { planPdfPages } from '../../../src/core/pdf-page-plan.js';
+import { textWidth } from '../../../src/core/pdf-text.js';
 import { chartPageContent, legendTints } from '../../../src/core/pdf-chart-page.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -112,5 +113,150 @@ describe('chartPageContent cells', () => {
 describe('legendTints', () => {
   it('gives the pale tint of every legend entry by legend index', () => {
     assert.deepEqual(legendTints(smallPattern()), ['#B0B0B0', '#FFC0BB']);
+  });
+});
+
+const MM = 72 / 25.4;
+const GRID_X = 30 * MM;
+const GRID_Y = 841.89 - 23 * MM;
+
+function lineCounts(page) {
+  const counts = { thinVertical: 0, boldVertical: 0, thinHorizontal: 0, boldHorizontal: 0 };
+  for (const stroke of page.strokes) {
+    if (stroke.color === '#909090') {
+      continue;
+    }
+    const direction = stroke.x1 === stroke.x2 ? 'Vertical' : 'Horizontal';
+    const weight = stroke.color === '#000000' ? 'bold' : 'thin';
+    counts[`${weight}${direction}`] += 1;
+  }
+  return counts;
+}
+
+// Boundaries (in stitches from the pattern's corner) of the vertical or horizontal bold lines.
+function boldBoundaries(page, direction, start) {
+  const bold = page.strokes.filter((stroke) => stroke.color === '#000000');
+  const lines = direction === 'vertical'
+    ? bold.filter((stroke) => stroke.x1 === stroke.x2).map((stroke) => (stroke.x1 - GRID_X) / CELL)
+    : bold.filter((stroke) => stroke.y1 === stroke.y2).map((stroke) => (GRID_Y - stroke.y1) / CELL);
+  return lines.map((offset) => start + Math.round(offset)).sort((a, b) => a - b);
+}
+
+function topLabels(page) {
+  return page.texts.filter((text) => text.size === 6 && text.y > GRID_Y).map((text) => text.text);
+}
+
+function leftLabels(page) {
+  return page.texts.filter((text) => text.size === 6 && text.x < GRID_X && text.y < GRID_Y).map((text) => text.text);
+}
+
+function triangles(page) {
+  return page.fillPaths.filter((path) => path.color === '#000000');
+}
+
+describe('chartPageContent grid lines', () => {
+  it('draws 3 bold and 18 thin vertical, 9 bold and 72 thin horizontal lines on page 3 of 120 × 90', () => {
+    const page = pageOf(patternOfSize(120, 90), 3);
+    assert.deepEqual(lineCounts(page), { thinVertical: 18, boldVertical: 3, thinHorizontal: 72, boldHorizontal: 9 });
+    assert.deepEqual(boldBoundaries(page, 'vertical', 100), [100, 110, 120]);
+  });
+
+  it('draws thin lines 0.3 pt #A0A0A0 and bold lines 0.9 pt black across the page grid', () => {
+    const page = pageOf(patternOfSize(120, 90), 3);
+    for (const stroke of page.strokes.filter((line) => line.color === '#A0A0A0')) {
+      assert.equal(stroke.width, 0.3);
+    }
+    const bold = page.strokes.filter((line) => line.color === '#000000');
+    for (const stroke of bold) {
+      assert.equal(stroke.width, 0.9);
+    }
+    const top = bold.find((stroke) => stroke.y1 === stroke.y2);
+    assertClose(Math.abs(top.x2 - top.x1), 20 * CELL, 0.02, 'horizontal line length');
+  });
+
+  it('draws bold lines at the far edges off the 10-stitch step', () => {
+    const page = pageOf(patternOfSize(23, 12), 1);
+    assert.deepEqual(boldBoundaries(page, 'vertical', 0), [0, 10, 20, 23]);
+    assert.deepEqual(boldBoundaries(page, 'horizontal', 0), [0, 10, 12]);
+  });
+});
+
+describe('chartPageContent rulers and centre', () => {
+  it('labels absolute columns and rows on pages 2 and 4 of 120 × 90', () => {
+    const pattern = patternOfSize(120, 90);
+    const page2 = pageOf(pattern, 2);
+    assert.deepEqual(topLabels(page2), ['50', '60', '70', '80', '90', '100']);
+    assert.deepEqual(leftLabels(page2), ['10', '20', '30', '40', '50', '60', '70', '80']);
+    const page4 = pageOf(pattern, 4);
+    assert.deepEqual(topLabels(page4), ['10', '20', '30', '40', '50']);
+    assert.deepEqual(leftLabels(page4), ['80', '90']);
+  });
+
+  it('centres column labels on their boundary, 2.3 mm above the grid', () => {
+    const label = pageOf(patternOfSize(120, 90), 2).texts.find((text) => text.text === '60' && text.y > GRID_Y);
+    assertClose(label.x + (2 * 556 * 6) / 2000, GRID_X + 10 * CELL, 0.01, 'centre x');
+    assertClose(label.y, GRID_Y + 2.3 * MM, 0.01, 'baseline');
+  });
+
+  it('right-aligns row labels at 27.7 mm, centred on their boundary', () => {
+    const label = pageOf(patternOfSize(120, 90), 1).texts.find((text) => text.text === '10' && text.x < GRID_X);
+    assertClose(label.x + (2 * 556 * 6) / 1000, 27.7 * MM, 0.01, 'right edge');
+    assertClose(label.y + 0.359 * 6, GRID_Y - 10 * CELL, 0.01, 'centre y');
+  });
+
+  it('points triangles at column 60 on pages 2 and 5 and at row 45 on pages 1–3', () => {
+    const pattern = patternOfSize(120, 90);
+    const counts = [1, 2, 3, 4, 5, 6].map((pageNumber) => triangles(pageOf(pattern, pageNumber)).length);
+    assert.deepEqual(counts, [1, 2, 1, 0, 1, 0]);
+    const page2 = triangles(pageOf(pattern, 2));
+    const top = page2.find((path) => path.points.every(([, y]) => y >= GRID_Y - 0.01));
+    const left = page2.find((path) => path.points.every(([x]) => x <= GRID_X + 0.01));
+    const topTip = top.points.find(([, y]) => Math.abs(y - GRID_Y) < 0.01);
+    assertClose(topTip[0], GRID_X + 10 * CELL, 0.01, 'top tip x');
+    const leftTip = left.points.find(([x]) => Math.abs(x - GRID_X) < 0.01);
+    assertClose(leftTip[1], GRID_Y - 45 * CELL, 0.01, 'left tip y');
+  });
+
+  it('makes the triangles 2.4 mm wide and 1.5 mm deep', () => {
+    const [triangle] = triangles(pageOf(patternOfSize(120, 90), 5));
+    const xs = triangle.points.map(([x]) => x);
+    const ys = triangle.points.map(([, y]) => y);
+    assertClose(Math.max(...xs) - Math.min(...xs), 2.4 * MM, 0.02, 'width');
+    assertClose(Math.max(...ys) - Math.min(...ys), 1.5 * MM, 0.02, 'depth');
+  });
+
+  it('fits the 10000 row label of 50 × 10000 page 125 into the left ruler', () => {
+    const pattern = buildPattern({ width: 50, height: 10000, cells: new Int16Array(500000), colors: [RED] });
+    const page = pageOf(pattern, 125);
+    assert.equal(leftLabels(page).at(-1), '10000');
+    const text = page.texts.find((item) => item.text === '10000');
+    assert.ok(text.x >= 21 * MM, `starts at ${text.x / MM} mm`);
+    assertClose(text.x + (5 * 556 * 6) / 1000, 27.7 * MM, 0.01, 'right edge');
+  });
+});
+
+describe('chartPageContent header and footer', () => {
+  it('names the file, the area and the page number on page 6 of 120 × 90', () => {
+    const page = pageOf(patternOfSize(120, 90), 6);
+    const name = page.texts.find((text) => text.text === 'cat.png');
+    assertClose(name.x, GRID_X, 0.01, 'name x');
+    assertClose(name.y, 841.89 - 15.5 * MM, 0.01, 'name baseline');
+    assert.equal(name.size, 8);
+    const area = page.texts.find((text) => text.text === 'Columns 101–120 · rows 81–90');
+    assert.ok(area, 'area text');
+    assertClose(area.x + textWidth(area.text, 'F1', 8), 190 * MM, 0.01, 'area right edge');
+    const footer = page.texts.find((text) => text.text === 'Page 6 of 6');
+    assert.ok(footer, 'footer');
+    assert.equal(footer.size, 9);
+    assertClose(footer.x + textWidth(footer.text, 'F1', 9) / 2, 110 * MM, 0.01, 'footer centre');
+    assertClose(footer.y, 841.89 - 285 * MM, 0.01, 'footer baseline');
+  });
+
+  it('cuts a 200-character file name to 80 mm', () => {
+    const fileName = `${'n'.repeat(196)}.png`;
+    const page = pageOf(patternOfSize(120, 90), 1, fileName);
+    const name = page.texts.find((text) => text.size === 8 && Math.abs(text.x - GRID_X) < 0.01);
+    assert.ok(name.text.endsWith('…'), name.text);
+    assert.ok(textWidth(name.text, 'F1', 8) <= 80 * MM);
   });
 });
