@@ -191,7 +191,7 @@
 
 ## 9. Menu, dialog and wiring (ui)
 
-- [ ] 9.1 Add a failing `tests/integration/pdf-export-markup.test.js` for:
+- [x] 9.1 Add a failing `tests/integration/pdf-export-markup.test.js` for:
   - the shared `<details class="export-menu" data-role="export-menu">` block right after the `<h1>`, with only the `export-pdf` button (disabled, text `PDF chart`);
   - the `pdf-export-dialog` with its title, text, hidden `<progress max="100">` and both buttons;
   - the shared CSS block after the `.file-picker:has(...)` rule, and the `print.css` rule.

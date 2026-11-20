@@ -16,6 +16,7 @@
     <details class="export-menu" data-role="export-menu">
       <summary class="export-menu__toggle">Export</summary>
       <div class="export-menu__items" role="group" aria-label="Export and progress files">
+        <button class="export-menu__item" type="button" data-action="export-pdf" disabled>PDF chart</button>
         <button class="export-menu__item" type="button" data-action="export-xlsx" disabled>Excel workbook</button>
         <button class="export-menu__item" type="button" data-action="export-progress" disabled>Save progress (.stitch)</button>
         <label class="export-menu__item export-menu__file">Load progress (.stitch)<input class="export-menu__input" type="file" accept=".stitch" data-role="progress-file-input" disabled></label>
@@ -184,6 +185,18 @@
     <div class="confirm-dialog__buttons">
       <button type="button" class="confirm-dialog__button" data-action="cancel-xlsx" autofocus>Cancel</button>
       <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-xlsx">Create workbook</button>
+    </div>
+  </dialog>
+
+  <!-- The PDF export (src/ui/pdf-export.js): the page count, the question above 100 pages, the
+       progress and Cancel. Texts and button labels are set per step; Esc closes the modal dialog. -->
+  <dialog class="confirm-dialog" data-role="pdf-export-dialog" aria-labelledby="pdf-export-title" aria-describedby="pdf-export-text">
+    <h2 class="confirm-dialog__title" id="pdf-export-title">PDF chart</h2>
+    <p class="confirm-dialog__text" id="pdf-export-text" data-role="pdf-export-text"></p>
+    <progress class="confirm-dialog__progress" data-role="pdf-export-progress" max="100" value="0" aria-label="PDF pages written" hidden></progress>
+    <div class="confirm-dialog__buttons">
+      <button type="button" class="confirm-dialog__button" data-action="cancel-pdf-export">Cancel</button>
+      <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-pdf-export">Create PDF</button>
     </div>
   </dialog>
 </body>

@@ -527,6 +527,12 @@ body {
   color: #FFFFFF;
 }
 
+/* The PDF export's progress bar (src/ui/pdf-export.js), above the buttons. */
+.confirm-dialog__progress {
+  width: 100%;
+  margin: 0 0 var(--space-4);
+}
+
 /* Legend: the panel next to the frame (shown while a pattern exists) */
 
 .legend {
