@@ -42,7 +42,7 @@
 
   Verify they fail.
 - [x] 3.4 Add the Helvetica and Helvetica-Bold width tables (codes 32–126, from Adobe Core14 AFM, cited in the header) and `textWidth` and `fitText`; verify 3.3 passes
-- [ ] 3.5 Write the read-back helper `tests/helpers/pdf-reader.js` and failing tests in `tests/unit/core/pdf-writer.test.js`. The helper:
+- [x] 3.5 Write the read-back helper `tests/helpers/pdf-reader.js` and failing tests in `tests/unit/core/pdf-writer.test.js`. The helper:
   - `readPdf(bytes)` parses the header, `startxref`, the xref table, the trailer and the objects, and inflates `/FlateDecode` streams with `node:zlib`;
   - `readContent(text)` tokenizes content streams into fills, strokes and texts with positions.
 
