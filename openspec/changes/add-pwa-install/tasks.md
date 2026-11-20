@@ -117,7 +117,7 @@
   - `activate()` deletes only stale names of this scope;
   - the handler source contains no string literal that starts with `/` or `http`
     (`service-worker.js` is added to this check in 6.3, when it exists).
-- [ ] 6.2 Implement `src/workers/service-worker-handler.js` (`install`, `refresh`, `activate`,
+- [x] 6.2 Implement `src/workers/service-worker-handler.js` (`install`, `refresh`, `activate`,
   `respond`; design D6) and verify that 6.1 passes
 - [ ] 6.3 Create `service-worker.js` at the root (module entry, design D6, header comment with
   the rollback note), and add it to the string-literal check of `service-worker.test.js`.
