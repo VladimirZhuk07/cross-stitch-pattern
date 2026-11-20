@@ -51,14 +51,23 @@ describe('progress markup', () => {
     assert.match(html, /data-role="progress-summary"[^>]*><\/output>\s*(<!--[\s\S]*?-->\s*)?<output\b[^>]*data-role="progress-note"/);
   });
 
-  it('has the warning dialog with its text and two buttons, Keep focused first', () => {
+  it('has the warning dialog with its text and three buttons: Keep (focused first), Save progress first, confirm', () => {
     const dialog = warningDialog();
     assert.match(dialog, /^<dialog\b[^>]*class="confirm-dialog"/);
     assert.match(dialog, /<h2\b[^>]*>Your progress will be lost<\/h2>/);
     assert.match(dialog, /<p\b[^>]*data-role="progress-warning-text"[^>]*><\/p>/);
     assert.match(dialog, /<button type="button" class="[^"]*" data-action="keep-progress" autofocus>Keep my progress<\/button>/);
+    assert.match(dialog, /<button type="button" class="confirm-dialog__button" data-action="save-progress-first">Save progress first<\/button>/);
     assert.match(dialog, /<button type="button" class="[^"]*" data-action="confirm-lose-progress">[^<]*<\/button>/);
-    assert.ok(dialog.indexOf('keep-progress') < dialog.indexOf('confirm-lose-progress'), 'Keep comes first');
+    const keep = dialog.indexOf('keep-progress');
+    const saveFirst = dialog.indexOf('save-progress-first');
+    assert.ok(keep < saveFirst && saveFirst < dialog.indexOf('confirm-lose-progress'), 'Keep, Save progress first, confirm');
+    assert.equal(dialog.match(/<button\b/g).length, 3);
+  });
+
+  it('has a hidden, polite line for the saved file right after the dialog text', () => {
+    const dialog = warningDialog();
+    assert.match(dialog, /data-role="progress-warning-text"[^>]*><\/p>\s*<p class="confirm-dialog__note" data-role="progress-warning-note" aria-live="polite" hidden><\/p>/);
   });
 
   it('has the shared Export menu right after the title, before Choose image', () => {

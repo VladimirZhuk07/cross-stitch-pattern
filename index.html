@@ -167,8 +167,10 @@
   <dialog class="confirm-dialog" data-role="progress-warning" aria-labelledby="progress-warning-title" aria-describedby="progress-warning-text">
     <h2 class="confirm-dialog__title" id="progress-warning-title">Your progress will be lost</h2>
     <p class="confirm-dialog__text" id="progress-warning-text" data-role="progress-warning-text"></p>
+    <p class="confirm-dialog__note" data-role="progress-warning-note" aria-live="polite" hidden></p>
     <div class="confirm-dialog__buttons">
       <button type="button" class="confirm-dialog__button" data-action="keep-progress" autofocus>Keep my progress</button>
+      <button type="button" class="confirm-dialog__button" data-action="save-progress-first">Save progress first</button>
       <button type="button" class="confirm-dialog__button confirm-dialog__button--confirm" data-action="confirm-lose-progress">Continue</button>
     </div>
   </dialog>

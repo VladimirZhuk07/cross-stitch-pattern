@@ -478,6 +478,14 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* "Saved cat.stitch." after Save progress first (src/ui/progress-warning.js). */
+.confirm-dialog__note {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
 .confirm-dialog__buttons {
   display: flex;
   flex-wrap: wrap;
