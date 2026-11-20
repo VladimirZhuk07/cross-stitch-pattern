@@ -178,4 +178,4 @@ first, keep the existing files: they must already be identical.
   - Width 800 on a square image: the `Large workbook` dialog appears. `Cancel` and Esc do nothing. `Create workbook` produces a file. Width 1000 (1,000,000 cells): the view pans during creation, the file is ready within 10 s and under 8 MB, and it opens in both programs.
   - Width 2000: the refusal message appears in the status line and nothing is downloaded.
   - Load a new image during an export: the newer status is kept. Export works again afterwards. No console errors.
-- [ ] 9.4 Run `openspec validate add-excel-export --strict`; it passes
+- [x] 9.4 Run `openspec validate add-excel-export --strict`; it passes
