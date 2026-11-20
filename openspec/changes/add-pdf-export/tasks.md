@@ -197,7 +197,7 @@
   - the shared CSS block after the `.file-picker:has(...)` rule, and the `print.css` rule.
 
   Then add the markup and CSS verbatim (conventions sections 1 and 2), the dialog after the existing `<dialog>`, and `.confirm-dialog__progress`. Verify the test passes, along with `layout-css` and the other markup tests.
-- [ ] 9.2 Write failing `tests/integration/pdf-export.test.js` for `setupPdfExport`, with fake DOM elements, a fake client, `encodePictures` and `download`. Cover:
+- [x] 9.2 Write failing `tests/integration/pdf-export.test.js` for `setupPdfExport`, with fake DOM elements, a fake client, `encodePictures` and `download`. Cover:
   - the button is disabled without a pattern and enabled with one;
   - a click closes the menu;
   - 92 pages → the running text, then `download` is called with `cat.pdf` and an `application/pdf` Blob, and the dialog closes;
