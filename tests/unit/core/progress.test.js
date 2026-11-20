@@ -10,6 +10,7 @@ import {
   formatProgressSummary,
   formatSettingsWarning,
   formatImageWarning,
+  toSavedProgress,
 } from '../../../src/core/progress.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -139,5 +140,27 @@ describe('progress warnings', () => {
       formatImageWarning('<b>x</b>.png', 1234, 6700),
       'Load <b>x</b>.png? Your progress on the current pattern (1,234 of 6,700 stitches) will be lost.',
     );
+  });
+});
+
+describe('toSavedProgress', () => {
+  it('keeps everything a later restore needs, with a copy of the bits', () => {
+    const pattern = threeByTwoPattern();
+    const progress = toggleStitch(toggleStitch(createProgress(pattern), 0), 5);
+    const saved = toSavedProgress(progress, 'cat.png', 1700000000000);
+    assert.deepEqual({ ...saved, bits: [...saved.bits] }, {
+      formatVersion: 1,
+      fingerprint: pattern.fingerprint,
+      width: 3,
+      height: 2,
+      bits: [0b00100001],
+      stitchedCount: 2,
+      totalCount: 5,
+      imageName: 'cat.png',
+      savedAt: 1700000000000,
+    });
+    assert.ok(saved.bits instanceof Uint8Array);
+    saved.bits[0] = 0;
+    assert.deepEqual([...progress.bits], [0b00100001], 'the Progress keeps its own bits');
   });
 });

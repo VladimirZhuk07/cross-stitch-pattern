@@ -16,7 +16,7 @@
 
 ## 2. Saved records and texts (core)
 
-- [ ] 2.1 Add failing tests to `tests/unit/core/progress.test.js` for `toSavedProgress(progress, 'cat.png', 1700000000000)`:
+- [x] 2.1 Add failing tests to `tests/unit/core/progress.test.js` for `toSavedProgress(progress, 'cat.png', 1700000000000)`:
   - all fields of design D2;
   - `bits` is a copy (changing it does not change the Progress).
 
