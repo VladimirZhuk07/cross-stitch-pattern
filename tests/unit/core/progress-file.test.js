@@ -4,13 +4,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../../src/core/pattern.js';
-import { createProgress, toggleStitch, toSavedProgress } from '../../../src/core/progress.js';
-import { decompressBytes } from '../../../src/core/compression.js';
+import { createProgress, toggleStitch, toSavedProgress, isStitched } from '../../../src/core/progress.js';
+import { compressBytes, decompressBytes } from '../../../src/core/compression.js';
 import {
   PROGRESS_FILE_EXTENSION,
   PROGRESS_FILE_FORMAT,
   MAX_PROGRESS_FILE_BYTES,
   encodeProgressFile,
+  decodeProgressFile,
 } from '../../../src/core/progress-file.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -109,5 +110,76 @@ describe('encodeProgressFile', () => {
   it('rejects a bits length that does not fit the size', async () => {
     const input = { ...fileInput(createProgress(threeByTwoPattern())), bits: new Uint8Array(2) };
     await assertRejectsWith(encodeProgressFile(input), RangeError, 'bits', '1', '2');
+  });
+});
+
+// The cell indexes stitched in a Progress, in order.
+function stitchedCells(progress) {
+  const cells = [];
+  const cellCount = progress.pattern.width * progress.pattern.height;
+  for (let index = 0; index < cellCount; index++) {
+    if (isStitched(progress, index)) {
+      cells.push(index);
+    }
+  }
+  return cells;
+}
+
+// A .stitch file with a hand-made header and data part (for files the encoder never writes).
+function handMadeFile({ magic = 'STITCH', version = 1, width, height, fingerprint, data }) {
+  const bytes = new Uint8Array(HEADER_LENGTH + data.length);
+  const view = new DataView(bytes.buffer);
+  bytes.set(new TextEncoder().encode(magic).subarray(0, 6), 0);
+  view.setUint16(6, version, true);
+  view.setUint32(8, width, true);
+  view.setUint32(12, height, true);
+  bytes.set(new TextEncoder().encode(fingerprint), 16);
+  bytes.set(data, HEADER_LENGTH);
+  return bytes;
+}
+
+describe('decodeProgressFile', () => {
+  it('round-trips the 3 × 2 pattern into a fresh Progress', async () => {
+    const pattern = threeByTwoPattern();
+    const bytes = await encodeProgressFile(fileInput(progressWith(pattern, [0, 4])));
+    const loaded = await decodeProgressFile(bytes, pattern);
+    assert.equal(loaded.pattern, pattern);
+    assert.deepEqual(stitchedCells(loaded), [0, 4]);
+    assert.equal(loaded.stitchedCount, 2);
+    assert.equal(loaded.totalCount, 5);
+    assert.equal(loaded.version, 0);
+    assert.equal(loaded.lastToggled, null);
+  });
+
+  it('round-trips 1,234 marks of a 4000 × 4000 pattern', async () => {
+    const pattern = solidPattern(4000, 4000);
+    const bits = new Uint8Array(2_000_000);
+    const cells = Array.from({ length: 1234 }, (_, index) => index * 12_967 + (index % 7));
+    for (const cell of cells) {
+      bits[cell >> 3] |= 1 << (cell & 7);
+    }
+    const bytes = await encodeProgressFile({ ...fileInput(createProgress(pattern)), bits });
+    const loaded = await decodeProgressFile(bytes, pattern);
+    assert.equal(loaded.stitchedCount, 1234);
+    assert.deepEqual(loaded.bits, bits);
+  });
+
+  it('ignores the bits of empty cells and padding bits and recounts', async () => {
+    const pattern = threeByTwoPattern();
+    // cell 0, empty cell 3 and padding bit 7
+    const data = await compressBytes(Uint8Array.of(0b1000_1001), 'deflate');
+    const bytes = handMadeFile({ width: 3, height: 2, fingerprint: pattern.fingerprint, data });
+    const loaded = await decodeProgressFile(bytes, pattern);
+    assert.deepEqual(stitchedCells(loaded), [0]);
+    assert.deepEqual([...loaded.bits], [0b0000_0001]);
+    assert.equal(loaded.stitchedCount, 1);
+  });
+
+  it('does not modify the file bytes', async () => {
+    const pattern = threeByTwoPattern();
+    const bytes = await encodeProgressFile(fileInput(progressWith(pattern, [0, 4])));
+    const copy = bytes.slice();
+    await decodeProgressFile(bytes, pattern);
+    assert.deepEqual(bytes, copy);
   });
 });
