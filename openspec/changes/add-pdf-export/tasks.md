@@ -173,7 +173,7 @@
   - an unknown type, or a bad JPEG → an error response echoing the id.
 
   Verify it fails.
-- [ ] 7.2 Implement `src/workers/pdf-worker-handler.js` and the entry `src/workers/pdf.worker.js` (design D10); compression is decided inside `buildPdfDocument` by `canCompress()`. Verify 7.1 passes
+- [x] 7.2 Implement `src/workers/pdf-worker-handler.js` and the entry `src/workers/pdf.worker.js` (design D10); compression is decided inside `buildPdfDocument` by `canCompress()`. Verify 7.1 passes
 - [ ] 7.3 Write failing `tests/integration/pdf-worker-client.test.js` with a fake worker:
   - the request is posted with the picture buffers transferred;
   - progress is routed to `onProgress`;
