@@ -80,6 +80,12 @@ describe('Export menu markup', () => {
     }
   });
 
+  it('keeps the list on screen on compact screens, right after the shared menu block', () => {
+    const menuEnd = '.export-menu__file:has(.export-menu__input:focus-visible) {\n  outline: 3px solid var(--color-focus);\n  outline-offset: 2px;\n}\n\n';
+    assert.ok(mainCss.includes(`${menuEnd}/* On compact screens the Export button sits in the middle of the header, so its list drops from\n`));
+    assert.match(mainCss, /@media screen and \(width < 48rem\), screen and \(height < 30rem\) and \(width < 60rem\) \{\n {2}\.app-header \{\n {4}position: relative;\n {2}\}\n\n {2}\.export-menu \{\n {4}position: static;\n {2}\}\n\n {2}\.export-menu__items \{\n {4}right: var\(--space-2\);\n {2}\}\n\}\n/);
+  });
+
   it('hides the menu in print with the shared rule at the end of print.css', () => {
     assert.ok(printCss.endsWith('/* The Export menu (shared by the export changes). */\n.export-menu {\n  display: none;\n}\n'));
   });
