@@ -124,7 +124,7 @@ first, keep the existing files: they must already be identical.
 
 ## 7. Worker (workers, io)
 
-- [ ] 7.1 Write failing `tests/integration/xlsx-worker.test.js` for `createXlsxWorkerHandler()` (and `{ useCompression: false }` once), then verify it fails. Cover:
+- [x] 7.1 Write failing `tests/integration/xlsx-worker.test.js` for `createXlsxWorkerHandler()` (and `{ useCompression: false }` once), then verify it fails. Cover:
   - a `{ type: 'xlsx', id: 7, pattern, pictures }` request → `{ type: 'xlsx', id: 7, bytes }` with `transfer` = `[bytes.buffer]`, and `bytes` unzips (helper) to the 13 parts;
   - an unknown type, a missing pattern, and a 2000 × 2000 pattern → `{ type: 'error', id, message }` with a message naming the problem;
   - the handler never rejects.
