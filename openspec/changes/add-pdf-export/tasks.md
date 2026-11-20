@@ -64,7 +64,7 @@
 
   Verify they fail.
 - [x] 3.8 Implement `src/core/pdf-pictures.js` (design D9); verify 3.7 passes
-- [ ] 3.9 Add failing tests `tests/unit/core/pdf-content.test.js` for the content builder:
+- [x] 3.9 Add failing tests `tests/unit/core/pdf-content.test.js` for the content builder:
   - `fillColor('#FFC0BB')` → `1 0.753 0.733 rg`;
   - a rect in mm-from-top coordinates becomes PDF points from the bottom (x 30 mm, y 23 mm, 3.2 mm → `85.04 767.62 9.07 9.07 re`);
   - text with font, size and position → `BT /F1 4.08 Tf … Tj ET`;
