@@ -22,7 +22,7 @@
 
   Verify they fail.
 - [x] 2.2 Implement `toSavedProgress`; verify 2.1 passes
-- [ ] 2.3 Add failing tests for `restoreProgress(pattern, saved)` and `isSavedProgressOf`:
+- [x] 2.3 Add failing tests for `restoreProgress(pattern, saved)` and `isSavedProgressOf`:
   - a record from `toSavedProgress` of 2 marks restores them (`stitchedCount` 2, `version` 0, `lastToggled` null);
   - another fingerprint, width, height, `formatVersion` 2, wrong bits length, bits not a Uint8Array, and `null` → `null`;
   - a set bit on the empty cell 3 and a padding bit are cleared;

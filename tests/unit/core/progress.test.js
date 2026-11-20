@@ -11,6 +11,8 @@ import {
   formatSettingsWarning,
   formatImageWarning,
   toSavedProgress,
+  restoreProgress,
+  isSavedProgressOf,
 } from '../../../src/core/progress.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -162,5 +164,65 @@ describe('toSavedProgress', () => {
     assert.ok(saved.bits instanceof Uint8Array);
     saved.bits[0] = 0;
     assert.deepEqual([...progress.bits], [0b00100001], 'the Progress keeps its own bits');
+  });
+});
+
+describe('restoreProgress and isSavedProgressOf', () => {
+  const savedOf = (pattern, cells) => {
+    let progress = createProgress(pattern);
+    for (const cell of cells) {
+      progress = toggleStitch(progress, cell);
+    }
+    return toSavedProgress(progress, 'cat.png', 1);
+  };
+
+  it('marks the saved cells again on the same pattern, as a fresh Progress', () => {
+    const pattern = threeByTwoPattern();
+    const restored = restoreProgress(threeByTwoPattern(), savedOf(pattern, [0, 5]));
+    assert.deepEqual([...restored.bits], [0b00100001]);
+    assert.equal(restored.stitchedCount, 2);
+    assert.equal(restored.totalCount, 5);
+    assert.equal(restored.version, 0);
+    assert.equal(restored.lastToggled, null);
+  });
+
+  it('belongs to the pattern it is restored onto', () => {
+    const target = threeByTwoPattern();
+    assert.equal(restoreProgress(target, savedOf(threeByTwoPattern(), [0])).pattern, target);
+  });
+
+  it('refuses records of another pattern or format, and broken records', () => {
+    const pattern = threeByTwoPattern();
+    const good = savedOf(pattern, [0]);
+    const variants = {
+      'other fingerprint': { ...good, fingerprint: '00000000000000' },
+      'other width': { ...good, width: 2 },
+      'other height': { ...good, height: 3 },
+      'format 2': { ...good, formatVersion: 2 },
+      'bits too long': { ...good, bits: new Uint8Array(2) },
+      'bits not a Uint8Array': { ...good, bits: [1] },
+      'null': null,
+      'a string': 'saved',
+    };
+    for (const [label, saved] of Object.entries(variants)) {
+      assert.equal(restoreProgress(pattern, saved), null, label);
+    }
+  });
+
+  it('clears bits of empty cells and padding, and recounts', () => {
+    const pattern = threeByTwoPattern(); // cell 3 is empty; bits 6 and 7 are padding
+    const saved = { ...savedOf(pattern, [0]), bits: new Uint8Array([0b11001001]), stitchedCount: 999 };
+    const restored = restoreProgress(pattern, saved);
+    assert.deepEqual([...restored.bits], [0b00000001]);
+    assert.equal(restored.stitchedCount, 1);
+    assert.deepEqual([...saved.bits], [0b11001001], 'the saved bits are not modified');
+  });
+
+  it('tells whether a record belongs to a pattern', () => {
+    const pattern = threeByTwoPattern();
+    assert.equal(isSavedProgressOf(savedOf(pattern, [0]), threeByTwoPattern()), true);
+    assert.equal(isSavedProgressOf({ ...savedOf(pattern, [0]), width: 2 }, pattern), false);
+    assert.equal(isSavedProgressOf({ ...savedOf(pattern, [0]), fingerprint: '00000000000000' }, pattern), false);
+    assert.equal(isSavedProgressOf(null, pattern), false);
   });
 });
