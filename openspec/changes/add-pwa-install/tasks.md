@@ -216,4 +216,4 @@
   - **Firefox desktop:** no bar, the app works, and no console errors.
   - **Cleanup:** unregister the worker for `127.0.0.1:8080` (Application → Service workers →
     Unregister) and clear its storage.
-- [ ] 9.4 Run `openspec validate add-pwa-install --strict`; it passes
+- [x] 9.4 Run `openspec validate add-pwa-install --strict`; it passes
