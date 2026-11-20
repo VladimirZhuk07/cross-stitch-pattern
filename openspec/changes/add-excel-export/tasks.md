@@ -14,7 +14,7 @@ first, keep the existing files: they must already be identical.
 
 ## 2. XML helpers (core)
 
-- [ ] 2.1 Write failing `tests/unit/core/xml.test.js`, then verify it fails. Cover:
+- [x] 2.1 Write failing `tests/unit/core/xml.test.js`, then verify it fails. Cover:
   - `escapeXml('Rose & "Wine" <test> \'x\'')` → `Rose &amp; &quot;Wine&quot; &lt;test&gt; &apos;x&apos;`;
   - `escapeXml('a\u0001b\tc')` → `ab\tc`;
   - `columnName` 1 → `A`, 26 → `Z`, 27 → `AA`, 52 → `AZ`, 702 → `ZZ`, 703 → `AAA`, 10000 → `NTP`, 16384 → `XFD`;
