@@ -76,7 +76,7 @@
 - [x] 6.1 Write failing `tests/integration/progress-file.test.js` for `createProgressFileSaver(store, fakeDownload)` and verify it fails. Cover:
   - `saveCurrent()` with image `cat.png` downloads `cat.stitch` whose bytes decode back to the marks, and resolves `'cat.stitch'`;
   - `saveRecord` of a `dog.png` record gives `dog.stitch`, and one with `imageName: ''` gives `pattern.stitch`.
-- [ ] 6.2 Implement `createProgressFileSaver` in `src/ui/progress-file.js` (design D5); verify 6.1 passes
+- [x] 6.2 Implement `createProgressFileSaver` in `src/ui/progress-file.js` (design D5); verify 6.1 passes
 - [ ] 6.3 Add failing tests to the same file for `setupProgressFileMenu` with a fake menu, fake warning, fake persistence and fake `readBytes`, and verify they fail. Cover:
   - enabling of both items for: no pattern, pattern with 0 marks, 1 mark, and generation running;
   - a save click closes the menu and calls `saveCurrent`; a failing save sets status `Could not save the progress file.`;
