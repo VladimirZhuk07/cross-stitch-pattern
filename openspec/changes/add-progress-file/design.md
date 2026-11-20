@@ -20,9 +20,12 @@
 - `CompressionStream('deflate')` / `DecompressionStream` exist in all evergreen browsers
   (Safari 16.4+, Firefox 113+) and in Node 22, which the tests run on. A truncated stream or
   bytes after its end reject with a `TypeError`.
-- The Export menu, `src/io/download.js` and `src/core/file-names.js` come from the shared
-  conventions of `add-progress-file`, `add-pdf-export` and `add-excel-export`. This change merges
-  first and adds them byte for byte.
+- The Export menu, `src/io/download.js`, `src/core/file-names.js` and `src/core/compression.js`
+  come from the shared conventions of `add-progress-file`, `add-pdf-export` and
+  `add-excel-export`. This change merges first and adds them byte for byte. `compression.js`
+  provides `compressBytes(bytes, format)`, `decompressBytes(bytes, format, maxLength)` (rejects
+  with `RangeError` once the output would exceed `maxLength`, with the platform's `TypeError` for
+  damaged input) and `canCompress()`, for the formats `'deflate'` and `'deflate-raw'`.
 
 ## Goals / Non-Goals
 
@@ -77,14 +80,16 @@ Little-endian, fixed 30-byte header, then the compressed bits:
 
 ### D2. Codec API (core, pure)
 
-`src/core/progress-file.js` imports only `./progress.js`. It uses `Uint8Array`, `DataView`,
-`ReadableStream` and the compression streams. These are platform-neutral globals in browsers,
-workers and Node; there is no DOM, storage, network or timer. The functions are async only
-because the streams are.
+`src/core/progress-file.js` imports only `./progress.js`, `./stitch-grid.js` (`MAX_GRID_SIDE`)
+and the shared `./compression.js`. It works on `Uint8Array` and `DataView` and has no stream code
+of its own. The compression streams behind `compression.js` are platform-neutral globals in
+browsers, workers and Node; there is no DOM, storage, network or timer. The codec stays async
+only because `compressBytes`/`decompressBytes` are.
 
 - `encodeProgressFile(saved)` returns a Promise of a Uint8Array. `saved` is a SavedProgress, or
   any `{ fingerprint, width, height, bits }`. Encoding a SavedProgress lets one function also
-  save the IndexedDB record of another picture (D5). It throws:
+  save the IndexedDB record of another picture (D5). It writes the header and appends
+  `await compressBytes(bits, 'deflate')`. It throws:
   - `TypeError` for a fingerprint that is not 14 hex digits or bits that are not a Uint8Array;
   - `RangeError` for a width or height outside 1–`MAX_GRID_SIDE` or a wrong bits length.
 - `decodeProgressFile(bytes, pattern)` returns a Promise of a fresh Progress (`version` 0) or
@@ -93,8 +98,11 @@ because the streams are.
   2. the version → `'newer-version'` or `'damaged'`;
   3. width, height, fingerprint → `'other-pattern'` (the error carries `fileWidth`,
      `fileHeight`);
-  4. inflating, chunk by chunk. More bytes than expected → it cancels the reader at once (a
-     "zip bomb" never fills memory). Fewer bytes, or a stream error → `'damaged'`.
+  4. `decompressBytes(bytes.subarray(30), 'deflate', expectedLength)`, where `expectedLength` is
+     `ceil(width × height / 8)`. The shared module stops as soon as the output would be longer, so
+     a "zip bomb" never fills memory. Its `RangeError` (too long), the platform's `TypeError`
+     (truncated, trailing bytes, wrong checksum) and a result shorter than `expectedLength` all
+     become `'damaged'`.
 
   Then it calls `restoreProgress(pattern, { formatVersion: SAVED_PROGRESS_FORMAT, fingerprint,
   width, height, bits })`. That reuses the clearing of empty cells and padding bits and the
@@ -231,7 +239,7 @@ every layer; the progress note is only visible on Progress.
   inflating 12.5 MB holds 2–3 copies in memory] → Same cost as the existing restore after a
   reload. Inflating itself is native and streamed. A worker would add a protocol for a rare,
   user-started action.
-- [`CompressionStream` missing in old browsers] → Saving shows `Could not save the progress
+- [`CompressionStream` missing in old browsers (`canCompress()` false)] → Saving shows `Could not save the progress
   file.` and loading the unexpected-error text. Marking and IndexedDB saving keep working.
 - [Different engines produce different compressed bytes] → Only the header and the inflated
   bits are specified and tested, never the compressed bytes.

@@ -3,35 +3,36 @@
 ## 1. Shared export pieces (byte for byte from the shared conventions)
 
 - [ ] 1.1 Add `tests/unit/core/file-names.test.js` exactly as in the shared conventions (section 4); verify it fails (module missing). Then add `src/core/file-names.js` exactly as written there; verify `node --test tests/unit/core/file-names.test.js` passes
-- [ ] 1.2 Add `src/io/download.js` exactly as in the shared conventions (section 3); verify `npm run test:integration` still passes (it is imported in task 6.5, when served-site checks it)
-- [ ] 1.3 Add a failing check to `tests/integration/progress-markup.test.js`. Then add the Export menu to `index.html` and verify the check passes. The check covers:
+- [ ] 1.2 Add `tests/unit/core/compression.test.js` exactly as in the shared conventions (section 7); verify it fails (module missing). Then add `src/core/compression.js` exactly as written there; verify `node --test tests/unit/core/compression.test.js` passes
+- [ ] 1.3 Add `src/io/download.js` exactly as in the shared conventions (section 3); verify `npm run test:integration` still passes (it is imported in task 6.5, when served-site checks it)
+- [ ] 1.4 Add a failing check to `tests/integration/progress-markup.test.js`. Then add the Export menu to `index.html` and verify the check passes. The check covers:
   - a `<details class="export-menu" data-role="export-menu">` right after the `<h1>` and before the `file-picker` label;
   - only the `export-progress` button (disabled, text `Save progress (.stitch)`);
   - the `Load progress (.stitch)` label with a disabled `<input type="file" accept=".stitch" data-role="progress-file-input">`.
 
   The markup is copied byte for byte from section 1 of the conventions, with only this change's two items.
-- [ ] 1.4 Insert the Export-menu CSS block verbatim after the `.file-picker:has(.file-picker__input:focus-visible)` rule in `styles/main.css`. Append the commented `.export-menu { display: none; }` rule to `styles/print.css`. Add checks to `tests/integration/layout-css.test.js` that `.export-menu__items` exists and that print hides `.export-menu`; verify they pass
+- [ ] 1.5 Insert the Export-menu CSS block verbatim after the `.file-picker:has(.file-picker__input:focus-visible)` rule in `styles/main.css`. Append the commented `.export-menu { display: none; }` rule to `styles/print.css`. Add checks to `tests/integration/layout-css.test.js` that `.export-menu__items` exists and that print hides `.export-menu`; verify they pass
 
 ## 2. The .stitch codec (core, TDD)
 
 - [ ] 2.1 Write failing tests in `tests/unit/core/progress-file.test.js` for `encodeProgressFile` (design D1, D2) and verify they fail. Cover:
-  - the 3 × 2 fixture pattern with cells 0 and 4 stitched → bytes 0–15 are `53 54 49 54 43 48 01 00 03 00 00 00 02 00 00 00`, bytes 16–29 are the ASCII fingerprint, and inflating the rest (`DecompressionStream('deflate')` in the test) gives `[0x11]`;
+  - the 3 × 2 fixture pattern with cells 0 and 4 stitched → bytes 0–15 are `53 54 49 54 43 48 01 00 03 00 00 00 02 00 00 00`, bytes 16–29 are the ASCII fingerprint, and `decompressBytes` of the rest (`compression.js`, format `'deflate'`) gives `[0x11]`;
   - a 1000 × 1000 progress with 100 marks encodes to fewer than 5,000 bytes;
   - it accepts a SavedProgress from `toSavedProgress`;
   - it rejects a fingerprint `'xyz'` (TypeError), width 0 (RangeError) and a bits length off by one (RangeError), naming the value.
-- [ ] 2.2 Implement `PROGRESS_FILE_EXTENSION`, `PROGRESS_FILE_FORMAT`, `MAX_PROGRESS_FILE_BYTES` and `encodeProgressFile` in `src/core/progress-file.js`, with a header comment describing the file layout table. Verify 2.1 passes
+- [ ] 2.2 Implement `PROGRESS_FILE_EXTENSION`, `PROGRESS_FILE_FORMAT`, `MAX_PROGRESS_FILE_BYTES` and `encodeProgressFile` (header plus `compressBytes(bits, 'deflate')`) in `src/core/progress-file.js`, with a header comment describing the file layout table. Verify 2.1 passes
 - [ ] 2.3 Write failing tests for a successful `decodeProgressFile(bytes, pattern)` and verify they fail. Cover:
   - a round trip of the 3 × 2 fixture gives cells 0 and 4, `stitchedCount` 2, `version` 0, `lastToggled` null;
   - a 4000 × 4000 round trip with 1,234 marks keeps exactly those cells;
   - a file whose bits set empty cell 3 and padding bit 7 marks only the real cells and recounts;
   - the input bytes are not modified.
-- [ ] 2.4 Implement the header parsing, the bounded inflate and the `restoreProgress` reuse (design D2); verify 2.3 passes
+- [ ] 2.4 Implement the header parsing, the `decompressBytes(data, 'deflate', expectedLength)` call and the `restoreProgress` reuse (design D2); no stream code of its own; verify 2.3 passes
 - [ ] 2.5 Write failing tests for `ProgressFileError` reasons and verify they fail. Cover:
   - fewer than 30 bytes, wrong magic and `MAX_PROGRESS_FILE_BYTES + 1` bytes → `'not-progress-file'`;
   - version 2 → `'newer-version'`, version 0 → `'damaged'`;
   - width 120 / height 80 against a 100 × 67 pattern → `'other-pattern'` with `fileWidth` 120 and `fileHeight` 80;
   - the same size with another fingerprint → `'other-pattern'`;
-  - a cut-short stream, 2 junk bytes after the stream, an inflated length one byte short, and a stream that inflates to 10 MB for the 3 × 2 pattern → `'damaged'` (the last one finishes quickly).
+  - a cut-short stream, 2 junk bytes after the stream, an inflated length one byte short, and a stream that inflates to 10 MB for the 3 × 2 pattern → `'damaged'` (the last one is stopped by the `maxLength` guard of `decompressBytes` and finishes quickly).
 - [ ] 2.6 Implement the error class and the checks in the order of design D2; verify 2.5 passes
 - [ ] 2.7 Write failing tests for the texts and verify they fail. Cover:
   - `formatProgressFileError` for each reason, using the exact sentences of the spec deltas, including the size sentence `It is for a 120 × 80 pattern; this one is 100 × 67.` and the unexpected-error text for a plain `Error`;

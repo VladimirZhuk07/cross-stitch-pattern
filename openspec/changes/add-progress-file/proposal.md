@@ -47,9 +47,9 @@ None.
 
 ## Impact
 
-- New `src/core/progress-file.js`: encode/decode with `CompressionStream`/`DecompressionStream`
+- New `src/core/progress-file.js`: encode/decode via the shared `src/core/compression.js`
   and the texts (pure, unit-tested).
-- New `src/core/file-names.js`, `src/io/download.js`, Export menu markup and CSS: exactly as in
+- New `src/core/file-names.js`, `src/core/compression.js`, `src/io/download.js`, menu markup, CSS: as in
   the shared conventions of the three parallel export changes.
 - New `src/io/progress-file.js` (Blob and File glue), `src/ui/progress-file.js` (menu items,
   load flow, saver).
