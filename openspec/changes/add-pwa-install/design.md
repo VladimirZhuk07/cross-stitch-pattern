@@ -173,7 +173,11 @@ it uses is `node:fs` (and `node:url` for paths).
 The extractors move from `tests/helpers/site-references.js` into `core/` unchanged:
 `extractHtmlReferences`, `extractJsReferences`, `extractCssReferences` and
 `isRelativeReference`. They are pure string functions, and the service worker now needs them
-too. The test helper is deleted, and `served-site.test.js` imports from core. New:
+too. The test helper is deleted, and `served-site.test.js` imports from core. Only their
+comments change: `app-files.js` is itself crawled (the service worker imports it), so its
+comments never quote an example module path, which the extractors would follow as a reference
+to a missing file. A unit test checks that `extractJsReferences` finds nothing in its source.
+New:
 
 - `extractManifestReferences(text)`: the `src` of each `icons` entry. Invalid JSON gives `[]`.
 - `referencesOf(url, text)`: chooses the extractor by the URL's extension. A path ending in
@@ -220,10 +224,12 @@ server and an in-memory fake of `caches`:
     current cache;
   - otherwise it rejects, and the browser discards the new worker and retries on a later
     visit.
-- `refresh()`: does the same as `install()`, without rejecting outward. A failed refresh keeps
-  the old set. While a refresh runs, another one is skipped.
+- `refresh()`: does the same as `install()`, without rejecting outward: it resolves to `true`
+  when the new set was saved and `false` when it failed and the old set was kept. While a
+  refresh runs, another call gets the running one.
 - `activate()`: deletes `staleCacheNames(await caches.keys(), scopeUrl)`.
-- `respond(request)`:
+- `respond(request, keepAlive)`, where `keepAlive(promise)` receives the background work (the
+  cache `put` and the refresh) so the entry can pass it to `event.waitUntil`:
   - returns `null` when `shouldHandleRequest` is false, and the entry file then does not call
     `respondWith`;
   - otherwise it tries `fetch(request)`; a cacheable response is `put` (clone) and returned,
@@ -237,8 +243,8 @@ folder, and GitHub Pages cannot send `Service-Worker-Allowed`): a module worker 
 30 lines. It builds the handler from `self.registration.scope`, `caches` and `fetch`.
 - `install`: `waitUntil(install())` and `skipWaiting()`.
 - `activate`: `waitUntil(activate().then(() => clients.claim()))`.
-- `fetch`: `respondWith` when `respond` returns a promise, and `waitUntil` for the background
-  refresh.
+- `fetch`: `respondWith` when `respond` returns a promise, and `waitUntil` (through
+  `keepAlive`) for the background put and refresh.
 
 **Why network first.** Online, every load runs exactly what the server has, so an update
 needs no prompt and no second reload. Development with `node scripts/serve.js` shows edits at

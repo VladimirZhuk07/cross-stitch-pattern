@@ -115,12 +115,13 @@
     - returns `Response.error()` for an uncached URL offline;
     - returns `null` for a POST, another origin, another path and `blob:`;
   - `activate()` deletes only stale names of this scope;
-  - `service-worker.js` and the handler source contain no string literal that starts with `/`
-    or `http`.
+  - the handler source contains no string literal that starts with `/` or `http`
+    (`service-worker.js` is added to this check in 6.3, when it exists).
 - [ ] 6.2 Implement `src/workers/service-worker-handler.js` (`install`, `refresh`, `activate`,
   `respond`; design D6) and verify that 6.1 passes
 - [ ] 6.3 Create `service-worker.js` at the root (module entry, design D6, header comment with
-  the rollback note). Create `src/io/service-worker-registration.js` (design D7). Verify that
+  the rollback note), and add it to the string-literal check of `service-worker.test.js`.
+  Create `src/io/service-worker-registration.js` (design D7). Verify that
   `served-site.test.js` follows the `new URL('../../service-worker.js', import.meta.url)`
   reference once task 8.2 imports it. Until then, verify with
   `node --check service-worker.js`.
