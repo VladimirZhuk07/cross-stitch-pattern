@@ -170,3 +170,63 @@ function asciiBytes(text) {
 function asciiText(bytes) {
   return String.fromCharCode(...bytes);
 }
+
+// Texts. File names are kept literally: callers show them as plain text, never as markup.
+
+// Locale-independent thousands separators, as the other texts of the app.
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+
+/** The line in the warning dialog when the progress file could not be made. */
+export const SAVE_FAILED_TEXT = 'Could not save the progress file.';
+
+const ERROR_TEXTS = {
+  'not-progress-file': 'it is not a progress file (.stitch).',
+  'newer-version': 'it was saved by a newer version of this app.',
+  'other-pattern': 'it belongs to another picture or other pattern settings.',
+  damaged: 'the file is damaged.',
+};
+const UNEXPECTED_ERROR_TEXT = 'an unexpected error occurred.';
+
+/**
+ * The status line after loading fileName failed.
+ * error    a ProgressFileError, or any other error (e.g. the file could not be read)
+ * pattern  the current Pattern; its size is named when the file is for another size
+ */
+export function formatProgressFileError(fileName, error, pattern) {
+  const reasonText = error instanceof ProgressFileError ? ERROR_TEXTS[error.reason] : undefined;
+  const text = `Could not load ${fileName}: ${reasonText ?? UNEXPECTED_ERROR_TEXT}`;
+  const isOtherSize = error instanceof ProgressFileError && error.reason === 'other-pattern'
+    && error.fileWidth !== null && error.fileHeight !== null
+    && (error.fileWidth !== pattern.width || error.fileHeight !== pattern.height);
+  if (!isOtherSize) {
+    return text;
+  }
+  return `${text} It is for a ${sizeText(error.fileWidth, error.fileHeight)} pattern; this one is ${sizeText(pattern.width, pattern.height)}.`;
+}
+
+/**
+ * The question before the file fileName replaces marked stitches.
+ * stitched      stitches marked now; fileStitched  stitches in the file
+ * total         stitchable cells of the pattern
+ */
+export function formatLoadWarning(fileName, stitched, fileStitched, total) {
+  return `Load ${fileName}? Your progress on this pattern (${stitchesText(stitched, total)}) will be replaced by the file's (${stitchesText(fileStitched, total)}).`;
+}
+
+/** The note under the counter after the marks of fileName were loaded. */
+export function formatLoadedNote(fileName) {
+  return `Loaded your progress from ${fileName}.`;
+}
+
+/** The line in the warning dialog after Save progress first downloaded fileName. */
+export function formatSavedFileLine(fileName) {
+  return `Saved ${fileName}.`;
+}
+
+function sizeText(width, height) {
+  return `${COUNT_FORMAT.format(width)} × ${COUNT_FORMAT.format(height)}`;
+}
+
+function stitchesText(stitched, total) {
+  return `${COUNT_FORMAT.format(stitched)} of ${COUNT_FORMAT.format(total)} stitches`;
+}

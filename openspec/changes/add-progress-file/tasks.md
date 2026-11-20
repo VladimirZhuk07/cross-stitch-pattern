@@ -41,7 +41,7 @@
   - `formatSavedFileLine('cat.stitch')` → `Saved cat.stitch.`;
   - `SAVE_FAILED_TEXT`;
   - names kept literally (`<b>x</b>.stitch`).
-- [ ] 2.8 Implement the texts; verify `npm run test:unit` passes
+- [x] 2.8 Implement the texts; verify `npm run test:unit` passes
 - [ ] 2.9 Add `tests/integration/progress-file-format.test.js`: a pattern generated through the real pipeline (as in `pattern-pipeline.test.js`), toggled, encoded and decoded against a second generation of the same input, gives the same marks. A different `maxColors` gives `'other-pattern'`. Verify it passes
 
 ## 3. Browser glue (io)
