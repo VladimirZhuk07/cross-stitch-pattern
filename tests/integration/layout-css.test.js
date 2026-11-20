@@ -43,6 +43,17 @@ describe('layout stylesheet', () => {
     assert.ok(!mediaConditions(mainCss).includes('(max-width: 48rem)'));
   });
 
+  it('drops the Export menu items down over the page', () => {
+    const declarations = declarationsFor(mainCss, '.export-menu__items');
+    assert.ok(declarations.some((text) => /position:\s*absolute/.test(text)), '.export-menu__items { position: absolute }');
+  });
+
+  it('hides the Export menu when printing', async () => {
+    const printCss = await readFile(PRINT_CSS_URL, 'utf8');
+    const declarations = declarationsFor(printCss, '.export-menu');
+    assert.ok(declarations.some((text) => /display:\s*none/.test(text)), '.export-menu { display: none }');
+  });
+
   it('hides the panel toggle buttons when printing', async () => {
     const printCss = await readFile(PRINT_CSS_URL, 'utf8');
     const declarations = declarationsFor(printCss, '.collapsible__toggle');

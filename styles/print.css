@@ -26,3 +26,8 @@ body {
 .side-toggle {
   display: none;
 }
+
+/* The Export menu (shared by the export changes). */
+.export-menu {
+  display: none;
+}

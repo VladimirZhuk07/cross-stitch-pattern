@@ -11,7 +11,7 @@
   - the `Load progress (.stitch)` label with a disabled `<input type="file" accept=".stitch" data-role="progress-file-input">`.
 
   The markup is copied byte for byte from section 1 of the conventions, with only this change's two items.
-- [ ] 1.5 Insert the Export-menu CSS block verbatim after the `.file-picker:has(.file-picker__input:focus-visible)` rule in `styles/main.css`. Append the commented `.export-menu { display: none; }` rule to `styles/print.css`. Add checks to `tests/integration/layout-css.test.js` that `.export-menu__items` exists and that print hides `.export-menu`; verify they pass
+- [x] 1.5 Insert the Export-menu CSS block verbatim after the `.file-picker:has(.file-picker__input:focus-visible)` rule in `styles/main.css`. Append the commented `.export-menu { display: none; }` rule to `styles/print.css`. Add checks to `tests/integration/layout-css.test.js` that `.export-menu__items` exists and that print hides `.export-menu`; verify they pass
 
 ## 2. The .stitch codec (core, TDD)
 
