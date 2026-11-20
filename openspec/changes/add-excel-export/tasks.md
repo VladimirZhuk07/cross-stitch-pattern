@@ -129,7 +129,7 @@ first, keep the existing files: they must already be identical.
   - an unknown type, a missing pattern, and a 2000 × 2000 pattern → `{ type: 'error', id, message }` with a message naming the problem;
   - the handler never rejects.
 - [x] 7.2 Implement `src/workers/xlsx-worker-handler.js` and the entry `src/workers/xlsx.worker.js` (design D9); verify 7.1 passes
-- [ ] 7.3 Write failing `tests/integration/xlsx-worker-client.test.js` with a fake worker, then verify it fails. Cover `createWorkbookInWorker`:
+- [x] 7.3 Write failing `tests/integration/xlsx-worker-client.test.js` with a fake worker, then verify it fails. Cover `createWorkbookInWorker`:
   - posts one request with the PNG buffers in the transfer list;
   - resolves with the bytes;
   - rejects with the worker's message on an error response;
