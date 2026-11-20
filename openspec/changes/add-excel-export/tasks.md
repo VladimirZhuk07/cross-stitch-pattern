@@ -64,7 +64,7 @@ first, keep the existing files: they must already be identical.
   - element order dimension → sheetViews → sheetFormatPr → cols → sheetData → pageMargins;
   - a 1000-row pattern yields more than one chunk, and every chunk ends on a row boundary.
 - [x] 5.2 Implement `src/core/xlsx-chart-sheet.js` (design D6); verify 5.1 passes
-- [ ] 5.3 Write failing tests for `fitInside` and `stitchBlockSize` in `tests/unit/core/picture-size.test.js`, then verify they fail. Cover:
+- [x] 5.3 Write failing tests for `fitInside` and `stitchBlockSize` in `tests/unit/core/picture-size.test.js`, then verify they fail. Cover:
   - 1600 × 1072 in 1024 → 1024 × 686;
   - 300 × 200 in 1024 → 300 × 200;
   - 1600 × 1072 in 480 → 480 × 322;
