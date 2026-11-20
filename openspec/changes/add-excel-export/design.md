@@ -41,7 +41,7 @@
 
 | Module | Layer | Role |
 |---|---|---|
-| `src/core/crc32.js` | core | `crc32(bytes, previous = 0)`: CRC-32 as in ZIP, table-driven, chainable |
+| `src/core/crc32.js` | core | shared, verbatim (conventions §8, also used by add-pwa-install's PNG writer): `crc32(bytes, previous = 0)` → unsigned 32-bit |
 | `src/core/compression.js` | core | shared, verbatim (conventions §7): `canCompress()`, `compressBytes(bytes, 'deflate-raw')` |
 | `src/core/zip.js` | core | `zipArchive(entries)` (layout, sync) and `buildZip(files, options)` (encode, CRC, compress, layout) |
 | `src/core/xml.js` | core | `escapeXml(text)`, `columnName(columnNumber)`, `cellReference(column, row)` |
@@ -101,8 +101,9 @@ new modules.
     cap. Instead the generator's chunks are encoded into the part's bytes, about 34 MB at the cap.
     Peak memory is those bytes plus the compressed output (about 3.4 MB). That is acceptable in a
     worker that is terminated right after.
-- **CRC-32.** Reflected polynomial `0xEDB88320`, start `0xFFFFFFFF`, final XOR. A 256-entry
-  `Uint32Array` table is built once on first use. In V8 that is about 0.1 s for 34 MB.
+- **CRC-32.** The shared `src/core/crc32.js` (reflected polynomial `0xEDB88320`, 256-entry table
+  computed at module load) gives each entry's `crc`. In V8 that is about 0.1 s for 34 MB. The ZIP
+  writer has no CRC code of its own.
 - **Methods per part.** XML is deflated. PNGs are stored, because they are already compressed and
   deflating them again gains nothing.
 - *Alternatives:*
@@ -361,16 +362,14 @@ at least 65,536 characters, then the tail.
 ### D12. How the tests verify the file in Node
 
 - **Unit tests** cover every exported `core/` function:
-  - CRC-32 vectors: `''` → `00000000`, `'a'` → `E8B7BE43`, `'123456789'` → `CBF43926`,
-    `'The quick brown fox jumps over the lazy dog'` → `414FA339`, and chaining `'12345'` +
-    `'6789'` = `CBF43926`;
+  - CRC-32: the shared test file (conventions §8), copied verbatim;
   - the exact header bytes of a one-entry stored ZIP;
   - column names `1` → `A`, `26` → `Z`, `27` → `AA`, `702` → `ZZ`, `703` → `AAA`, `10000` →
     `NTP`, `16384` → `XFD`;
   - style indexes, sheet XML of the 3 × 2 pattern, layout numbers, limits and texts.
 - **`tests/helpers/unzip.js`** parses our archive from the end-of-central-directory record.
   - Inflating uses Node's built-in `zlib.inflateRawSync`.
-  - Each CRC is checked against `zlib.crc32` (Node 22.2+), a reference independent of our CRC code.
+  - Each CRC is checked against `zlib.crc32` (Node 22.2+), a reference independent of the shared CRC module.
   - It also checks that local and central headers agree.
 - **`tests/helpers/xml-check.js`** is a small well-formedness checker for the XML we write:
   - one root element;
@@ -404,7 +403,7 @@ at least 65,536 characters, then the tail.
 ### D13. Shared pieces
 
 `io/download.js`, `core/file-names.js` with its test, `core/pattern-summary.js` with its test, and
-`core/compression.js` with its test (conventions §7) are copied byte for byte from the shared conventions. So are the Export menu block (with only the
+`core/compression.js` and `core/crc32.js` with their tests (conventions §7–8) are copied byte for byte from the shared conventions. So are the Export menu block (with only the
 `export-xlsx` item), the CSS block after the `.file-picker:has(...)` rule, and the `print.css`
 rule. Merging after `add-pdf-export` then sees identical files. The only difference is the menu
 item lines, and the items follow the fixed order in the conventions.

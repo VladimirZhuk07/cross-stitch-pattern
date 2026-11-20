@@ -1,7 +1,7 @@
 # Tasks
 
 The shared pieces come from `C:/Users/vovas/AppData/Local/Temp/side-smoke/shared-export-conventions.md`
-(sections 1–7). Copy them byte for byte. If `add-pdf-export` or `add-progress-file` reached `main`
+(sections 1–8). Copy them byte for byte. If `add-pdf-export` or `add-progress-file` reached `main`
 first, keep the existing files: they must already be identical.
 
 ## 1. Shared pieces (core, io)
@@ -10,22 +10,17 @@ first, keep the existing files: they must already be identical.
 - [ ] 1.2 Add `tests/unit/core/pattern-summary.test.js` verbatim (section 5) and see it fail; add `src/core/pattern-summary.js` verbatim; verify the test passes
 - [ ] 1.3 Add `src/io/download.js` verbatim (section 3); verify it is identical to the conventions text (compare with a copy of the section's code block, e.g. `git diff --no-index`, which shows no difference) and that `served-site.test.js` still passes once it is imported (task 8.4)
 - [ ] 1.4 Add `tests/unit/core/compression.test.js` verbatim (section 7) and see it fail (module missing); add `src/core/compression.js` verbatim; verify `node --test tests/unit/core/compression.test.js` passes
+- [ ] 1.5 Add `tests/unit/core/crc32.test.js` verbatim (section 8) and see it fail (module missing); add `src/core/crc32.js` verbatim; verify `node --test tests/unit/core/crc32.test.js` passes. The ZIP writer uses this module and has no CRC-32 code of its own.
 
-## 2. CRC-32 and XML helpers (core)
+## 2. XML helpers (core)
 
-- [ ] 2.1 Write failing `tests/unit/core/crc32.test.js`, then verify it fails. Cover:
-  - `''` → `0x00000000`, `'a'` → `0xE8B7BE43`, `'123456789'` → `0xCBF43926`, `'The quick brown fox jumps over the lazy dog'` → `0x414FA339` (ASCII bytes);
-  - chaining `crc32(bytes('6789'), crc32(bytes('12345')))` → `0xCBF43926`;
-  - results are unsigned (≥ 0);
-  - a non-`Uint8Array` throws `TypeError`.
-- [ ] 2.2 Implement `src/core/crc32.js` (design D2, table built on first use, header comment citing the ZIP/PNG CRC); verify 2.1 passes
-- [ ] 2.3 Write failing `tests/unit/core/xml.test.js`, then verify it fails. Cover:
+- [ ] 2.1 Write failing `tests/unit/core/xml.test.js`, then verify it fails. Cover:
   - `escapeXml('Rose & "Wine" <test> \'x\'')` → `Rose &amp; &quot;Wine&quot; &lt;test&gt; &apos;x&apos;`;
   - `escapeXml('a\u0001b\tc')` → `ab\tc`;
   - `columnName` 1 → `A`, 26 → `Z`, 27 → `AA`, 52 → `AZ`, 702 → `ZZ`, 703 → `AAA`, 10000 → `NTP`, 16384 → `XFD`;
   - `columnName(0)` and `columnName(16385)` throw `RangeError` naming the value;
   - `cellReference(3, 2)` → `C2`.
-- [ ] 2.4 Implement `src/core/xml.js`; verify 2.3 passes
+- [ ] 2.2 Implement `src/core/xml.js`; verify 2.1 passes
 
 ## 3. ZIP writer (core)
 
