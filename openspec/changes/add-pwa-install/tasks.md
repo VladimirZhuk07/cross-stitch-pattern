@@ -174,7 +174,7 @@
 
 - [x] 9.1 Run `npm run test:unit`; all tests pass
 - [x] 9.2 Run `npm run test:integration`; all tests pass
-- [ ] 9.3 Run the browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`
+- [x] 9.3 Run the browser smoke check with `node scripts/serve.js --base cross-stitch-pattern`
   (and `--host 0.0.0.0` for the phone checks), in Chrome first and then in other browsers:
   - **Manifest.** Chrome → DevTools → Application → Manifest shows the name, the short name,
     standalone display, the start URL and scope `…/cross-stitch-pattern/`, and three icons
