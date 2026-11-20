@@ -13,6 +13,11 @@ import {
   encodeProgressFile,
   decodeProgressFile,
   ProgressFileError,
+  formatProgressFileError,
+  formatLoadWarning,
+  formatLoadedNote,
+  formatSavedFileLine,
+  SAVE_FAILED_TEXT,
 } from '../../../src/core/progress-file.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -271,5 +276,71 @@ describe('decodeProgressFile errors', () => {
     const started = performance.now();
     await assertProgressFileError(decodeProgressFile(bytes, pattern), 'damaged');
     assert.ok(performance.now() - started < 1000, 'stopped by the length guard');
+  });
+});
+
+describe('formatProgressFileError', () => {
+  const pattern = { width: 100, height: 67 };
+
+  it('names another picture or other settings, with both sizes when they differ', () => {
+    const error = new ProgressFileError('other-pattern', 'x', { fileWidth: 120, fileHeight: 80 });
+    assert.equal(
+      formatProgressFileError('cat.stitch', error, pattern),
+      'Could not load cat.stitch: it belongs to another picture or other pattern settings. It is for a 120 × 80 pattern; this one is 100 × 67.',
+    );
+  });
+
+  it('leaves the sizes out when they are the same', () => {
+    const error = new ProgressFileError('other-pattern', 'x', { fileWidth: 100, fileHeight: 67 });
+    assert.equal(
+      formatProgressFileError('dog.stitch', error, pattern),
+      'Could not load dog.stitch: it belongs to another picture or other pattern settings.',
+    );
+  });
+
+  it('writes large sizes with thousands separators', () => {
+    const error = new ProgressFileError('other-pattern', 'x', { fileWidth: 4000, fileHeight: 2680 });
+    assert.match(formatProgressFileError('big.stitch', error, { width: 1200, height: 804 }), /It is for a 4,000 × 2,680 pattern; this one is 1,200 × 804.$/);
+  });
+
+  it('says when it is not a progress file, newer or damaged', () => {
+    const text = (reason) => formatProgressFileError('notes.stitch', new ProgressFileError(reason, 'x'), pattern);
+    assert.equal(text('not-progress-file'), 'Could not load notes.stitch: it is not a progress file (.stitch).');
+    assert.equal(text('newer-version'), 'Could not load notes.stitch: it was saved by a newer version of this app.');
+    assert.equal(text('damaged'), 'Could not load notes.stitch: the file is damaged.');
+  });
+
+  it('reports any other error as unexpected', () => {
+    assert.equal(
+      formatProgressFileError('cat.stitch', new Error('read failed'), pattern),
+      'Could not load cat.stitch: an unexpected error occurred.',
+    );
+  });
+
+  it('keeps the file name literally', () => {
+    const error = new ProgressFileError('not-progress-file', 'x');
+    assert.equal(
+      formatProgressFileError('<b>x</b>.stitch', error, pattern),
+      'Could not load <b>x</b>.stitch: it is not a progress file (.stitch).',
+    );
+  });
+});
+
+describe('progress file texts', () => {
+  it('asks before a file replaces marked stitches', () => {
+    assert.equal(
+      formatLoadWarning('cat.stitch', 12, 40, 6700),
+      "Load cat.stitch? Your progress on this pattern (12 of 6,700 stitches) will be replaced by the file's (40 of 6,700 stitches).",
+    );
+  });
+
+  it('notes the loaded file', () => {
+    assert.equal(formatLoadedNote('cat.stitch'), 'Loaded your progress from cat.stitch.');
+    assert.equal(formatLoadedNote('<b>x</b>.stitch'), 'Loaded your progress from <b>x</b>.stitch.');
+  });
+
+  it('names the saved file and the save failure', () => {
+    assert.equal(formatSavedFileLine('cat.stitch'), 'Saved cat.stitch.');
+    assert.equal(SAVE_FAILED_TEXT, 'Could not save the progress file.');
   });
 });

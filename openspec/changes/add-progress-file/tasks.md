@@ -34,7 +34,7 @@
   - the same size with another fingerprint → `'other-pattern'`;
   - a cut-short stream, 2 junk bytes after the stream, an inflated length one byte short, and a stream that inflates to 10 MB for the 3 × 2 pattern → `'damaged'` (the last one is stopped by the `maxLength` guard of `decompressBytes` and finishes quickly).
 - [x] 2.6 Implement the error class and the checks in the order of design D2; verify 2.5 passes
-- [ ] 2.7 Write failing tests for the texts and verify they fail. Cover:
+- [x] 2.7 Write failing tests for the texts and verify they fail. Cover:
   - `formatProgressFileError` for each reason, using the exact sentences of the spec deltas, including the size sentence `It is for a 120 × 80 pattern; this one is 100 × 67.` and the unexpected-error text for a plain `Error`;
   - `formatLoadWarning('cat.stitch', 12, 40, 6700)`;
   - `formatLoadedNote('cat.stitch')` → `Loaded your progress from cat.stitch.`;
