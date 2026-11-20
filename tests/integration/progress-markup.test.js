@@ -42,6 +42,15 @@ describe('progress markup', () => {
     assert.match(counter, /\bhidden\b/);
   });
 
+  it('has a hidden, polite note line right after the counter', () => {
+    const note = tagWith('data-role="progress-note"');
+    assert.match(note, /^<output\b/);
+    assert.match(note, /\bclass="progress-note"/);
+    assert.match(note, /\baria-live="polite"/);
+    assert.match(note, /\bhidden\b/);
+    assert.match(html, /data-role="progress-summary"[^>]*><\/output>\s*(<!--[\s\S]*?-->\s*)?<output\b[^>]*data-role="progress-note"/);
+  });
+
   it('has the warning dialog with its text and two buttons, Keep focused first', () => {
     const dialog = warningDialog();
     assert.match(dialog, /^<dialog\b[^>]*class="confirm-dialog"/);

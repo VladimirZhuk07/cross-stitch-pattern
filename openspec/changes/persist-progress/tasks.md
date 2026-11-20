@@ -61,7 +61,7 @@
 
 ## 4. Markup and styles
 
-- [ ] 4.1 Add a failing check to `tests/integration/progress-markup.test.js` for `<output class="progress-note" data-role="progress-note" aria-live="polite" hidden>` right after the counter; add it to `index.html` and style it (muted text, error color with `.progress-note--error`, in the counter's grid area on compact layouts); verify the test passes
+- [x] 4.1 Add a failing check to `tests/integration/progress-markup.test.js` for `<output class="progress-note" data-role="progress-note" aria-live="polite" hidden>` right after the counter; add it to `index.html` and style it (muted text, error color with `.progress-note--error`, in the counter's grid area on compact layouts); verify the test passes
 
 ## 5. Verification
 
