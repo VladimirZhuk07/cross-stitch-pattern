@@ -78,20 +78,77 @@ export async function encodeProgressFile(saved) {
 }
 
 /**
+ * Why a .stitch file was refused. reason is one of
+ *   'not-progress-file'  too short, too long (over MAX_PROGRESS_FILE_BYTES) or no magic
+ *   'newer-version'      a format version above PROGRESS_FILE_FORMAT
+ *   'other-pattern'      the size or fingerprint is not the current pattern's
+ *   'damaged'            version 0, or the compressed bits are broken or of the wrong length
+ * fileWidth, fileHeight  the size written in the file, or null when it was not read.
+ */
+export class ProgressFileError extends Error {
+  constructor(reason, message, { fileWidth = null, fileHeight = null } = {}) {
+    super(message);
+    this.name = 'ProgressFileError';
+    this.reason = reason;
+    this.fileWidth = fileWidth;
+    this.fileHeight = fileHeight;
+  }
+}
+
+/**
  * Reads the bytes of a .stitch file (a Uint8Array, not modified) for pattern (a Pattern,
  * ./pattern.js). Resolves to a fresh Progress (./progress.js: version 0, lastToggled null) of
  * pattern; bits of empty cells and padding bits in the file are ignored and the stitches are
- * recounted.
+ * recounted. Rejects with a ProgressFileError; the cheap checks come first (size and magic,
+ * version, size and fingerprint) and the bits are inflated only for a file of this pattern.
  */
 export async function decodeProgressFile(bytes, pattern) {
+  checkMagic(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  checkVersion(view.getUint16(VERSION_OFFSET, true));
   const width = view.getUint32(WIDTH_OFFSET, true);
   const height = view.getUint32(HEIGHT_OFFSET, true);
   const fingerprint = asciiText(bytes.subarray(FINGERPRINT_OFFSET, HEADER_LENGTH));
-  const expectedLength = bitsLength(width, height);
-  const bits = await decompressBytes(bytes.subarray(HEADER_LENGTH), COMPRESSION_FORMAT, expectedLength);
+  const size = { fileWidth: width, fileHeight: height };
+  if (width !== pattern.width || height !== pattern.height || fingerprint !== pattern.fingerprint) {
+    throw new ProgressFileError('other-pattern', `the file is for pattern ${fingerprint} (${width} × ${height})`, size);
+  }
+  const bits = await inflateBits(bytes.subarray(HEADER_LENGTH), bitsLength(width, height), size);
   // restoreProgress is the same check and cleanup as for the browser's saved progress.
   return restoreProgress(pattern, { formatVersion: SAVED_PROGRESS_FORMAT, fingerprint, width, height, bits });
+}
+
+function checkMagic(bytes) {
+  if (bytes.length < HEADER_LENGTH || bytes.length > MAX_PROGRESS_FILE_BYTES) {
+    throw new ProgressFileError('not-progress-file', `a progress file has ${HEADER_LENGTH}–${MAX_PROGRESS_FILE_BYTES} bytes, got ${bytes.length}`);
+  }
+  if (asciiText(bytes.subarray(0, MAGIC.length)) !== MAGIC) {
+    throw new ProgressFileError('not-progress-file', `a progress file starts with ${MAGIC}`);
+  }
+}
+
+function checkVersion(version) {
+  if (version > PROGRESS_FILE_FORMAT) {
+    throw new ProgressFileError('newer-version', `format version ${version} is newer than ${PROGRESS_FILE_FORMAT}`);
+  }
+  if (version < 1) {
+    throw new ProgressFileError('damaged', `format version must be at least 1, got ${version}`);
+  }
+}
+
+// Inflates exactly expectedLength bytes; anything else (broken data, a checksum error, more or
+// fewer bytes) is a damaged file. decompressBytes stops as soon as the output gets too long.
+async function inflateBits(data, expectedLength, size) {
+  let bits;
+  try {
+    bits = await decompressBytes(data, COMPRESSION_FORMAT, expectedLength);
+  } catch (error) {
+    throw new ProgressFileError('damaged', `the compressed bits cannot be read: ${error.message}`, size);
+  }
+  if (bits.length !== expectedLength) {
+    throw new ProgressFileError('damaged', `the bits must be ${expectedLength} bytes, got ${bits.length}`, size);
+  }
+  return bits;
 }
 
 function checkSide(name, value) {
