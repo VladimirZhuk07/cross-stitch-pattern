@@ -40,7 +40,7 @@
 - [x] 2.1 Write `scripts/make-icons.js` (design D3). Run it and verify that it writes the six
   files of the spec into `icons/`. Look at `icon-512.png`, `icon-maskable-512.png` and
   `favicon.svg` in an image viewer, and commit the script together with the generated icons.
-- [ ] 2.2 Add `tests/helpers/png-pixels.js` (inflate, filter-0 rows to RGB) and
+- [x] 2.2 Add `tests/helpers/png-pixels.js` (inflate, filter-0 rows to RGB) and
   `tests/integration/app-icons.test.js`. It checks that each committed PNG has the stated size,
   color type 2 and bit depth 8, and pixels equal to `renderIcon`, and that `favicon.svg` equals
   `iconSvg()`. Verify that it passes, and that it fails while one grid cell is changed locally
