@@ -187,7 +187,7 @@
 
 ## 8. Pictures (io)
 
-- [ ] 8.1 Implement `src/io/pdf-picture-encoder.js` (`encodePdfPictures(image, pattern)` → `{ original, dmc }` JPEG `Uint8Array`s; design D9). It uses a white background, the long side capped at 1200 px, and nearest-neighbour upscaling by `dmcPictureScale`. Add a header comment on why the pictures are JPEG. Verify `node --check` succeeds; the browser check in 10.3 covers it.
+- [x] 8.1 Implement `src/io/pdf-picture-encoder.js` (`encodePdfPictures(image, pattern)` → `{ original, dmc }` JPEG `Uint8Array`s; design D9). It uses a white background, the long side capped at 1200 px, and nearest-neighbour upscaling by `dmcPictureScale`. Add a header comment on why the pictures are JPEG. Verify `node --check` succeeds; the browser check in 10.3 covers it.
 
 ## 9. Menu, dialog and wiring (ui)
 
