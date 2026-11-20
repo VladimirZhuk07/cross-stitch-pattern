@@ -69,7 +69,7 @@
   - with storage unavailable the unsaved note stays and nothing is saved;
   - a loaded progress with 0 stitches clears this pattern's record;
   - `confirmFirstMark` passes a `saveFirst` that calls `saver.saveRecord(saved)`.
-- [ ] 5.2 Implement `adoptProgress`, the `saver` parameter and the generalised transient note (design D6); verify 5.1 and the existing persistence tests pass
+- [x] 5.2 Implement `adoptProgress`, the `saver` parameter and the generalised transient note (design D6); verify 5.1 and the existing persistence tests pass
 
 ## 6. Menu items and load flow (ui, wiring)
 
