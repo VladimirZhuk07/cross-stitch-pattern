@@ -1,7 +1,7 @@
 # Tasks
 
 The shared pieces come from `C:/Users/vovas/AppData/Local/Temp/side-smoke/shared-export-conventions.md`
-(sections 1–6). Copy them byte for byte. If `add-pdf-export` or `add-progress-file` reached `main`
+(sections 1–7). Copy them byte for byte. If `add-pdf-export` or `add-progress-file` reached `main`
 first, keep the existing files: they must already be identical.
 
 ## 1. Shared pieces (core, io)
@@ -9,6 +9,7 @@ first, keep the existing files: they must already be identical.
 - [ ] 1.1 Add `tests/unit/core/file-names.test.js` verbatim (section 4) and see it fail; add `src/core/file-names.js` verbatim; verify `node --test tests/unit/core/file-names.test.js` passes
 - [ ] 1.2 Add `tests/unit/core/pattern-summary.test.js` verbatim (section 5) and see it fail; add `src/core/pattern-summary.js` verbatim; verify the test passes
 - [ ] 1.3 Add `src/io/download.js` verbatim (section 3); verify it is identical to the conventions text (compare with a copy of the section's code block, e.g. `git diff --no-index`, which shows no difference) and that `served-site.test.js` still passes once it is imported (task 8.4)
+- [ ] 1.4 Add `tests/unit/core/compression.test.js` verbatim (section 7) and see it fail (module missing); add `src/core/compression.js` verbatim; verify `node --test tests/unit/core/compression.test.js` passes
 
 ## 2. CRC-32 and XML helpers (core)
 
@@ -28,26 +29,20 @@ first, keep the existing files: they must already be identical.
 
 ## 3. ZIP writer (core)
 
-- [ ] 3.1 Write failing `tests/unit/core/deflate-raw.test.js`, then verify it fails. Cover:
-  - `canDeflateRaw()` is true in Node 22;
-  - `deflateRaw` of the chunks `['abc'×1000 encoded, …]` inflates (via `DecompressionStream('deflate-raw')`) back to the same bytes and is smaller;
-  - zero chunks give a valid empty stream;
-  - two runs give identical bytes.
-- [ ] 3.2 Implement `src/core/deflate-raw.js` (design D2: write and read concurrently); verify 3.1 passes
-- [ ] 3.3 Write failing `tests/unit/core/zip.test.js` for `zipArchive`, then verify it fails. Cover:
+- [ ] 3.1 Write failing `tests/unit/core/zip.test.js` for `zipArchive`, then verify it fails. Cover:
   - one stored entry `a.txt` = `hi` → the exact expected bytes: local header `50 4B 03 04`, version 20, method 0, time 0, date `0x0021`, CRC, sizes 2/2, name, data, central directory, EOCD with 1 entry and the right offsets (written out byte by byte in the test);
   - two entries → the second local header offset equals the first header + name + data;
   - a method-8 entry keeps its `size` as the uncompressed size;
   - names `''`, `/a.xml`, `ä.xml` throw `TypeError`;
   - 65,536 entries throw `RangeError`.
-- [ ] 3.4 Implement `zipArchive` in `src/core/zip.js`; verify 3.3 passes
-- [ ] 3.5 Add failing tests for `buildZip(files, { deflate })`, then verify they fail. Cover:
+- [ ] 3.2 Implement `zipArchive` in `src/core/zip.js`; verify 3.1 passes
+- [ ] 3.3 Add failing tests for `buildZip(files, { useCompression })`, then verify they fail. Cover:
   - string-chunk content gets the UTF-8 bytes' CRC and size;
-  - `shouldCompress: true` with `deflateRaw` → method 8 and inflates back;
-  - `deflate: null` → every entry method 0;
+  - `shouldCompress: true` (default `useCompression`, i.e. `canCompress()`) → method 8, and `zlib.inflateRawSync` gives the bytes back;
+  - `useCompression: false` → every entry method 0;
   - `Uint8Array` content with `shouldCompress: false` is stored unchanged;
   - two runs give byte-identical archives.
-- [ ] 3.6 Implement `buildZip`; verify 3.5 passes and `src/core/zip.js` stays under ~300 lines
+- [ ] 3.4 Implement `buildZip` using `compressBytes(bytes, 'deflate-raw')` from `src/core/compression.js` (design D2); verify 3.3 passes and `src/core/zip.js` stays under ~300 lines
 
 ## 4. Workbook styles and limits (core)
 
@@ -117,7 +112,7 @@ first, keep the existing files: they must already be identical.
   - returns `Map<name, Uint8Array>` plus each entry's method.
 
   Also add `tests/helpers/xml-check.js`, a well-formedness check that returns the element names in order (design D12). Verify both with a quick self-test inside 6.2.
-- [ ] 6.2 Write `tests/integration/excel-workbook.test.js`, which builds workbooks with `workbookFiles` + `buildZip` and real `deflateRaw`. Cover:
+- [ ] 6.2 Write `tests/integration/excel-workbook.test.js`, which builds workbooks with `workbookFiles` + `buildZip` and the real shared compression. Cover:
   - the 13 parts, all XML well-formed and UTF-8;
   - content types and relationships resolve;
   - Chart values, fills, fonts and borders of the 3 × 2 pattern resolved through `styles.xml`;
@@ -127,14 +122,14 @@ first, keep the existing files: they must already be identical.
   - the Legend rows;
   - the schema element orders;
   - byte-identical second run;
-  - `deflate: null` → all entries stored and the same unzipped parts.
+  - `useCompression: false` → all entries stored and the same unzipped parts.
 
   Verify `npm run test:integration` passes.
 - [ ] 6.3 Add a size and time test to the same file: a synthetic 1000 × 1000 pattern (30 colors, runs of equal cells) gives a workbook under 8 MB in under 10 s in Node; verify it passes
 
 ## 7. Worker (workers, io)
 
-- [ ] 7.1 Write failing `tests/integration/xlsx-worker.test.js` for `createXlsxWorkerHandler({ deflate })`, then verify it fails. Cover:
+- [ ] 7.1 Write failing `tests/integration/xlsx-worker.test.js` for `createXlsxWorkerHandler()` (and `{ useCompression: false }` once), then verify it fails. Cover:
   - a `{ type: 'xlsx', id: 7, pattern, pictures }` request → `{ type: 'xlsx', id: 7, bytes }` with `transfer` = `[bytes.buffer]`, and `bytes` unzips (helper) to the 13 parts;
   - an unknown type, a missing pattern, and a 2000 × 2000 pattern → `{ type: 'error', id, message }` with a message naming the problem;
   - the handler never rejects.

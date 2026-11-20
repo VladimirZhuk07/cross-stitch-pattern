@@ -42,7 +42,7 @@
 | Module | Layer | Role |
 |---|---|---|
 | `src/core/crc32.js` | core | `crc32(bytes, previous = 0)`: CRC-32 as in ZIP, table-driven, chainable |
-| `src/core/deflate-raw.js` | core | `canDeflateRaw()`, `deflateRaw(byteChunks)`: raw DEFLATE through `CompressionStream` |
+| `src/core/compression.js` | core | shared, verbatim (conventions §7): `canCompress()`, `compressBytes(bytes, 'deflate-raw')` |
 | `src/core/zip.js` | core | `zipArchive(entries)` (layout, sync) and `buildZip(files, options)` (encode, CRC, compress, layout) |
 | `src/core/xml.js` | core | `escapeXml(text)`, `columnName(columnNumber)`, `cellReference(column, row)` |
 | `src/core/picture-size.js` | core | `fitInside(size, maxSide)`, `stitchBlockSize(size, maxSide)` |
@@ -52,17 +52,18 @@
 | `src/core/xlsx-legend-sheet.js` | core | `legendSheetXml(pattern, styles)` |
 | `src/core/xlsx-package.js` | core | the fixed parts, `XLSX_MEDIA_TYPE`, `workbookFiles(pattern, pictures)` |
 | `src/core/xlsx-limits.js` | core | thresholds, `workbookSizeCheck(size)`, the user-facing texts |
-| `src/core/file-names.js`, `src/core/pattern-summary.js` | core | shared, verbatim |
+| `src/core/file-names.js`, `src/core/pattern-summary.js` | core | shared, verbatim (conventions §4–5) |
 | `src/workers/xlsx-worker-handler.js`, `src/workers/xlsx.worker.js` | workers | message adapter around `workbookFiles` + `buildZip` |
 | `src/io/xlsx-worker-client.js` | io | `createWorkbookInWorker(createWorker, request)` |
 | `src/io/summary-pictures.js` | io | `encodeSummaryPictures(image, pattern)`: the two PNGs (OffscreenCanvas) |
 | `src/io/download.js` | io | shared, verbatim |
 | `src/ui/excel-export.js` | ui | menu item, limits and dialog, status, download |
 
-`core/` stays pure. It has no DOM, canvas, timers, network or storage. It does use three standard
-globals: `TextEncoder`, `CompressionStream` and stream readers. They exist the same way in
-browsers, workers and Node 22, so unit tests run them for real. `core/` imports only from
-`core/`: `chart-tint.js`, `pattern.js` and the new modules.
+`core/` stays pure. It has no DOM, canvas, timers, network or storage. It does use standard
+globals: `TextEncoder`, and the compression streams, which only the shared `compression.js`
+touches. They exist the same way in browsers, workers and Node 22, so unit tests run them for
+real. `core/` imports only from `core/`: `chart-tint.js`, `pattern.js`, `compression.js` and the
+new modules.
 
 ### D2. ZIP writer
 
@@ -84,28 +85,31 @@ browsers, workers and Node 22, so unit tests run them for real. `core/` imports 
 
   It throws a `TypeError` for a non-ASCII, empty or absolute name. At the 1,000,000-cell cap the
   largest entry is about 40 MB.
-- **`buildZip(files, { deflate })`** is async.
+- **`buildZip(files, { useCompression = canCompress() })`** is async.
   - **File shape:** `{ name, content, shouldCompress }`. `content` is a `Uint8Array` or an iterable
     of strings.
-  - **Encoding:** it encodes string chunks one at a time with `TextEncoder` and updates the CRC per
-    chunk.
-  - **Compression:** when `shouldCompress` is true and `deflate` is a function, the chunks stream
-    into `deflate` (method 8). Otherwise they are stored (method 0).
-  - **Memory:** the 34 MB sheet string is never built in one piece. Peak memory is about one chunk
-    plus the compressed output.
-- **`deflateRaw(byteChunks)`** writes the chunks into `new CompressionStream('deflate-raw')` while it
-  reads the output at the same time. Reading in parallel avoids a back-pressure deadlock. It
-  resolves to one `Uint8Array`.
-  - `canDeflateRaw()` is `typeof CompressionStream === 'function'`. The stream exists in Chrome 80+,
-    Safari 16.4+, Firefox 113+ and Node 18+.
-  - Without it, the handler passes `deflate: null`, and every entry is stored. The file is then
-    about 10× larger but valid.
+  - **Encoding:** it encodes string chunks one at a time with `TextEncoder` into one `Uint8Array`
+    of the part, then computes its CRC and size.
+  - **Compression:** when `shouldCompress` and `useCompression` are both true,
+    `compressBytes(bytes, 'deflate-raw')` from the shared `compression.js` gives the data (method 8).
+    Otherwise the bytes are stored (method 0).
+  - **No compression available:** `canCompress()` is false in browsers without the streams (before
+    Safari 16.4 and Firefox 113). Every entry is then stored. The file is about 10× larger but
+    valid. Tests pass `useCompression: false` to cover this path in Node.
+  - **Memory:** `compressBytes` takes one `Uint8Array`, so each part is encoded completely before
+    it is compressed. The sheet is still never one JS string; that would be 68 MB of UTF-16 at the
+    cap. Instead the generator's chunks are encoded into the part's bytes, about 34 MB at the cap.
+    Peak memory is those bytes plus the compressed output (about 3.4 MB). That is acceptable in a
+    worker that is terminated right after.
 - **CRC-32.** Reflected polynomial `0xEDB88320`, start `0xFFFFFFFF`, final XOR. A 256-entry
   `Uint32Array` table is built once on first use. In V8 that is about 0.1 s for 34 MB.
 - **Methods per part.** XML is deflated. PNGs are stored, because they are already compressed and
   deflating them again gains nothing.
 - *Alternatives:*
   - A JS deflate of our own: rejected. A few hundred lines duplicating a built-in, and slower.
+  - A streaming deflate module of this change's own: replaced by the shared `compression.js`, which
+    the PDF and `.stitch` changes use too. It costs one full part in memory (see Memory above), and
+    saves a second, slightly different stream wrapper.
   - Always stored: rejected. 34 MB instead of 3.4 MB at the cap.
   - `CompressionStream('gzip')` and stripping the header: rejected. It needs header parsing for no
     gain.
@@ -301,9 +305,9 @@ at least 65,536 characters, then the tail.
     its own copy.
   - Response `{ type: 'xlsx', id, bytes }`, with `bytes.buffer` transferred.
   - Error `{ type: 'error', id, message }`.
-  - The handler is `createXlsxWorkerHandler({ deflate })`, which returns
-    `async handleMessage(message) → { response, transfer }`. It never rejects.
-  - The entry passes `deflate: canDeflateRaw() ? deflateRaw : null`.
+  - The handler is `createXlsxWorkerHandler({ useCompression = canCompress() } = {})`, which
+    returns `async handleMessage(message) → { response, transfer }`. It never rejects.
+  - The entry calls it without options. Tests pass `useCompression: false` for the stored path.
 - **Checks.** The handler re-checks the cell cap and the pattern shape. A bypassed UI therefore
   still gets an error response instead of a hang.
 
@@ -377,7 +381,7 @@ at least 65,536 characters, then the tail.
 
   It also returns the element sequence, so tests can assert the schema orders of D3.
 - **`tests/integration/excel-workbook.test.js`** builds workbooks through `workbookFiles` and
-  `buildZip` with real `deflateRaw`, and with `deflate: null`. It checks:
+  `buildZip`, once with the real shared compression and once with `useCompression: false`. It checks:
   - the 13 part names;
   - content types for each part;
   - that every relationship target exists;
@@ -399,8 +403,8 @@ at least 65,536 characters, then the tail.
 
 ### D13. Shared pieces
 
-`io/download.js`, `core/file-names.js` with its test, and `core/pattern-summary.js` with its test
-are copied byte for byte from the shared conventions. So are the Export menu block (with only the
+`io/download.js`, `core/file-names.js` with its test, `core/pattern-summary.js` with its test, and
+`core/compression.js` with its test (conventions §7) are copied byte for byte from the shared conventions. So are the Export menu block (with only the
 `export-xlsx` item), the CSS block after the `.file-picker:has(...)` rule, and the `print.css`
 rule. Merging after `add-pdf-export` then sees identical files. The only difference is the menu
 item lines, and the items follow the fixed order in the conventions.
@@ -421,7 +425,8 @@ item lines, and the items follow the fixed order in the conventions.
 - [Merge conflict with `add-pdf-export` if it also adds a dialog after the progress dialog] → The
   dialog lines are adjacent insertions and easy to resolve. This is flagged in the report for the
   merge order.
-- [Peak memory at the cap] → About 50–80 MB in the worker, briefly, plus the Blob. The worker is
+- [Peak memory at the cap] → About 50–80 MB in the worker, briefly, plus the Blob. The shared
+  `compressBytes` needs each part as one `Uint8Array`, about 34 MB for the chart sheet at the cap. The worker is
   terminated right after.
 
 ## Migration Plan
