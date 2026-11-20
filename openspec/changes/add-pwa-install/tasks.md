@@ -6,7 +6,7 @@
   `shared-export-conventions.md`. Run `node --test tests/unit/core/crc32.test.js` and verify
   that it fails because the module is missing.
 - [x] 1.2 Add `src/core/crc32.js` byte for byte from section 8 and verify that 1.1 passes
-- [ ] 1.3 Add `tests/unit/core/compression.test.js` byte for byte from section 7 of
+- [x] 1.3 Add `tests/unit/core/compression.test.js` byte for byte from section 7 of
   `shared-export-conventions.md`. Run `node --test tests/unit/core/compression.test.js` and
   verify that it fails because the module is missing.
 - [ ] 1.4 Add `src/core/compression.js` byte for byte from section 7 and verify that 1.3 passes
