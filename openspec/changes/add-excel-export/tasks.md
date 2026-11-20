@@ -41,7 +41,7 @@ first, keep the existing files: they must already be identical.
 
 ## 4. Workbook styles and limits (core)
 
-- [ ] 4.1 Write failing `tests/unit/core/xlsx-styles.test.js` for `workbookStyles(legend)`, then verify it fails. Use the 3 × 2 legend (310, 321) and cover:
+- [x] 4.1 Write failing `tests/unit/core/xlsx-styles.test.js` for `workbookStyles(legend)`, then verify it fails. Use the 3 × 2 legend (310, 321) and cover:
   - `fills` holds `none`, `gray125`, `FFE0E0E0`, the tints `FFB0B0B0` and `FFFFC0BB`, then `FF000000` and `FFC72B3B` in that order;
   - fonts: Calibri 11, Calibri 11 bold, Calibri 9 color `FF000000`;
   - `chartCellStyle(legendIndex, x, y, width, height)`: for 23 × 12, (9, 0) has a medium right edge, (0, 0) medium left and top, (22, 11) medium right and bottom, (5, 5) thin right and bottom with no left or top, and an empty cell (−1) uses the diagonal-up border;
