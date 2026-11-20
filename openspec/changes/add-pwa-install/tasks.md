@@ -48,7 +48,7 @@
 
 ## 3. Manifest and head links
 
-- [ ] 3.1 Add a failing case to `tests/integration/serve.test.js`: a `.webmanifest` file is served
+- [x] 3.1 Add a failing case to `tests/integration/serve.test.js`: a `.webmanifest` file is served
   as `application/manifest+json`. Add the entry to `CONTENT_TYPES` in `scripts/serve.js`, and
   verify that the case passes.
 - [ ] 3.2 Write failing `tests/integration/app-manifest.test.js` and verify that it fails. Cover:

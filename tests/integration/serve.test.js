@@ -12,6 +12,7 @@ import { startServer, parseCommandLine } from '../../scripts/serve.js';
  * Creates a throw-away site so the tests do not depend on the repository's files:
  *   <tmp>/outside.txt        must never be served
  *   <tmp>/site/index.html
+ *   <tmp>/site/app.webmanifest
  *   <tmp>/site/.git/HEAD     dot-directory, must never be served
  * Returns { tmp, siteRoot }.
  */
@@ -21,6 +22,7 @@ async function createFixtureSite() {
   await mkdir(join(siteRoot, '.git'), { recursive: true });
   await writeFile(join(tmp, 'outside.txt'), 'secret');
   await writeFile(join(siteRoot, 'index.html'), '<!doctype html><title>fixture</title>');
+  await writeFile(join(siteRoot, 'app.webmanifest'), '{"name":"fixture"}');
   await writeFile(join(siteRoot, '.git', 'HEAD'), 'ref: refs/heads/main');
   return { tmp, siteRoot };
 }
@@ -65,6 +67,13 @@ describe('dev server at the root path', () => {
     assert.equal(response.status, 200);
     assert.match(response.contentType, /^text\/html/);
     assert.match(response.body, /<title>fixture<\/title>/);
+  });
+
+  it('serves a .webmanifest file as application/manifest+json', async () => {
+    const response = await request(server.url, '/app.webmanifest');
+    assert.equal(response.status, 200);
+    assert.equal(response.contentType, 'application/manifest+json');
+    assert.equal(response.body, '{"name":"fixture"}');
   });
 
   it('answers 404 for a missing file', async () => {
