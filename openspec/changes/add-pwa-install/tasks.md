@@ -87,7 +87,7 @@
 
 ## 5. Offline cache rules (core)
 
-- [ ] 5.1 Write failing `tests/unit/core/offline-cache.test.js` and verify that it fails. Cover:
+- [x] 5.1 Write failing `tests/unit/core/offline-cache.test.js` and verify that it fails. Cover:
   - `offlineCacheName('https://user.github.io/cross-stitch-pattern/')` →
     `cross-stitch-pattern-maker:offline-v1:https://user.github.io/cross-stitch-pattern/`;
   - `staleCacheNames`: the spec's "Version bump" scenario keeps the fork's cache and
