@@ -3,6 +3,7 @@
 // (openspec/specs/stitch-progress/spec.md). Progress lives as long as its pattern; keeping it
 // across page loads is the job of a later change.
 
+import { EMPTY_CELL } from '../core/pattern.js';
 import { createProgress, toggleStitch, formatProgressSummary } from '../core/progress.js';
 
 const PROGRESS_LAYER = 'progress';
@@ -14,28 +15,43 @@ const PROGRESS_LAYER = 'progress';
  * store   the app store from ./store.js
  * layer   the Progress view layer (./layers/progress-layer.js); its cellAt(point) finds the
  *         cell under a frame point in what it last painted
+ * options optional { confirmFirstMark() → Promise<boolean> } (see ./progress-persistence.js):
+ *         asked before the first mark of a pattern; false marks nothing
  * Returns {
- *   toggleAt(point)       toggles the cell under a frame point (CSS px), on the Progress layer only
+ *   toggleAt(point)       toggles the cell under a frame point (CSS px), on the Progress layer
+ *                         only; returns a Promise when it had to ask first
  *   toggleCentre()        toggles the cell at the frame centre (the keyboard marker's cell)
  *   hasMarkedStitches()   true while at least one stitch is marked
  *   markedCounts()        { stitched, total } of the current progress ({ 0, 0 } without one)
  * }
  */
-export function setupProgress(root, store, layer) {
+export function setupProgress(root, store, layer, options = {}) {
   const counter = root.querySelector('[data-role="progress-summary"]');
 
   function toggleAt(point) {
     const state = store.getState();
     if (state.activeLayer !== PROGRESS_LAYER || state.progress === null) {
-      return;
+      return undefined;
     }
     const cell = layer.cellAt(point);
-    if (cell === null) {
+    if (cell === null || state.pattern.cells[cell.index] === EMPTY_CELL) {
+      return undefined;
+    }
+    if (state.progress.stitchedCount === 0 && options.confirmFirstMark) {
+      return toggleAfterConfirming(state.progress, cell.index);
+    }
+    store.setState({ progress: toggleStitch(state.progress, cell.index) });
+    return undefined;
+  }
+
+  // The first mark of a pattern may replace saved progress: ask, then mark only if nothing
+  // changed meanwhile (another pattern, or marks made in another way).
+  async function toggleAfterConfirming(askedProgress, cellIndex) {
+    if (!(await options.confirmFirstMark())) {
       return;
     }
-    const progress = toggleStitch(state.progress, cell.index);
-    if (progress !== state.progress) {
-      store.setState({ progress });
+    if (store.getState().progress === askedProgress) {
+      store.setState({ progress: toggleStitch(askedProgress, cellIndex) });
     }
   }
 

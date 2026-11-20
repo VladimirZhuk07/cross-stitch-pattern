@@ -3,7 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createProgressWarning } from '../../src/ui/progress-warning.js';
+import { createProgressWarning, createProgressGuard } from '../../src/ui/progress-warning.js';
 import { fakeElement } from '../helpers/fake-legend-dom.js';
 
 // The dialog of index.html as fake elements: showModal opens it, close closes it and fires
@@ -75,5 +75,31 @@ describe('progress warning dialog', () => {
     assert.equal(dom.confirmButton.textContent, 'Change settings');
     dom.confirmButton.dispatch('click');
     assert.equal(await second, true);
+  });
+});
+
+describe('progress guard', () => {
+  const progress = { hasMarkedStitches: () => true, markedCounts: () => ({ stitched: 12, total: 6700 }) };
+
+  async function guardAnswering(answer) {
+    const discarded = [];
+    const warning = { confirm: async () => answer };
+    const persistence = { discard: async () => { discarded.push(true); } };
+    const guard = createProgressGuard(progress, warning, persistence);
+    return { guard, discarded };
+  }
+
+  it('deletes the saved progress after a confirmed settings change or new image', async () => {
+    const { guard, discarded } = await guardAnswering(true);
+    assert.equal(await guard.confirmSettings(), true);
+    assert.equal(await guard.confirmImage('cat.png'), true);
+    assert.equal(discarded.length, 2);
+  });
+
+  it('keeps the saved progress when the user keeps the marks', async () => {
+    const { guard, discarded } = await guardAnswering(false);
+    assert.equal(await guard.confirmSettings(), false);
+    assert.equal(await guard.confirmImage('cat.png'), false);
+    assert.equal(discarded.length, 0);
   });
 });

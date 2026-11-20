@@ -20,6 +20,8 @@ import { createChartLayer } from './ui/layers/chart-layer.js';
 import { createProgressLayer } from './ui/layers/progress-layer.js';
 import { setupProgress } from './ui/progress.js';
 import { createProgressWarning, createProgressGuard } from './ui/progress-warning.js';
+import { setupProgressPersistence } from './ui/progress-persistence.js';
+import { openProgressStore } from './io/progress-store.js';
 import { setupLegend } from './ui/legend.js';
 import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
 import { readPreference, writePreference } from './io/local-preferences.js';
@@ -31,10 +33,12 @@ const store = createStore(createInitialState());
 const progressLayer = createProgressLayer();
 const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer(), progressLayer];
 
-// Marked stitches on the Progress layer (taps and keys come from the frame input below), and
-// the question asked before a new image or new settings would replace them.
-const progress = setupProgress(document, store, progressLayer);
-const progressGuard = createProgressGuard(progress, createProgressWarning(document));
+// Marked stitches on the Progress layer (taps and keys come from the frame input below), kept
+// in this browser (IndexedDB), and the questions asked before they would be lost or replaced.
+const progressWarning = createProgressWarning(document);
+const progressPersistence = setupProgressPersistence(document, store, openProgressStore(), progressWarning);
+const progress = setupProgress(document, store, progressLayer, { confirmFirstMark: progressPersistence.confirmFirstMark });
+const progressGuard = createProgressGuard(progress, progressWarning, progressPersistence);
 
 // Image input and status line.
 setupStatus(document, store);

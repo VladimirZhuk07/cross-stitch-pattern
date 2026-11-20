@@ -50,8 +50,10 @@ export function createProgressWarning(root) {
 
 /**
  * The guard the settings form and the image input ask before replacing the pattern.
- * progress  the object returned by setupProgress (./progress.js)
- * warning   the object returned by createProgressWarning
+ * progress     the object returned by setupProgress (./progress.js)
+ * warning      the object returned by createProgressWarning
+ * persistence  optional { discard() } (./progress-persistence.js): a confirmed loss also deletes
+ *              the saved progress, so it cannot come back later
  * Returns {
  *   hasMarkedStitches()       true while at least one stitch is marked
  *   confirmSettings()         Promise<boolean>: may the settings change?
@@ -59,19 +61,27 @@ export function createProgressWarning(root) {
  *                             without marked stitches)
  * }
  */
-export function createProgressGuard(progress, warning) {
+export function createProgressGuard(progress, warning, persistence = null) {
+  async function confirmLoss(question) {
+    const isConfirmed = await warning.confirm(question);
+    if (isConfirmed && persistence !== null) {
+      await persistence.discard();
+    }
+    return isConfirmed;
+  }
+
   return {
     hasMarkedStitches: progress.hasMarkedStitches,
     confirmSettings() {
       const { stitched, total } = progress.markedCounts();
-      return warning.confirm({ text: formatSettingsWarning(stitched, total), confirmLabel: 'Change settings' });
+      return confirmLoss({ text: formatSettingsWarning(stitched, total), confirmLabel: 'Change settings' });
     },
     async confirmImage(fileName) {
       if (!progress.hasMarkedStitches()) {
         return true;
       }
       const { stitched, total } = progress.markedCounts();
-      return warning.confirm({ text: formatImageWarning(fileName, stitched, total), confirmLabel: 'Load image' });
+      return confirmLoss({ text: formatImageWarning(fileName, stitched, total), confirmLabel: 'Load image' });
     },
   };
 }

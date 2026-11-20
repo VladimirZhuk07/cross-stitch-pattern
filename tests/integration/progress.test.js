@@ -20,13 +20,13 @@ function threeByTwoPattern() {
   return buildPattern({ width: 3, height: 2, cells: [0, 1, 1, -1, 1, 0], colors: [RED, BLACK] });
 }
 
-function setup(state = {}) {
+function setup(state = {}, options = undefined) {
   const counter = { textContent: '', hidden: true };
   const root = { querySelector: (selector) => (selector === '[data-role="progress-summary"]' ? counter : null) };
   const store = createStore({ ...createInitialState(), activeLayer: 'progress', frame: { width: 60, height: 40 }, ...state });
   // The Progress layer's cellAt, as if it had just painted the pattern in 20 px cells.
   const layer = { cellAt: (point) => cellAtPoint(CELLS_20, store.getState().pattern, point) };
-  const progress = setupProgress(root, store, layer);
+  const progress = setupProgress(root, store, layer, options);
   return { store, progress, counter };
 }
 
@@ -96,5 +96,53 @@ describe('progress counter', () => {
   it('is hidden without a pattern', () => {
     const { counter } = setup();
     assert.equal(counter.hidden, true);
+  });
+});
+
+describe('progress: asking before the first mark', () => {
+  // A confirmFirstMark that records its calls and answers with the given value.
+  function asker(answer) {
+    const asked = [];
+    const confirmFirstMark = () => {
+      asked.push(true);
+      return answer instanceof Promise ? answer : Promise.resolve(answer);
+    };
+    return { asked, confirmFirstMark };
+  }
+
+  it('marks nothing when the user keeps the saved progress', async () => {
+    const { asked, confirmFirstMark } = asker(false);
+    const { store, progress } = setup({ pattern: threeByTwoPattern() }, { confirmFirstMark });
+    await progress.toggleAt({ x: 50, y: 30 });
+    assert.equal(asked.length, 1);
+    assert.equal(store.getState().progress.stitchedCount, 0);
+  });
+
+  it('marks after a yes and does not ask while marks exist', async () => {
+    const { asked, confirmFirstMark } = asker(true);
+    const { store, progress } = setup({ pattern: threeByTwoPattern() }, { confirmFirstMark });
+    await progress.toggleAt({ x: 50, y: 30 });
+    await progress.toggleAt({ x: 30, y: 30 });
+    assert.equal(asked.length, 1);
+    assert.equal(store.getState().progress.stitchedCount, 2);
+  });
+
+  it('marks nothing when the pattern changed during the question', async () => {
+    let answer;
+    const { confirmFirstMark } = asker(new Promise((resolve) => { answer = resolve; }));
+    const { store, progress } = setup({ pattern: threeByTwoPattern() }, { confirmFirstMark });
+    const pending = progress.toggleAt({ x: 50, y: 30 });
+    store.setState({ pattern: threeByTwoPattern() });
+    answer(true);
+    await pending;
+    assert.equal(store.getState().progress.stitchedCount, 0);
+  });
+
+  it('does not ask for an empty cell or outside the grid', async () => {
+    const { asked, confirmFirstMark } = asker(true);
+    const { progress } = setup({ pattern: threeByTwoPattern() }, { confirmFirstMark });
+    await progress.toggleAt({ x: 10, y: 30 });
+    await progress.toggleAt({ x: 70, y: 30 });
+    assert.equal(asked.length, 0);
   });
 });
