@@ -21,7 +21,7 @@
 
 ## 3. PDF text, writer, pictures and content builder (core)
 
-- [ ] 3.1 Add failing tests `tests/unit/core/pdf-text.test.js` for `encodeWinAnsi`, `pdfString` and `pdfTextString`:
+- [x] 3.1 Add failing tests `tests/unit/core/pdf-text.test.js` for `encodeWinAnsi`, `pdfString` and `pdfTextString`:
   - `café` → bytes `63 61 66 E9`;
   - `–`, `…` and `€` → `96`, `85` and `80`;
   - `Ё` → `?`;
