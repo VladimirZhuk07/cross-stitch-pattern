@@ -51,7 +51,7 @@
   - a rejected store or a failing save → `UNSAVED_NOTE` once, marking still works, no further save calls.
 
   Verify it fails.
-- [ ] 3.3 Implement `src/ui/progress-persistence.js` (design D4); verify 3.2 passes
+- [x] 3.3 Implement `src/ui/progress-persistence.js` (design D4); verify 3.2 passes
 - [ ] 3.4 Wire it:
   - `setupProgress(root, store, layer, { confirmFirstMark })`, where `toggleAt` awaits it for the first mark (add tests to `tests/integration/progress.test.js`: asked once when the progress is empty, a no marks nothing, a pattern change during the question marks nothing);
   - `createProgressGuard(progress, warning, persistence)` calls `discard()` after a confirmed settings or image warning (add a test to `tests/integration/progress-warning.test.js`);
