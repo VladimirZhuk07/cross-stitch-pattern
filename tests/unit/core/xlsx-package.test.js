@@ -45,7 +45,7 @@ function partsOf(files) {
 
 // Resolves a relationship target against the folder of the part that owns the .rels file.
 function resolveTarget(relsName, target) {
-  const ownerFolder = relsName.replace(/_rels\/[^/]+\.rels$/, '');
+  const ownerFolder = relsName.replace(/_rels\/[^/]*\.rels$/, '');
   const segments = `${ownerFolder}${target}`.split('/');
   const resolved = [];
   for (const segment of segments) {

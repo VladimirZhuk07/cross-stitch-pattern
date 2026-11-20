@@ -95,7 +95,7 @@ first, keep the existing files: they must already be identical.
   - every relationship target names a returned part;
   - `XLSX_MEDIA_TYPE`;
   - a malformed picture (width 0, `png` not a `Uint8Array`) throws.
-- [ ] 5.10 Implement `src/core/xlsx-package.js`; verify 5.9 and `npm run test:unit` pass
+- [x] 5.10 Implement `src/core/xlsx-package.js`; verify 5.9 and `npm run test:unit` pass
 
 ## 6. Export format integration tests
 
