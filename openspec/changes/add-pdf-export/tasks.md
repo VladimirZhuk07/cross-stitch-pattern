@@ -2,7 +2,7 @@
 
 ## 1. Shared export pieces (verbatim from the shared export conventions)
 
-- [ ] 1.1 Add `tests/unit/core/file-names.test.js` exactly as in the conventions (section 4) and verify it fails (module missing)
+- [x] 1.1 Add `tests/unit/core/file-names.test.js` exactly as in the conventions (section 4) and verify it fails (module missing)
 - [ ] 1.2 Add `src/core/file-names.js` exactly as in the conventions; verify 1.1 passes
 - [ ] 1.3 Add `tests/unit/core/pattern-summary.test.js` exactly as in the conventions (section 5) and verify it fails
 - [ ] 1.4 Add `src/core/pattern-summary.js` exactly as in the conventions; verify 1.3 passes
