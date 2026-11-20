@@ -131,7 +131,7 @@
   - the 1000 × 1000 table: 2 pages, 224 entries on the first, first entry `1` `1–50` `1–80`, last `260` `951–1000` `961–1000`, and the headings `Page map` / `Page map (continued)`.
 
   Verify they fail.
-- [ ] 5.8 Implement `src/core/pdf-page-map.js` (design D6); verify 5.7 passes
+- [x] 5.8 Implement `src/core/pdf-page-map.js` (design D6); verify 5.7 passes
 - [ ] 5.9 Add failing tests `tests/unit/core/pdf-info-page.test.js`:
   - the title `Cross-stitch pattern` in F2, and the file name, with `Ёлка.png` shown as `????.png`;
   - the captions `Original` and `DMC colors`;
