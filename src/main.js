@@ -27,6 +27,10 @@ import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
 import { readPreference, writePreference } from './io/local-preferences.js';
 import { createProgressFileSaver, setupProgressFileMenu } from './ui/progress-file.js';
 import { downloadProgressFile, readFileBytes } from './io/progress-file.js';
+import { setupExcelExport } from './ui/excel-export.js';
+import { encodeSummaryPictures } from './io/summary-pictures.js';
+import { createWorkbookInWorker } from './io/xlsx-worker-client.js';
+import { downloadBlob } from './io/download.js';
 
 const store = createStore(createInitialState());
 
@@ -76,4 +80,12 @@ setupProgressFileMenu(document, store, {
   warning: progressWarning,
   persistence: progressPersistence,
   readBytes: readFileBytes,
+});
+
+// Excel workbook export (written in a module worker, one per export).
+const createXlsxWorker = () => new Worker(new URL('./workers/xlsx.worker.js', import.meta.url), { type: 'module' });
+setupExcelExport(document, store, {
+  encodePictures: encodeSummaryPictures,
+  createWorkbook: (request) => createWorkbookInWorker(createXlsxWorker, request),
+  download: (blob, fileName) => downloadBlob(blob, fileName),
 });

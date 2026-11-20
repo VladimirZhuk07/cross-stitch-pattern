@@ -157,7 +157,7 @@ first, keep the existing files: they must already be identical.
   - a newer status set during the export is not overwritten.
 
   Verify it fails.
-- [ ] 8.4 Implement `src/ui/excel-export.js` (design D11) and append the setup group to the end of `src/main.js` (conventions section 6); verify 8.3, `served-site.test.js` (the new worker and modules are reachable, with relative `.js` imports) and `npm run test:integration` pass
+- [x] 8.4 Implement `src/ui/excel-export.js` (design D11) and append the setup group to the end of `src/main.js` (conventions section 6); verify 8.3, `served-site.test.js` (the new worker and modules are reachable, with relative `.js` imports) and `npm run test:integration` pass
 
 ## 9. Verification
 
