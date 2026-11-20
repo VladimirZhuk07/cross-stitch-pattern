@@ -14,7 +14,7 @@ let printCss = '';
 const ITEM_ORDER = ['export-pdf', 'export-xlsx', 'export-progress', 'progress-file-input'];
 
 const MENU_START = [
-  '    <h1 class="app-header__title">Cross-Stitch Pattern Maker</h1>',
+  '    <h1 class="app-header__title">Cross-Stitch<span class="app-header__title-rest"> Pattern Maker</span></h1>',
   '    <details class="export-menu" data-role="export-menu">',
   '      <summary class="export-menu__toggle">Export</summary>',
   '      <div class="export-menu__items" role="group" aria-label="Export and progress files">',

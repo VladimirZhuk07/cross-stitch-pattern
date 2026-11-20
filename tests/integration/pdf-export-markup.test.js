@@ -25,7 +25,7 @@ describe('PDF export markup', () => {
   it('puts the shared Export menu right after the title, before the file picker', () => {
     assert.match(
       html,
-      /<h1 class="app-header__title">[^<]*<\/h1>\n {4}<details class="export-menu" data-role="export-menu">\n/,
+      /<h1 class="app-header__title">[\s\S]*?<\/h1>\n {4}<details class="export-menu" data-role="export-menu">\n/,
     );
     const menu = element(/<details class="export-menu"[\s\S]*?<\/details>/, 'the Export menu');
     assert.ok(html.indexOf(menu) < html.indexOf('<label class="file-picker">'));

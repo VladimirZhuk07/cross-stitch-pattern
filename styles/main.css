@@ -1145,6 +1145,26 @@ body {
   }
 }
 
+/* Narrow screens (phones in portrait): the Export menu leaves too little room for the full
+   title, so it shows "Cross-Stitch"; the rest stays in the heading for screen readers. A
+   smaller gap makes room for it at 360 px. 32rem is measured: from about 445 px the full title
+   fits (design of shorten-phone-title). */
+@media screen and (width < 32rem) {
+  .app-header {
+    gap: var(--space-1);
+  }
+
+  .app-header__title-rest {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Compact landscape (phones turned sideways): height is the scarce side, so nothing sits above
    or below the frame. Left: the frame, with a 9rem rail for the view switcher, zoom and
    status. Right: a 16rem column with the settings and the legend. The page itself does not
