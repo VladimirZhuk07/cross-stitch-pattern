@@ -87,7 +87,7 @@ first, keep the existing files: they must already be identical.
   - a pattern without stitches → only the header and no `ignoredErrors`;
   - the name `Rose & "Wine" <test>` is escaped.
 - [x] 5.8 Implement `src/core/xlsx-legend-sheet.js` (design D8); verify 5.7 passes
-- [ ] 5.9 Write failing `tests/unit/core/xlsx-package.test.js` for `workbookFiles(pattern, pictures)`, then verify it fails. Cover:
+- [x] 5.9 Write failing `tests/unit/core/xlsx-package.test.js` for `workbookFiles(pattern, pictures)`, then verify it fails. Cover:
   - it returns the 13 parts of the spec in a fixed order, `[Content_Types].xml` first;
   - XML parts have `shouldCompress: true`, PNGs `false` with the given bytes;
   - content types per part as in design D3;
