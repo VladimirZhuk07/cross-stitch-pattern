@@ -14,7 +14,8 @@
 //                  ceil(width × height / 8) bytes once inflated
 // The file holds no image, no file name and no counts (they are recounted on load).
 
-import { compressBytes } from './compression.js';
+import { compressBytes, decompressBytes } from './compression.js';
+import { restoreProgress, SAVED_PROGRESS_FORMAT } from './progress.js';
 import { MAX_GRID_SIDE } from './stitch-grid.js';
 
 /** The file name extension of progress files (without the dot). */
@@ -76,6 +77,23 @@ export async function encodeProgressFile(saved) {
   return bytes;
 }
 
+/**
+ * Reads the bytes of a .stitch file (a Uint8Array, not modified) for pattern (a Pattern,
+ * ./pattern.js). Resolves to a fresh Progress (./progress.js: version 0, lastToggled null) of
+ * pattern; bits of empty cells and padding bits in the file are ignored and the stitches are
+ * recounted.
+ */
+export async function decodeProgressFile(bytes, pattern) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const width = view.getUint32(WIDTH_OFFSET, true);
+  const height = view.getUint32(HEIGHT_OFFSET, true);
+  const fingerprint = asciiText(bytes.subarray(FINGERPRINT_OFFSET, HEADER_LENGTH));
+  const expectedLength = bitsLength(width, height);
+  const bits = await decompressBytes(bytes.subarray(HEADER_LENGTH), COMPRESSION_FORMAT, expectedLength);
+  // restoreProgress is the same check and cleanup as for the browser's saved progress.
+  return restoreProgress(pattern, { formatVersion: SAVED_PROGRESS_FORMAT, fingerprint, width, height, bits });
+}
+
 function checkSide(name, value) {
   if (!Number.isInteger(value) || value < 1 || value > MAX_GRID_SIDE) {
     throw new RangeError(`${name} must be an integer 1–${MAX_GRID_SIDE}, got ${String(value)}`);
@@ -89,4 +107,9 @@ function bitsLength(width, height) {
 // The bytes of an ASCII-only text (the magic and the fingerprint).
 function asciiBytes(text) {
   return Uint8Array.from(text, (character) => character.charCodeAt(0));
+}
+
+// The text of ASCII bytes; any other byte becomes a character that never matches a fingerprint.
+function asciiText(bytes) {
+  return String.fromCharCode(...bytes);
 }

@@ -26,7 +26,7 @@
   - a 4000 × 4000 round trip with 1,234 marks keeps exactly those cells;
   - a file whose bits set empty cell 3 and padding bit 7 marks only the real cells and recounts;
   - the input bytes are not modified.
-- [ ] 2.4 Implement the header parsing, the `decompressBytes(data, 'deflate', expectedLength)` call and the `restoreProgress` reuse (design D2); no stream code of its own; verify 2.3 passes
+- [x] 2.4 Implement the header parsing, the `decompressBytes(data, 'deflate', expectedLength)` call and the `restoreProgress` reuse (design D2); no stream code of its own; verify 2.3 passes
 - [ ] 2.5 Write failing tests for `ProgressFileError` reasons and verify they fail. Cover:
   - fewer than 30 bytes, wrong magic and `MAX_PROGRESS_FILE_BYTES + 1` bytes → `'not-progress-file'`;
   - version 2 → `'newer-version'`, version 0 → `'damaged'`;
