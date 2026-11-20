@@ -93,10 +93,24 @@ describe('progress file saver', () => {
   });
 });
 
-// Lets pending promise callbacks and the (de)compression streams run: they need several turns.
+const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
+
+// Lets pending promise callbacks run for a while (before asserting that nothing happened).
 async function settle() {
   for (let turn = 0; turn < 20; turn++) {
-    await new Promise((resolve) => setImmediate(resolve));
+    await nextTurn();
+  }
+}
+
+// Waits until isDone() is true. The (de)compression streams take a varying number of turns,
+// so the tests wait for what they observe instead of counting turns.
+async function waitFor(isDone, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!isDone()) {
+    if (Date.now() > deadline) {
+      throw new Error(`timed out waiting for ${isDone}`);
+    }
+    await nextTurn();
   }
 }
 
@@ -203,7 +217,7 @@ describe('Export menu progress items: saving', () => {
     dom.menu.open = true;
     dom.saveItem.dispatch('click');
     assert.equal(dom.menu.open, false);
-    await settle();
+    await waitFor(() => calls.saveCurrent === 1);
     assert.equal(calls.saveCurrent, 1);
   });
 
@@ -212,7 +226,7 @@ describe('Export menu progress items: saving', () => {
     const pattern = threeByTwoPattern();
     const { store, dom } = setupMenu({ pattern, progress: progressWith(pattern, [0]) }, { saveFails: true });
     dom.saveItem.dispatch('click');
-    await settle();
+    await waitFor(() => store.getState().status.kind === 'error');
     assert.deepEqual(store.getState().status, { kind: 'error', text: 'Could not save the progress file.' });
     assert.equal(store.getState().progress.stitchedCount, 1);
   });
@@ -224,7 +238,7 @@ describe('Export menu progress items: loading', () => {
     const { dom, calls } = setupMenu({ pattern, progress: createProgress(pattern) });
     dom.choose(fakeFile('cat.stitch', await fileOf(pattern, [0, 4])));
     assert.equal(dom.menu.open, false);
-    await settle();
+    await waitFor(() => calls.adopted.length === 1);
     assert.equal(calls.confirmFirstMark, 1);
     assert.equal(calls.questions.length, 0);
     assert.equal(calls.adopted.length, 1);
@@ -237,6 +251,7 @@ describe('Export menu progress items: loading', () => {
     const pattern = threeByTwoPattern();
     const { dom, calls } = setupMenu({ pattern, progress: createProgress(pattern) }, { answer: false });
     dom.choose(fakeFile('cat.stitch', await fileOf(pattern, [0])));
+    await waitFor(() => calls.confirmFirstMark === 1);
     await settle();
     assert.equal(calls.adopted.length, 0);
   });
@@ -245,7 +260,7 @@ describe('Export menu progress items: loading', () => {
     const pattern = solidPattern(10, 10);
     const { dom, calls, saver } = setupMenu({ pattern, progress: progressWith(pattern, cellRange(0, 12)) });
     dom.choose(fakeFile('cat.stitch', await fileOf(pattern, cellRange(50, 40))));
-    await settle();
+    await waitFor(() => calls.adopted.length === 1);
     assert.equal(calls.confirmFirstMark, 0);
     assert.equal(calls.questions.length, 1);
     assert.equal(calls.questions[0].text, "Load cat.stitch? Your progress on this pattern (12 of 100 stitches) will be replaced by the file's (40 of 100 stitches).");
@@ -260,6 +275,7 @@ describe('Export menu progress items: loading', () => {
     const { store, dom, calls } = setupMenu({ pattern, progress: progressWith(pattern, [1, 2]) }, { answer: false });
     const before = store.getState().progress;
     dom.choose(fakeFile('cat.stitch', await fileOf(pattern, [5])));
+    await waitFor(() => calls.questions.length === 1);
     await settle();
     assert.equal(calls.adopted.length, 0);
     assert.equal(store.getState().progress, before);
@@ -269,7 +285,7 @@ describe('Export menu progress items: loading', () => {
     const pattern = solidPattern(100, 67);
     const { store, dom, calls } = setupMenu({ pattern, progress: progressWith(pattern, [1]) });
     dom.choose(fakeFile('cat.stitch', await fileOf(solidPattern(120, 80), [0])));
-    await settle();
+    await waitFor(() => store.getState().status.kind === 'error');
     assert.deepEqual(store.getState().status, {
       kind: 'error',
       text: 'Could not load cat.stitch: it belongs to another picture or other pattern settings. It is for a 120 × 80 pattern; this one is 100 × 67.',
@@ -281,7 +297,7 @@ describe('Export menu progress items: loading', () => {
     const pattern = threeByTwoPattern();
     const { store, dom } = setupMenu({ pattern, progress: createProgress(pattern) });
     dom.choose(fakeFile('<b>x</b>.stitch', new TextEncoder().encode('not a progress file at all, just some notes')));
-    await settle();
+    await waitFor(() => store.getState().status.kind === 'error');
     assert.equal(store.getState().status.text, 'Could not load <b>x</b>.stitch: it is not a progress file (.stitch).');
   });
 
@@ -289,7 +305,7 @@ describe('Export menu progress items: loading', () => {
     const pattern = threeByTwoPattern();
     const { store, dom, calls } = setupMenu({ pattern, progress: createProgress(pattern) });
     dom.choose({ name: 'big.stitch', size: MAX_PROGRESS_FILE_BYTES + 1, bytes: null });
-    await settle();
+    await waitFor(() => store.getState().status.kind === 'error');
     assert.equal(calls.reads, 0);
     assert.equal(store.getState().status.text, 'Could not load big.stitch: it is not a progress file (.stitch).');
   });
@@ -303,7 +319,7 @@ describe('Export menu progress items: loading', () => {
       release = () => resolve(bytes);
     });
     dom.choose({ name: 'cat.stitch', size: bytes.length, bytes: pending });
-    await settle();
+    await waitFor(() => calls.reads === 1);
     const next = otherPattern();
     store.setState({ pattern: next, progress: createProgress(next) });
     release();
@@ -318,10 +334,10 @@ describe('Export menu progress items: loading', () => {
     const file = fakeFile('cat.stitch', await fileOf(pattern, [0]));
     dom.choose(file);
     assert.equal(dom.fileInput.value, '');
-    await settle();
+    await waitFor(() => calls.questions.length === 1);
     dom.choose(file);
     assert.equal(dom.fileInput.value, '');
-    await settle();
+    await waitFor(() => calls.questions.length === 2);
     assert.equal(calls.questions.length, 2);
   });
 });

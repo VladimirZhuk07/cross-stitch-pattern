@@ -87,7 +87,7 @@
   - a pattern change while reading adopts nothing;
   - the input value is reset after each choice.
 - [x] 6.4 Implement `setupProgressFileMenu` (design D7); verify 6.3 passes
-- [ ] 6.5 Wire `src/main.js`:
+- [x] 6.5 Wire `src/main.js`:
   - the progress group creates the saver and passes it to `setupProgressPersistence` and `createProgressGuard`;
   - a new commented group at the end calls `setupProgressFileMenu`.
 

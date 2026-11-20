@@ -26,8 +26,10 @@
 //   highlightedColor  the legend index (0 … N − 1) of the color highlighted on the Chart, or
 //                null. Written only by ./legend.js, which clears it whenever the pattern changes.
 //   progress     the stitches marked on the Progress layer: a Progress (../core/progress.js) of
-//                state.pattern, or null without a pattern. Written only by ./progress.js, which
-//                starts a fresh one for every new pattern.
+//                state.pattern, or null without a pattern. Written by ./progress.js, which
+//                starts a fresh one for every new pattern and makes the toggles, and by
+//                ./progress-persistence.js, which brings back the saved progress and adopts a
+//                progress loaded from a .stitch file.
 //   isFrameKeyboardFocused  true while the view frame has focus from the keyboard (Tab), so the
 //                Progress layer shows its centre marker. Written only by ./viewer-input.js.
 

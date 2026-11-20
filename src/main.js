@@ -25,6 +25,8 @@ import { openProgressStore } from './io/progress-store.js';
 import { setupLegend } from './ui/legend.js';
 import { setupSidePanels, SIDE_PANELS_STORAGE_KEY } from './ui/side-panels.js';
 import { readPreference, writePreference } from './io/local-preferences.js';
+import { createProgressFileSaver, setupProgressFileMenu } from './ui/progress-file.js';
+import { downloadProgressFile, readFileBytes } from './io/progress-file.js';
 
 const store = createStore(createInitialState());
 
@@ -34,11 +36,13 @@ const progressLayer = createProgressLayer();
 const layers = [createOriginalLayer(), createDmcLayer(), createChartLayer(), progressLayer];
 
 // Marked stitches on the Progress layer (taps and keys come from the frame input below), kept
-// in this browser (IndexedDB), and the questions asked before they would be lost or replaced.
+// in this browser (IndexedDB), and the questions asked before they would be lost or replaced
+// (each offers to save the progress at risk as a .stitch file first).
 const progressWarning = createProgressWarning(document);
-const progressPersistence = setupProgressPersistence(document, store, openProgressStore(), progressWarning);
+const progressFileSaver = createProgressFileSaver(store, downloadProgressFile);
+const progressPersistence = setupProgressPersistence(document, store, openProgressStore(), progressWarning, progressFileSaver);
 const progress = setupProgress(document, store, progressLayer, { confirmFirstMark: progressPersistence.confirmFirstMark });
-const progressGuard = createProgressGuard(progress, progressWarning, progressPersistence);
+const progressGuard = createProgressGuard(progress, progressWarning, progressPersistence, progressFileSaver);
 
 // Image input and status line.
 setupStatus(document, store);
@@ -64,4 +68,12 @@ setupLegend(document, store);
 setupSidePanels(document, store, {
   read: () => readPreference(SIDE_PANELS_STORAGE_KEY),
   write: (text) => writePreference(SIDE_PANELS_STORAGE_KEY, text),
+});
+
+// Saving and loading the progress as a .stitch file from the Export menu.
+setupProgressFileMenu(document, store, {
+  saver: progressFileSaver,
+  warning: progressWarning,
+  persistence: progressPersistence,
+  readBytes: readFileBytes,
 });
