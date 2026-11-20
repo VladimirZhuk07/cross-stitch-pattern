@@ -116,7 +116,7 @@
   - a 200-character file name fits 80 mm.
 
   Verify they fail.
-- [ ] 5.4 Implement the lines, rulers, triangles, header and footer; verify 5.3 passes, and that `src/core/pdf-chart-page.js` stays under ~300 lines
+- [x] 5.4 Implement the lines, rulers, triangles, header and footer; verify 5.3 passes, and that `src/core/pdf-chart-page.js` stays under ~300 lines
 - [ ] 5.5 Add failing tests `tests/unit/core/pdf-legend-pages.test.js`:
   - the 3 × 2 legend rows (box tint `#B0B0B0` and `#FFC0BB`, swatch `#000000` and `#C72B3B`, codes, names, counts) and the column headings;
   - `12,345` right-aligned at 200 mm;
