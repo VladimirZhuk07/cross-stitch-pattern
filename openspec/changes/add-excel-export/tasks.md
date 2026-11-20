@@ -147,7 +147,7 @@ first, keep the existing files: they must already be identical.
   - `styles/main.css` contains the shared block right after the `.file-picker:has(.file-picker__input:focus-visible)` rule;
   - `styles/print.css` ends with the shared `.export-menu { display: none; }` rule.
 - [x] 8.2 Add the markup to `index.html` and the CSS to `styles/main.css` and `styles/print.css` verbatim (conventions sections 1–2), plus the dialog after the progress dialog (design D11). Verify 8.1 passes, and `layout-css.test.js` and the mobile markup tests still pass.
-- [ ] 8.3 Write failing `tests/integration/excel-export.test.js` for `setupExcelExport(root, store, deps)` with fake elements (`tests/helpers/fake-legend-dom.js`), a fake dialog as in `progress-warning.test.js`, and fake deps. Cover:
+- [x] 8.3 Write failing `tests/integration/excel-export.test.js` for `setupExcelExport(root, store, deps)` with fake elements (`tests/helpers/fake-legend-dom.js`), a fake dialog as in `progress-warning.test.js`, and fake deps. Cover:
   - the item is disabled without a pattern and enabled with one;
   - a click closes the menu;
   - a 3 × 2 pattern of `cat.png`: the status goes `loading`/`Creating Excel workbook…` → `info`/`Excel workbook ready: cat.xlsx`, `download` gets a Blob of `XLSX_MEDIA_TYPE` named `cat.xlsx`, and the item is disabled while running;
