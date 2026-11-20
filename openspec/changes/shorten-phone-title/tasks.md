@@ -9,7 +9,7 @@
 
 - [x] 2.1 Run `npm run test:unit`; all tests pass
 - [x] 2.2 Run `npm run test:integration`; all tests pass
-- [ ] 2.3 Browser smoke check with `node scripts/serve.js` (headless Chrome is fine):
+- [x] 2.3 Browser smoke check with `node scripts/serve.js` (headless Chrome is fine):
   - 360 × 640 and 414 × 896: the header shows `Cross-Stitch` without an ellipsis, Export and Choose image are fully visible, and there is no sideways scroll.
   - 667 × 375 and 1440 × 900: the full title shows.
   - The accessibility tree (CDP `Accessibility.getFullAXTree`) names the heading `Cross-Stitch Pattern Maker` at 360 px.
