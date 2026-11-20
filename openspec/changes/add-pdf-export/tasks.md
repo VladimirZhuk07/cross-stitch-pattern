@@ -12,7 +12,7 @@
 
 ## 2. Finished size text (core)
 
-- [ ] 2.1 Add failing tests to `tests/unit/core/generation-settings.test.js`:
+- [x] 2.1 Add failing tests to `tests/unit/core/generation-settings.test.js`:
   - `formatFinishedSize({ width: 100, height: 67 }, 14)` → `7.1 × 4.8 in (18.1 × 12.2 cm) on 14 ct`;
   - `formatPatternSize` output is unchanged for the same input.
 

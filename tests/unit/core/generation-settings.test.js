@@ -22,6 +22,7 @@ import {
 } from '../../../src/core/generation-settings.js';
 import { MAX_PATTERN_COLORS } from '../../../src/core/pattern.js';
 import { formatSettingsSummary } from '../../../src/core/generation-settings.js';
+import { formatFinishedSize } from '../../../src/core/generation-settings.js';
 import { MAX_GRID_SIDE } from '../../../src/core/stitch-grid.js';
 
 describe('generation settings defaults', () => {
@@ -244,5 +245,18 @@ describe('formatSettingsSummary', () => {
     formatSettingsSummary(size, settings);
     assert.deepEqual(size, { width: 100, height: 67 });
     assert.deepEqual(settings, defaults);
+  });
+});
+
+describe('formatFinishedSize', () => {
+  it('describes the finished size on 14 ct without the stitch count', () => {
+    assert.equal(formatFinishedSize({ width: 100, height: 67 }, 14), '7.1 × 4.8 in (18.1 × 12.2 cm) on 14 ct');
+  });
+
+  it('is the part of formatPatternSize after the stitch count', () => {
+    for (const fabricCount of [11, 14, 16, 18]) {
+      const size = { width: 100, height: 67 };
+      assert.equal(formatPatternSize(size, fabricCount), `100 × 67 stitches — ${formatFinishedSize(size, fabricCount)}`);
+    }
   });
 });
