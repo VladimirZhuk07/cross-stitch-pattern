@@ -167,6 +167,14 @@
       </template>
     </section>
   </main>
+  <aside class="install-offer" data-role="install-offer" aria-label="Install the app" hidden>
+    <!-- The install offer or the iOS hint (src/ui/install-offer.js). Not a live region on purpose:
+         an offer announced on load would interrupt; it is last in the tab order instead. -->
+    <img class="install-offer__icon" src="./icons/icon-192.png" alt="" width="32" height="32">
+    <p class="install-offer__text" data-role="install-offer-text"></p>
+    <button class="install-offer__button install-offer__button--primary" type="button" data-action="install-app" hidden>Install</button>
+    <button class="install-offer__button" type="button" data-action="dismiss-install-offer">Not now</button>
+  </aside>
 
   <!-- Asks before a new pattern replaces marked stitches (src/ui/progress-warning.js). The text and
        the confirm label are set per question; a native modal dialog traps focus and closes on Esc. -->

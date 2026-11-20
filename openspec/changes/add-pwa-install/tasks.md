@@ -153,7 +153,7 @@
 
 ## 8. Markup, styles and wiring
 
-- [ ] 8.1 Add a failing markup check (in `tests/integration/app-manifest.test.js` or a new
+- [x] 8.1 Add a failing markup check (in `tests/integration/app-manifest.test.js` or a new
   `install-offer-markup.test.js`):
   - the `<aside data-role="install-offer" aria-label="Install the app" hidden>` comes after
     `</main>`, outside `<header>`;

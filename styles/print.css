@@ -31,3 +31,8 @@ body {
 .export-menu {
   display: none;
 }
+
+/* The install offer (add-pwa-install) is never printed. */
+.install-offer {
+  display: none;
+}
