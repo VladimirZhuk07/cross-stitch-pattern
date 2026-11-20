@@ -75,7 +75,7 @@
 
 ## 4. Page plan and dialog texts (core)
 
-- [ ] 4.1 Add failing tests `tests/unit/core/pdf-page-plan.test.js` with the spec's page counts:
+- [x] 4.1 Add failing tests `tests/unit/core/pdf-page-plan.test.js` with the spec's page counts:
   - 3 × 2 → 3;
   - 120 × 90 → 8;
   - 300 × 200 → 20;
