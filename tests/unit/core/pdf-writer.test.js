@@ -2,7 +2,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { createPdfWriter, pdfNumber } from '../../../src/core/pdf-writer.js';
+import { asciiBytes, createPdfWriter, pdfNumber } from '../../../src/core/pdf-writer.js';
 import { readPdf, streamText } from '../../helpers/pdf-reader.js';
 
 const ascii = (text) => new TextEncoder().encode(text);
@@ -126,5 +126,15 @@ describe('createPdfWriter', () => {
   it('refuses text that is not ASCII', () => {
     const writer = createPdfWriter();
     assert.throws(() => writer.addObject('<< /Title (é) >>'), RangeError);
+  });
+});
+
+describe('asciiBytes', () => {
+  it('turns ASCII text into one byte per character', () => {
+    assert.deepEqual([...asciiBytes('1 0 obj')], [0x31, 0x20, 0x30, 0x20, 0x6f, 0x62, 0x6a]);
+  });
+
+  it('rejects other characters', () => {
+    assert.throws(() => asciiBytes('a×b'), /U\+D7 at 1/);
   });
 });
