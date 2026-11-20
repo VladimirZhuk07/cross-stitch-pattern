@@ -64,7 +64,7 @@
 
 ## 4. Finding the app's files (core) and the served-site test
 
-- [ ] 4.1 Write failing `tests/unit/core/app-files.test.js`. It covers the extractors that move
+- [x] 4.1 Write failing `tests/unit/core/app-files.test.js`. It covers the extractors that move
   from the test helper, with the cases the served-site test relies on. Add these cases and verify
   that they fail:
   - `extractManifestReferences`: icons `src`, invalid JSON → `[]`;
