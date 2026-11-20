@@ -209,6 +209,23 @@ describe('setupPdfExport', () => {
     assert.equal(dom.dialog.open, false, 'no error shown after a cancel');
   });
 
+  it('stops at once on Cancel although the browser fires close a task later', async () => {
+    const { dom, client } = setup();
+    dom.dialog.close = () => {
+      if (dom.dialog.open) {
+        dom.dialog.open = false;
+        setTimeout(() => dom.dialog.dispatch('close'), 0);
+      }
+    };
+    dom.button.dispatch('click');
+    await settle();
+    dom.cancel.dispatch('click');
+    assert.equal(client.stopCount, 1);
+    assert.equal(dom.button.disabled, false);
+    await settle();
+    assert.equal(client.stopCount, 1, 'the late close event stops nothing twice');
+  });
+
   it('stops the worker on Esc while running and ignores a late result', async () => {
     const { dom, client, downloads } = setup();
     dom.button.dispatch('click');

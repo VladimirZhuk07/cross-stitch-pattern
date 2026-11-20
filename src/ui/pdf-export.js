@@ -131,9 +131,14 @@ export function setupPdfExport(root, store, { client, encodePictures, download }
     }
   });
 
-  cancelButton.addEventListener('click', () => dialog.close());
+  // The browser fires 'close' a task later, so Cancel stops the run itself, at once.
+  cancelButton.addEventListener('click', () => {
+    question = null;
+    stopRun();
+    dialog.close();
+  });
 
-  // Cancel, Close and Esc all end up here: a running export stops at once.
+  // Esc (and any other way of closing) ends up here: a running export stops.
   dialog.addEventListener('close', () => {
     question = null;
     stopRun();
