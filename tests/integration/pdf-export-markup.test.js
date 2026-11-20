@@ -33,12 +33,11 @@ describe('PDF export markup', () => {
     assert.match(menu, /<div class="export-menu__items" role="group" aria-label="Export and progress files">/);
   });
 
-  it('offers only the disabled PDF chart item in this change', () => {
+  it('offers the disabled PDF chart item first in the Export menu (the shared order)', () => {
     const menu = element(/<details class="export-menu"[\s\S]*?<\/details>/, 'the Export menu');
     const items = [...menu.matchAll(/<button\b[^>]*>[^<]*<\/button>/g)].map((match) => match[0]);
-    assert.deepEqual(items, [
-      '<button class="export-menu__item" type="button" data-action="export-pdf" disabled>PDF chart</button>',
-    ]);
+    assert.equal(items[0], '<button class="export-menu__item" type="button" data-action="export-pdf" disabled>PDF chart</button>');
+    assert.equal(items.filter((item) => item.includes('data-action="export-pdf"')).length, 1);
   });
 
   it('has the PDF export dialog with its title, text, hidden progress bar and two buttons', () => {
