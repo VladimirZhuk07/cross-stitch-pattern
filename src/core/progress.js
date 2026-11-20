@@ -115,3 +115,34 @@ export function formatImageWarning(fileName, stitched, total) {
 function stitchesText(stitched, total) {
   return `${COUNT_FORMAT.format(stitched)} of ${COUNT_FORMAT.format(total)} stitches`;
 }
+
+/** Version of the SavedProgress layout; a record of another version is never restored. */
+export const SAVED_PROGRESS_FORMAT = 1;
+
+// SavedProgress (a plain object created by toSavedProgress; what the browser keeps)
+//   formatVersion  SAVED_PROGRESS_FORMAT
+//   fingerprint    the pattern's fingerprint (./pattern.js)
+//   width, height  the pattern's size in stitches
+//   bits           a copy of the Progress bits (same layout)
+//   stitchedCount, totalCount  as in the Progress (informative: restoreProgress recounts)
+//   imageName      the loaded image's file name, for the "replace" question
+//   savedAt        milliseconds since 1970-01-01 UTC
+
+/**
+ * The record to keep in the browser for a Progress.
+ * imageName  the image's file name; savedAt  the time in ms since the epoch
+ * Returns a new SavedProgress whose bits are a copy, so later toggles never change it.
+ */
+export function toSavedProgress(progress, imageName, savedAt) {
+  return {
+    formatVersion: SAVED_PROGRESS_FORMAT,
+    fingerprint: progress.pattern.fingerprint,
+    width: progress.pattern.width,
+    height: progress.pattern.height,
+    bits: progress.bits.slice(),
+    stitchedCount: progress.stitchedCount,
+    totalCount: progress.totalCount,
+    imageName,
+    savedAt,
+  };
+}

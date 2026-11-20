@@ -21,7 +21,7 @@
   - `bits` is a copy (changing it does not change the Progress).
 
   Verify they fail.
-- [ ] 2.2 Implement `toSavedProgress`; verify 2.1 passes
+- [x] 2.2 Implement `toSavedProgress`; verify 2.1 passes
 - [ ] 2.3 Add failing tests for `restoreProgress(pattern, saved)` and `isSavedProgressOf`:
   - a record from `toSavedProgress` of 2 marks restores them (`stitchedCount` 2, `version` 0, `lastToggled` null);
   - another fingerprint, width, height, `formatVersion` 2, wrong bits length, bits not a Uint8Array, and `null` → `null`;
