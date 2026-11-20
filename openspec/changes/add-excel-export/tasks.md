@@ -161,7 +161,7 @@ first, keep the existing files: they must already be identical.
 
 ## 9. Verification
 
-- [ ] 9.1 Run `npm run test:unit`; all tests pass
+- [x] 9.1 Run `npm run test:unit`; all tests pass
 - [ ] 9.2 Run `npm run test:integration`; all tests pass
 - [ ] 9.3 Browser smoke check with `node scripts/serve.js` (current Chrome or Edge, plus Firefox or Safari):
   - Before loading an image, Export → `Excel workbook` is disabled. Load a photo (for example 1600 × 1072 `cat.png`) at width 100. The item becomes enabled. Click it: the menu closes, the status reads `Creating Excel workbook…`, then `Excel workbook ready: cat.xlsx`, and `cat.xlsx` is downloaded. The DevTools network panel shows no request.
