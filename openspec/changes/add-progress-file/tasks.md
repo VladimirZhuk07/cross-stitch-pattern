@@ -73,7 +73,7 @@
 
 ## 6. Menu items and load flow (ui, wiring)
 
-- [ ] 6.1 Write failing `tests/integration/progress-file.test.js` for `createProgressFileSaver(store, fakeDownload)` and verify it fails. Cover:
+- [x] 6.1 Write failing `tests/integration/progress-file.test.js` for `createProgressFileSaver(store, fakeDownload)` and verify it fails. Cover:
   - `saveCurrent()` with image `cat.png` downloads `cat.stitch` whose bytes decode back to the marks, and resolves `'cat.stitch'`;
   - `saveRecord` of a `dog.png` record gives `dog.stitch`, and one with `imageName: ''` gives `pattern.stitch`.
 - [ ] 6.2 Implement `createProgressFileSaver` in `src/ui/progress-file.js` (design D5); verify 6.1 passes
