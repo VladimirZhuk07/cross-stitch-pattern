@@ -117,3 +117,24 @@ describe('pattern worker handler', () => {
     assert.deepEqual(transferred, copy);
   });
 });
+
+describe('pattern worker handler: fingerprint', () => {
+  // A 4 × 2 two-color image, so the pattern has more than one legend entry.
+  const image = () => pixelImage(4, 2, [
+    OPAQUE_BLACK, OPAQUE_WHITE, OPAQUE_BLACK, OPAQUE_WHITE,
+    OPAQUE_WHITE, OPAQUE_BLACK, OPAQUE_WHITE, OPAQUE_BLACK,
+  ]);
+  const generate = (settings) => createPatternWorkerHandler()({ type: 'generate', id: 1, image: image(), settings }).response.pattern;
+
+  it('sends the fingerprint with the pattern', () => {
+    assert.match(generate({ targetWidth: 4, maxColors: 24 }).fingerprint, /^[0-9a-f]{14}$/);
+  });
+
+  it('gives the same fingerprint for the same image and settings in fresh workers', () => {
+    assert.equal(generate({ targetWidth: 4, maxColors: 24 }).fingerprint, generate({ targetWidth: 4, maxColors: 24 }).fingerprint);
+  });
+
+  it('gives another fingerprint for other settings', () => {
+    assert.notEqual(generate({ targetWidth: 4, maxColors: 24 }).fingerprint, generate({ targetWidth: 2, maxColors: 24 }).fingerprint);
+  });
+});
