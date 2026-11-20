@@ -120,7 +120,7 @@ first, keep the existing files: they must already be identical.
   - `useCompression: false` → all entries stored and the same unzipped parts.
 
   Verify `npm run test:integration` passes.
-- [ ] 6.3 Add a size and time test to the same file: a synthetic 1000 × 1000 pattern (30 colors, runs of equal cells) gives a workbook under 8 MB in under 10 s in Node; verify it passes
+- [x] 6.3 Add a size and time test to the same file: a synthetic 1000 × 1000 pattern (30 colors, runs of equal cells) gives a workbook under 8 MB in under 10 s in Node; verify it passes
 
 ## 7. Worker (workers, io)
 

@@ -5,6 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPattern } from '../../src/core/pattern.js';
+import { DMC_COLORS } from '../../src/data/dmc.js';
 import { workbookFiles } from '../../src/core/xlsx-package.js';
 import { buildZip } from '../../src/core/zip.js';
 import { unzip } from '../helpers/unzip.js';
@@ -266,5 +267,29 @@ describe('the checks used above', () => {
     for (const bad of ['<a><b></a>', '<a x="1" x="2"/>', '<a>&nbsp;</a>', '<a/><b/>', '<a>\u0001</a>', '<a']) {
       assert.throws(() => checkXml(bad), /XML check failed/, bad);
     }
+  });
+});
+
+describe('a workbook at the 1,000,000-cell cap', () => {
+  it('is under 8 MB and written in under 10 s', async () => {
+    const width = 1000;
+    const height = 1000;
+    const cells = new Int16Array(width * height);
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        // Blocky areas like a real picture: runs of equal cells, 30 colors, a few empty cells.
+        const value = (Math.floor(x / 37) + Math.floor(y / 23) * 3) % 31;
+        cells[y * width + x] = value === 30 ? -1 : value;
+      }
+    }
+    const pattern = buildPattern({ width, height, cells, colors: DMC_COLORS.slice(0, 30) });
+    const started = performance.now();
+    const archive = await exportWorkbook(pattern);
+    const seconds = (performance.now() - started) / 1000;
+    assert.ok(archive.length < 8 * 1024 * 1024, `${archive.length} bytes`);
+    assert.ok(seconds < 10, `${seconds.toFixed(2)} s`);
+    const { files } = unzip(archive);
+    const sheet = new TextDecoder().decode(files.get('xl/worksheets/sheet1.xml'));
+    assert.ok(sheet.includes('<dimension ref="A1:ALL1000"/>'));
   });
 });
