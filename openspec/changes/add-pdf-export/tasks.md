@@ -8,7 +8,7 @@
 - [x] 1.4 Add `src/core/pattern-summary.js` exactly as in the conventions; verify 1.3 passes
 - [x] 1.5 Add `tests/unit/core/compression.test.js` exactly as in the conventions (section 7) and verify it fails (module missing)
 - [x] 1.6 Add `src/core/compression.js` exactly as in the conventions; verify 1.5 passes
-- [ ] 1.7 Add `src/io/download.js` exactly as in the conventions (section 3); verify `node --check src/io/download.js` succeeds (it is reached by the served-site test once 9.4 imports it)
+- [x] 1.7 Add `src/io/download.js` exactly as in the conventions (section 3); verify `node --check src/io/download.js` succeeds (it is reached by the served-site test once 9.4 imports it)
 
 ## 2. Finished size text (core)
 
