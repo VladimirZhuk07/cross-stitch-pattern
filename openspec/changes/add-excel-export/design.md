@@ -44,11 +44,11 @@
 | `src/core/crc32.js` | core | shared, verbatim (conventions §8, also used by add-pwa-install's PNG writer): `crc32(bytes, previous = 0)` → unsigned 32-bit |
 | `src/core/compression.js` | core | shared, verbatim (conventions §7): `canCompress()`, `compressBytes(bytes, 'deflate-raw')` |
 | `src/core/zip.js` | core | `zipArchive(entries)` (layout, sync) and `buildZip(files, options)` (encode, CRC, compress, layout) |
-| `src/core/xml.js` | core | `escapeXml(text)`, `columnName(columnNumber)`, `cellReference(column, row)` |
+| `src/core/xml.js` | core | `escapeXml(text)`, `columnName(columnNumber)`, `cellReference(column, row)`, `inlineStringCell(reference, text, style)`, and the shared constants `XML_DECLARATION`, the SpreadsheetML and relationships namespaces, `WORKSHEET_PAGE_MARGINS` |
 | `src/core/picture-size.js` | core | `fitInside(size, maxSide)`, `stitchBlockSize(size, maxSide)` |
 | `src/core/xlsx-styles.js` | core | `workbookStyles(legend)`: the styles part and the style index of every kind of cell |
 | `src/core/xlsx-chart-sheet.js` | core | `chartSheetXml(pattern, styles)`: a generator of XML text chunks |
-| `src/core/xlsx-summary-sheet.js` | core | `summaryLayout(pictures)`, `summarySheetXml(lines, layout, styles)`, `summaryDrawingXml(layout)` |
+| `src/core/xlsx-summary-sheet.js` | core | `summaryLayout(pictures)`, `summarySheetXml(lines, layout)` (its only style is the constant `BOLD_STYLE`), `summaryDrawingXml(layout)` |
 | `src/core/xlsx-legend-sheet.js` | core | `legendSheetXml(pattern, styles)` |
 | `src/core/xlsx-package.js` | core | the fixed parts, `XLSX_MEDIA_TYPE`, `workbookFiles(pattern, pictures)` |
 | `src/core/xlsx-limits.js` | core | thresholds, `workbookSizeCheck(size)`, the user-facing texts |
@@ -404,8 +404,9 @@ at least 65,536 characters, then the tail.
 
 `io/download.js`, `core/file-names.js` with its test, `core/pattern-summary.js` with its test, and
 `core/compression.js` and `core/crc32.js` with their tests (conventions §7–8) are copied byte for byte from the shared conventions. So are the Export menu block (with only the
-`export-xlsx` item), the CSS block after the `.file-picker:has(...)` rule, and the `print.css`
-rule. Merging after `add-pdf-export` then sees identical files. The only difference is the menu
+`export-xlsx` item), the CSS block after the `.file-picker:has(...)` rule followed by the compact-screen
+fix block that keeps the list on a 360 px screen (added to the conventions during implementation), and
+the `print.css` rule. Merging after `add-pdf-export` then sees identical files. The only difference is the menu
 item lines, and the items follow the fixed order in the conventions.
 
 ## Risks / Trade-offs

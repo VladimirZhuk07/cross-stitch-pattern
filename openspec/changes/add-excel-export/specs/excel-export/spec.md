@@ -290,4 +290,4 @@ SHALL stay in the browser until the user's download saves the file.
 
 #### Scenario: No requests
 - **WHEN** a workbook is exported with the browser's network panel open
-- **THEN** no request is made except the download of the in-memory file itself
+- **THEN** no request carries the image, the pattern or the file: the only requests are the download of the in-memory file and, on the first export, the app's own worker script files from the same site
