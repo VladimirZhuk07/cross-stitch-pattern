@@ -13,6 +13,9 @@ import {
   toSavedProgress,
   restoreProgress,
   isSavedProgressOf,
+  formatReplaceWarning,
+  RESTORED_NOTE,
+  UNSAVED_NOTE,
 } from '../../../src/core/progress.js';
 
 // Test fixtures, not palette data (same as the pattern-model spec).
@@ -224,5 +227,19 @@ describe('restoreProgress and isSavedProgressOf', () => {
     assert.equal(isSavedProgressOf({ ...savedOf(pattern, [0]), width: 2 }, pattern), false);
     assert.equal(isSavedProgressOf({ ...savedOf(pattern, [0]), fingerprint: '00000000000000' }, pattern), false);
     assert.equal(isSavedProgressOf(null, pattern), false);
+  });
+});
+
+describe('saved progress texts', () => {
+  it('asks before replacing the saved progress of another pattern', () => {
+    assert.equal(
+      formatReplaceWarning('cat.png', 12, 6700),
+      'Start a new progress? This browser keeps one progress: the saved one for cat.png (12 of 6,700 stitches) will be replaced.',
+    );
+  });
+
+  it('notes a restore and a browser that cannot save', () => {
+    assert.equal(RESTORED_NOTE, 'Restored your saved progress.');
+    assert.equal(UNSAVED_NOTE, 'Your marks cannot be saved in this browser; they last until you close the page.');
   });
 });

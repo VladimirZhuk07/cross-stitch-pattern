@@ -185,3 +185,18 @@ export function restoreProgress(pattern, saved) {
   }
   return { ...fresh, bits, stitchedCount };
 }
+
+/** The note under the counter after saved marks came back. */
+export const RESTORED_NOTE = 'Restored your saved progress.';
+
+/** The note under the counter when the browser cannot keep the marks. */
+export const UNSAVED_NOTE = 'Your marks cannot be saved in this browser; they last until you close the page.';
+
+/**
+ * The question before the first mark replaces the saved progress of another pattern.
+ * imageName  the saved progress's image file name, kept literally (plain text, never markup)
+ * stitched, total  its counts
+ */
+export function formatReplaceWarning(imageName, stitched, total) {
+  return `Start a new progress? This browser keeps one progress: the saved one for ${imageName} (${stitchesText(stitched, total)}) will be replaced.`;
+}
