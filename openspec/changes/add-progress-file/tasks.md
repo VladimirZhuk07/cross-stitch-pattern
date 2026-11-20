@@ -61,7 +61,7 @@
 
 ## 5. Loaded progress in persistence (ui)
 
-- [ ] 5.1 Add failing tests to `tests/integration/progress-persistence.test.js` for `adoptProgress(progress, 'cat.stitch')` and verify they fail. Cover:
+- [x] 5.1 Add failing tests to `tests/integration/progress-persistence.test.js` for `adoptProgress(progress, 'cat.stitch')` and verify they fail. Cover:
   - it sets `state.progress` and `activeLayer: 'progress'`, shows `Loaded your progress from cat.stitch.`, and saves at once (no timer);
   - the note is cleared by the next toggle;
   - a following first mark does not ask, even when another pattern's record was saved;

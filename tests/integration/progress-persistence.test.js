@@ -51,7 +51,7 @@ function fakeProgressStore(initial = null, { failSaves = false } = {}) {
 }
 
 // The page parts the module touches: the note output, the document (visibility), the warning.
-function setup({ storePromise, state = {}, answer = true } = {}) {
+function setup({ storePromise, state = {}, answer = true, saver = null } = {}) {
   const note = { textContent: '', hidden: true, classList: { toggle: (name, force) => { note.isError = force; } } };
   const pageListeners = {};
   const root = {
@@ -69,7 +69,7 @@ function setup({ storePromise, state = {}, answer = true } = {}) {
     },
   };
   const store = createStore({ ...createInitialState(), activeLayer: 'progress', image: { fileName: 'dog.png' }, ...state });
-  const persistence = setupProgressPersistence(root, store, storePromise, warning);
+  const persistence = setupProgressPersistence(root, store, storePromise, warning, saver);
   const hidePage = () => {
     root.visibilityState = 'hidden';
     pageListeners.visibilitychange?.();
@@ -279,5 +279,130 @@ describe('progress persistence: no storage', () => {
     assert.equal(fake.calls.filter((call) => call === 'save').length, 1);
     assert.equal(note.textContent, UNSAVED_NOTE);
     errors.mock.restore();
+  });
+});
+
+// A Progress of pattern with the given cells stitched and version 0, as decodeProgressFile gives.
+function loadedProgress(pattern, cellIndexes) {
+  let progress = createProgress(pattern);
+  for (const cellIndex of cellIndexes) {
+    progress = toggleStitch(progress, cellIndex);
+  }
+  return { ...progress, version: 0, lastToggled: null };
+}
+
+describe('progress persistence: a loaded progress file', () => {
+  beforeEach(() => mock.timers.enable({ apis: ['setTimeout'] }));
+  afterEach(() => mock.timers.reset());
+
+  it('becomes the progress on the Progress layer, with a note, and is saved at once', async () => {
+    const fake = fakeProgressStore();
+    const { store, persistence, note } = setup({ storePromise: Promise.resolve(fake), state: { activeLayer: 'chart' } });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    const loaded = loadedProgress(pattern, [0, 4]);
+    persistence.adoptProgress(loaded, 'cat.stitch');
+    assert.equal(store.getState().progress, loaded);
+    assert.equal(store.getState().activeLayer, 'progress');
+    assert.equal(note.textContent, 'Loaded your progress from cat.stitch.');
+    assert.equal(note.hidden, false);
+    await settle();
+    assert.equal(fake.calls.filter((call) => call === 'save').length, 1, 'saved without a timer');
+    assert.equal(fake.record.stitchedCount, 2);
+    assert.equal(fake.record.fingerprint, pattern.fingerprint);
+  });
+
+  it('clears the loaded note with the next mark', async () => {
+    const { store, persistence, note } = setup({ storePromise: Promise.resolve(fakeProgressStore()) });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    persistence.adoptProgress(loadedProgress(pattern, [0]), 'cat.stitch');
+    toggle(store, 1);
+    assert.equal(note.hidden, true);
+    assert.equal(note.textContent, '');
+  });
+
+  it('clears the loaded note with a new pattern', async () => {
+    const { store, persistence, note } = setup({ storePromise: Promise.resolve(fakeProgressStore()) });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    persistence.adoptProgress(loadedProgress(pattern, [0]), 'cat.stitch');
+    showPattern(store, otherPattern());
+    assert.equal(note.hidden, true);
+  });
+
+  it('does not ask before the next first mark, even with another pattern saved', async () => {
+    const saved = toSavedProgress(toggleStitch(createProgress(otherPattern()), 0), 'dog.png', 1);
+    const fake = fakeProgressStore(saved);
+    const { store, persistence, questions } = setup({ storePromise: Promise.resolve(fake) });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    persistence.adoptProgress(loadedProgress(pattern, []), 'empty.stitch');
+    await settle();
+    assert.equal(await persistence.confirmFirstMark(), true);
+    assert.equal(questions.length, 0);
+    assert.equal(fake.record, saved, "a file without marks leaves another pattern's record alone");
+  });
+
+  it('cancels a pending save of the marks it replaces', async () => {
+    const fake = fakeProgressStore();
+    const { store, persistence } = setup({ storePromise: Promise.resolve(fake) });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    toggle(store, 1);
+    persistence.adoptProgress(loadedProgress(pattern, [0, 4, 5]), 'cat.stitch');
+    await settle();
+    mock.timers.tick(500);
+    await settle();
+    assert.equal(fake.calls.filter((call) => call === 'save').length, 1);
+    assert.equal(fake.record.stitchedCount, 3);
+  });
+
+  it('keeps the unsaved note and saves nothing without storage', async () => {
+    const errors = mock.method(console, 'error', () => {});
+    const { store, persistence, note } = setup({ storePromise: Promise.reject(new Error('blocked')) });
+    const pattern = threeByTwoPattern();
+    showPattern(store, pattern);
+    await settle();
+    const loaded = loadedProgress(pattern, [0]);
+    persistence.adoptProgress(loaded, 'cat.stitch');
+    await settle();
+    assert.equal(store.getState().progress, loaded);
+    assert.equal(note.textContent, UNSAVED_NOTE);
+    assert.equal(note.hidden, false);
+    errors.mock.restore();
+  });
+
+  it("deletes this pattern's saved progress when the file has no stitch", async () => {
+    const pattern = threeByTwoPattern();
+    const fake = fakeProgressStore(toSavedProgress(toggleStitch(createProgress(pattern), 0), 'cat.png', 1));
+    const { store, persistence } = setup({ storePromise: Promise.resolve(fake) });
+    showPattern(store, pattern);
+    await settle();
+    persistence.adoptProgress(loadedProgress(pattern, []), 'cat.stitch');
+    await settle();
+    assert.equal(fake.calls.at(-1), 'clear');
+    assert.equal(fake.record, null);
+  });
+});
+
+describe('progress persistence: Save progress first in the replace question', () => {
+  it("offers to save the other pattern's record as a file", async () => {
+    const saved = toSavedProgress(toggleStitch(createProgress(otherPattern()), 0), 'dog.png', 1);
+    const records = [];
+    const saver = { saveRecord: async (record) => { records.push(record); return 'dog.stitch'; } };
+    const { store, persistence, questions } = setup({ storePromise: Promise.resolve(fakeProgressStore(saved)), answer: false, saver });
+    showPattern(store, threeByTwoPattern());
+    await settle();
+    await persistence.confirmFirstMark();
+    assert.equal(questions.length, 1);
+    assert.equal(questions[0].confirmLabel, 'Start new progress');
+    assert.equal(await questions[0].saveFirst(), 'dog.stitch');
+    assert.deepEqual(records, [saved]);
   });
 });
