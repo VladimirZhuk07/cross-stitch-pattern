@@ -20,7 +20,7 @@
   - a 1000 × 1000 progress with 100 marks encodes to fewer than 5,000 bytes;
   - it accepts a SavedProgress from `toSavedProgress`;
   - it rejects a fingerprint `'xyz'` (TypeError), width 0 (RangeError) and a bits length off by one (RangeError), naming the value.
-- [ ] 2.2 Implement `PROGRESS_FILE_EXTENSION`, `PROGRESS_FILE_FORMAT`, `MAX_PROGRESS_FILE_BYTES` and `encodeProgressFile` (header plus `compressBytes(bits, 'deflate')`) in `src/core/progress-file.js`, with a header comment describing the file layout table. Verify 2.1 passes
+- [x] 2.2 Implement `PROGRESS_FILE_EXTENSION`, `PROGRESS_FILE_FORMAT`, `MAX_PROGRESS_FILE_BYTES` and `encodeProgressFile` (header plus `compressBytes(bits, 'deflate')`) in `src/core/progress-file.js`, with a header comment describing the file layout table. Verify 2.1 passes
 - [ ] 2.3 Write failing tests for a successful `decodeProgressFile(bytes, pattern)` and verify they fail. Cover:
   - a round trip of the 3 × 2 fixture gives cells 0 and 4, `stitchedCount` 2, `version` 0, `lastToggled` null;
   - a 4000 × 4000 round trip with 1,234 marks keeps exactly those cells;
