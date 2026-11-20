@@ -144,7 +144,7 @@
 
 ## 6. Document assembly (core) and the export format
 
-- [ ] 6.1 Add failing tests `tests/unit/core/pdf-document.test.js` for `buildPdfDocument` with `isCompressed: false` and fake JPEG header bytes, read back with `readPdf`:
+- [x] 6.1 Add failing tests `tests/unit/core/pdf-document.test.js` for `buildPdfDocument` with `isCompressed: false` and fake JPEG header bytes, read back with `readPdf`:
   - page order (info, legend, chart) and `/Count 8` for 120 × 90;
   - two fonts with `/WinAnsiEncoding` and no `/FontFile`;
   - two `/DCTDecode` images with the JPEG sizes;
