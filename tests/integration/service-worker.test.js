@@ -59,6 +59,44 @@ function recordingFetch() {
   return { fetch: fetchAndRecord, calls };
 }
 
+// The real fetch with a browser's connection limit: like Chrome, a response holds its connection
+// until its body has been read, and at most `limit` connections are open at once. A handler
+// that keeps unread responses around while fetching more would wait forever.
+function connectionLimitedFetch(limit) {
+  let open = 0;
+  const waiting = [];
+  const release = () => {
+    open -= 1;
+    waiting.shift()?.();
+  };
+  return async (input, init) => {
+    while (open >= limit) {
+      await new Promise((resolve) => waiting.push(resolve));
+    }
+    open += 1;
+    const real = await fetch(input, init);
+    const bytes = new Uint8Array(await real.arrayBuffer());
+    let isReleased = false;
+    const releaseOnce = () => {
+      if (!isReleased) {
+        isReleased = true;
+        release();
+      }
+    };
+    // highWaterMark 0: nothing is read until someone reads the body.
+    const body = new ReadableStream({
+      pull(controller) {
+        controller.enqueue(bytes);
+        controller.close();
+        releaseOnce();
+      },
+      cancel: releaseOnce,
+    }, { highWaterMark: 0 });
+    const response = new Response(body, { status: real.status, statusText: real.statusText, headers: real.headers });
+    return Object.defineProperty(response, 'type', { value: real.type });
+  };
+}
+
 const offlineFetch = async () => {
   throw new TypeError('fetch failed: offline');
 };
@@ -135,6 +173,13 @@ describe('service worker handler', () => {
     it('revalidates every request instead of trusting the HTTP cache', () => {
       assert.ok(calls.length > 10, `${calls.length} requests`);
       assert.deepEqual(calls.filter((call) => call.cache !== 'no-cache'), []);
+    });
+
+    it('finishes with only two connections, because it reads every body at once', { timeout: 15000 }, async () => {
+      const limitedCaches = createFakeCaches();
+      const handler = createServiceWorkerHandler({ caches: limitedCaches, fetch: connectionLimitedFetch(2), scopeUrl });
+      await handler.install();
+      assert.deepEqual(limitedCaches.urlsIn(cacheName), caches.urlsIn(cacheName));
     });
 
     it('requests every file once', () => {

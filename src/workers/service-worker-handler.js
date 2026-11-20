@@ -36,26 +36,31 @@ export function createServiceWorkerHandler({ caches, fetch, scopeUrl }) {
   const cacheName = offlineCacheName(scopeUrl);
   let runningRefresh = null;
 
+  // Fetches one app file and reads its whole body at once, keeping the response for the cache.
+  // Reading at once matters: a browser holds a connection until the body is read and opens
+  // only six per host, so unread responses would stall the next requests for good.
+  // Resolves to { response, body } (body an ArrayBuffer); rejects for an uncacheable answer.
   async function fetchAppFile(url) {
     const response = await fetch(url, { cache: 'no-cache' });
     if (!isCacheableResponse(response)) {
       throw new Error(`app file answered ${response.status} (${response.type}): ${url}`);
     }
-    return response;
+    const body = await response.clone().arrayBuffer();
+    return { response, body };
   }
 
   // Fetches every app file, then saves them all, or rejects before saving anything.
   async function saveAppFiles() {
     const responses = new Map();
     const readText = async (url) => {
-      const response = await fetchAppFile(url);
-      responses.set(url, response.clone());
-      return response.text();
+      const { response, body } = await fetchAppFile(url);
+      responses.set(url, response);
+      return new TextDecoder().decode(body);
     };
     const urls = await collectAppFiles(scopeUrl, scopeUrl, readText);
     const leaves = urls.filter((url) => !responses.has(url));
-    const leafResponses = await Promise.all(leaves.map(fetchAppFile));
-    leaves.forEach((url, index) => responses.set(url, leafResponses[index]));
+    const leafFiles = await Promise.all(leaves.map(fetchAppFile));
+    leaves.forEach((url, index) => responses.set(url, leafFiles[index].response));
     const cache = await caches.open(cacheName);
     await Promise.all(urls.map((url) => cache.put(url, responses.get(url))));
   }
