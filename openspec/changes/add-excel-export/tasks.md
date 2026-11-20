@@ -73,7 +73,7 @@ first, keep the existing files: they must already be identical.
   - block size for 100 × 67 → 10, 1000 × 1000 → 1, 10000 × 100 → 1;
   - non-positive sizes throw `RangeError`.
 - [x] 5.4 Implement `src/core/picture-size.js`; verify 5.3 passes
-- [ ] 5.5 Write failing `tests/unit/core/xlsx-summary-sheet.test.js`, then verify it fails. Cover:
+- [x] 5.5 Write failing `tests/unit/core/xlsx-summary-sheet.test.js`, then verify it fails. Cover:
   - `summaryLayout` for pictures 1024 × 686 and 1000 × 670 → original caption row 5, picture row 6, size 480 × 322, DMC caption row 24, picture row 25;
   - `summarySheetXml(summaryLines(…), layout, styles)` has A1:B3 as inline strings with bold labels, A5/A24 bold captions, `<drawing r:id="rId1"/>` after `pageMargins`;
   - `summaryDrawingXml(layout)` has two `xdr:oneCellAnchor` with `from` col 0 / row 5 and col 0 / row 24, `ext cx="4572000" cy="3067050"`, `r:embed` `rId1`/`rId2`, `cNvPr` ids 2 and 3 with the captions;

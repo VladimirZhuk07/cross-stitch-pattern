@@ -2,7 +2,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeXml, columnName, cellReference } from '../../../src/core/xml.js';
+import { escapeXml, columnName, cellReference, inlineStringCell } from '../../../src/core/xml.js';
 import { assertThrowsWith } from '../../helpers/assert-throws-with.js';
 
 describe('escapeXml', () => {
@@ -39,5 +39,16 @@ describe('cellReference', () => {
   it('joins the column name and the row number', () => {
     assert.equal(cellReference(3, 2), 'C2');
     assert.equal(cellReference(10000, 100), 'NTP100');
+  });
+});
+
+describe('inlineStringCell', () => {
+  it('writes an escaped inline string cell, with a style when given', () => {
+    assert.equal(inlineStringCell('C2', 'Rose & Wine'), '<c r="C2" t="inlineStr"><is><t>Rose &amp; Wine</t></is></c>');
+    assert.equal(inlineStringCell('A1', 'Size', 1), '<c r="A1" s="1" t="inlineStr"><is><t>Size</t></is></c>');
+  });
+
+  it('preserves leading and trailing spaces', () => {
+    assert.equal(inlineStringCell('A1', ' x '), '<c r="A1" t="inlineStr"><is><t xml:space="preserve"> x </t></is></c>');
   });
 });
