@@ -6,7 +6,9 @@
 - [ ] 1.2 Add `src/core/file-names.js` exactly as in the conventions; verify 1.1 passes
 - [ ] 1.3 Add `tests/unit/core/pattern-summary.test.js` exactly as in the conventions (section 5) and verify it fails
 - [ ] 1.4 Add `src/core/pattern-summary.js` exactly as in the conventions; verify 1.3 passes
-- [ ] 1.5 Add `src/io/download.js` exactly as in the conventions (section 3); verify `node --check src/io/download.js` succeeds (it is reached by the served-site test once 9.4 imports it)
+- [ ] 1.5 Add `tests/unit/core/compression.test.js` exactly as in the conventions (section 7) and verify it fails (module missing)
+- [ ] 1.6 Add `src/core/compression.js` exactly as in the conventions; verify 1.5 passes
+- [ ] 1.7 Add `src/io/download.js` exactly as in the conventions (section 3); verify `node --check src/io/download.js` succeeds (it is reached by the served-site test once 9.4 imports it)
 
 ## 2. Finished size text (core)
 
@@ -142,7 +144,7 @@
 
 ## 6. Document assembly (core) and the export format
 
-- [ ] 6.1 Add failing tests `tests/unit/core/pdf-document.test.js` for `buildPdfDocument` with `compress: null` and fake JPEG header bytes, read back with `readPdf`:
+- [ ] 6.1 Add failing tests `tests/unit/core/pdf-document.test.js` for `buildPdfDocument` with `isCompressed: false` and fake JPEG header bytes, read back with `readPdf`:
   - page order (info, legend, chart) and `/Count 8` for 120 × 90;
   - two fonts with `/WinAnsiEncoding` and no `/FontFile`;
   - two `/DCTDecode` images with the JPEG sizes;
@@ -152,26 +154,26 @@
 
   Verify they fail.
 - [ ] 6.2 Implement `src/core/pdf-document.js` (design D2, D8); verify 6.1 passes
-- [ ] 6.3 Add `src/io/deflate.js` (`deflateBytes`, design D8) and write `tests/integration/pdf-export-format.test.js`, which builds the 120 × 90 PDF with `deflateBytes` as `compress` (Node 22 has `CompressionStream`) and checks:
+- [ ] 6.3 Write `tests/integration/pdf-export-format.test.js`, which builds the 120 × 90 PDF with the default `isCompressed` (`canCompress()` is true in Node 22, so content goes through the shared `compressBytes(…, 'deflate')`, design D8) and checks:
   - `%PDF-1.4` … `%%EOF`;
   - `startxref` points at `xref`, and every offset at `n 0 obj`;
   - `/Size` is the object count + 1;
   - every page stream is `/FlateDecode` and inflates with `node:zlib` to the expected operators (chart page 1 has 4,000 numbers);
   - two runs are byte-identical;
-  - without `compress`, the file is valid and larger.
+  - with `isCompressed: false`, the file is valid, has no `/Filter` on page streams, and is larger.
 
   Verify `npm run test:integration` passes.
 
 ## 7. Worker and client
 
-- [ ] 7.1 Write failing `tests/integration/pdf-worker.test.js` for `createPdfWorkerHandler({ compress, postProgress })`:
+- [ ] 7.1 Write failing `tests/integration/pdf-worker.test.js` for `createPdfWorkerHandler({ postProgress })`:
   - an `export-pdf` request → `{ type: 'pdf', id }` with bytes that `readPdf` reads as 8 pages, and `transfer` equal to `[bytes.buffer]`;
   - progress messages carry the id, grow strictly in percent and number at most 101;
   - a 2000 × 2000 request → an error response with a message naming 1,007 pages;
   - an unknown type, or a bad JPEG → an error response echoing the id.
 
   Verify it fails.
-- [ ] 7.2 Implement `src/workers/pdf-worker-handler.js` and the entry `src/workers/pdf.worker.js`, which passes `deflateBytes`, or `null` without `CompressionStream` (design D10); verify 7.1 passes
+- [ ] 7.2 Implement `src/workers/pdf-worker-handler.js` and the entry `src/workers/pdf.worker.js` (design D10); compression is decided inside `buildPdfDocument` by `canCompress()`. Verify 7.1 passes
 - [ ] 7.3 Write failing `tests/integration/pdf-worker-client.test.js` with a fake worker:
   - the request is posted with the picture buffers transferred;
   - progress is routed to `onProgress`;

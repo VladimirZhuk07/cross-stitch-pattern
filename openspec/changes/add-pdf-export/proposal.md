@@ -51,8 +51,8 @@ None.
 ## Impact
 
 - New `core/` modules: the PDF writer, text and fonts, page plan, page contents and assembly,
-  plus the shared `file-names.js` and `pattern-summary.js`.
-- New `io/` modules: the shared `download.js`, deflate, the JPEG picture encoder, and the PDF
+  plus the shared `file-names.js`, `pattern-summary.js` and `compression.js`.
+- New `io/` modules: the shared `download.js`, the JPEG picture encoder, and the PDF
   worker client.
 - New `workers/pdf.worker.js` with its handler, and new `ui/pdf-export.js`.
 - `formatFinishedSize` is extracted in `generation-settings.js`, with no change in behavior.

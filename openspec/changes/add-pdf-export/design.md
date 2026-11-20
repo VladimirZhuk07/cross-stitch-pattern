@@ -25,8 +25,11 @@
 - The shared pieces (Export menu markup and CSS, `io/download.js`, `core/file-names.js`,
   `core/pattern-summary.js` with tests) are fixed byte for byte by the shared export
   conventions of the three parallel changes. This change adds them as written.
-- Node 22 has `CompressionStream`, `Blob` and `node:zlib`, so the tests can write and inflate
-  real compressed PDFs without packages.
+- `core/compression.js` (`compressBytes`, `decompressBytes`, `canCompress`) and its unit test are
+  shared byte for byte too (conventions section 7). All three export changes use it instead of
+  their own compression code.
+- Node 22 has `CompressionStream`, `DecompressionStream` and `node:zlib`, so the tests can write
+  and inflate real compressed PDFs without packages.
 
 ## Goals / Non-Goals
 
@@ -47,7 +50,7 @@
 
 | Module | Layer | Does |
 |---|---|---|
-| `core/file-names.js`, `core/pattern-summary.js` | core | shared, verbatim from the conventions |
+| `core/file-names.js`, `core/pattern-summary.js`, `core/compression.js` | core | shared, verbatim from the conventions |
 | `core/pdf-text.js` | core | WinAnsi encoding, Helvetica metrics, `textWidth`, `fitText`, PDF string literals |
 | `core/pdf-writer.js` | core | number formatting, objects, xref, trailer → bytes |
 | `core/pdf-pictures.js` | core | `readJpegInfo(bytes)`, picture pixel sizes |
@@ -59,18 +62,19 @@
 | `core/pdf-info-page.js` | core | content of page 1 |
 | `core/pdf-document.js` | core | assembles everything into the PDF bytes |
 | `io/download.js` | io | shared, verbatim |
-| `io/deflate.js` | io | `deflateBytes(bytes)` through `CompressionStream('deflate')` |
 | `io/pdf-picture-encoder.js` | io | the two JPEGs from canvases |
 | `io/pdf-worker-client.js` | io | main-thread side of the PDF worker |
 | `workers/pdf-worker-handler.js`, `workers/pdf.worker.js` | workers | message adapter around `buildPdfDocument` |
 | `ui/pdf-export.js` | ui | the menu item, the dialog, the flow |
 
 `core/` stays pure. Its PDF modules take plain data (Pattern, strings, numbers, `Uint8Array`) and
-return strings or `Uint8Array`. They use no DOM, canvas, timers or `CompressionStream`.
+return strings or `Uint8Array`. They use no DOM, canvas, timers, `Blob` or `fetch`. The only
+platform API is the one the shared `core/compression.js` uses: `CompressionStream` and
+`DecompressionStream`, standard globals in browsers, workers and Node 22.
 
-`buildPdfDocument` is `async` only because it awaits an injected `compress` function (see D8).
-With `compress` set to `null`, it never awaits anything outside itself. Each module stays under
-300 lines; the chart page is the largest, at about 250.
+`buildPdfDocument` is `async` only because it awaits `compressBytes` (see D8). With
+`isCompressed: false`, it awaits nothing outside itself. Each module stays under 300 lines; the
+chart page is the largest, at about 250.
 
 ### D2. PDF file structure (`pdf-writer.js`)
 
@@ -285,19 +289,22 @@ are computed once per document (`paleTint` for each legend entry) and passed in,
 **Size.** A full page has 4,000 cells: about 75 KB for numbers and 50 KB for fills. That is about
 125 KB uncompressed, or roughly 15–25 KB after Deflate. The text is very repetitive.
 
-### D8. Compression: FlateDecode through `CompressionStream`
+### D8. Compression: FlateDecode through the shared `core/compression.js`
 
-- `CompressionStream('deflate')` produces the zlib format (RFC 1950), which is exactly what
-  `/FlateDecode` expects. It is built into every current browser, including workers (Chrome 80,
-  Firefox 113, Safari 16.4), and into Node 22. So compression costs no dependency.
+- **Format.** `compressBytes(bytes, 'deflate')` produces the zlib format (RFC 1950), which is
+  exactly what `/FlateDecode` expects. The shared module wraps `CompressionStream`, which is built
+  into every current browser, including workers (Chrome 80, Firefox 113, Safari 16.4), and into
+  Node 22. So compression costs no dependency, and `core/` stays testable in Node.
 - **Why compress.** A 1,000-page PDF is about 125 MB uncompressed, which is too large to save,
   mail or print comfortably. Compressed, it is roughly 15–25 MB.
-- **How.** `io/deflate.js` wraps the stream (`new Blob([bytes]).stream().pipeThrough(…)`). The
-  worker passes it to `buildPdfDocument` as `compress`. Each page's content is compressed as soon
-  as it is built, so only compressed bytes are kept.
-- **Fallback.** Where `CompressionStream` is missing, `compress` is `null`, and the streams are
-  written without `/Filter`. The PDF stays valid, only larger.
+- **How.** `buildPdfDocument(input, { isCompressed = canCompress(), onProgress })` calls
+  `compressBytes(content, 'deflate')` on each page's content as soon as it is built, so only
+  compressed bytes are kept, and writes `/Filter /FlateDecode`.
+- **Fallback.** Where `canCompress()` is false, the streams are written without `/Filter`. The
+  PDF stays valid, only larger. Tests pass `isCompressed: false` to read the operators directly.
 - JPEG data is already compressed and is never deflated.
+- *Alternative:* a compression helper of our own in `io/`, injected into core. Rejected now that
+  one shared module serves all three exports.
 
 ### D9. Pictures (`io/pdf-picture-encoder.js`, `core/pdf-pictures.js`)
 
@@ -340,7 +347,7 @@ are computed once per document (`paleTint` for each legend entry) and passed in,
     percent rises (at most 101 messages).
   - response: `{ type: 'pdf', id, bytes }`, with `bytes.buffer` transferred, or
     `{ type: 'error', id, message }`.
-  - `createPdfWorkerHandler({ compress, postProgress })` returns an async
+  - `createPdfWorkerHandler({ postProgress })` returns an async
     `handleMessage(message)` that resolves to `{ response, transfer }` and never rejects.
 - **Client** (`io/pdf-worker-client.js`). `createPdfWorkerClient(createWorker)` returns
   `{ exportPdf(request, onProgress), stop() }`:
