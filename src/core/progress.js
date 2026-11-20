@@ -146,3 +146,42 @@ export function toSavedProgress(progress, imageName, savedAt) {
     savedAt,
   };
 }
+
+/**
+ * True when a SavedProgress (or anything) belongs to the pattern: same fingerprint, width and
+ * height. Cheap; used before asking whether to replace saved progress.
+ */
+export function isSavedProgressOf(saved, pattern) {
+  return typeof saved === 'object' && saved !== null
+    && saved.fingerprint === pattern.fingerprint
+    && saved.width === pattern.width
+    && saved.height === pattern.height;
+}
+
+/**
+ * The Progress of pattern from a SavedProgress, or null when the record is not a valid
+ * SAVED_PROGRESS_FORMAT record of this pattern (see isSavedProgressOf) or its bits have the
+ * wrong type or length. Bits of empty cells and padding bits are cleared and the counts are
+ * recounted, so a damaged or tampered record can never mark wrong cells. The result is fresh
+ * (version 0, lastToggled null); the saved bits are not modified.
+ */
+export function restoreProgress(pattern, saved) {
+  const fresh = createProgress(pattern);
+  const isUsable = isSavedProgressOf(saved, pattern)
+    && saved.formatVersion === SAVED_PROGRESS_FORMAT
+    && saved.bits instanceof Uint8Array
+    && saved.bits.length === fresh.bits.length;
+  if (!isUsable) {
+    return null;
+  }
+  const bits = fresh.bits;
+  let stitchedCount = 0;
+  for (let index = 0; index < pattern.cells.length; index++) {
+    const isSet = (saved.bits[index >> 3] & (1 << (index & 7))) !== 0;
+    if (isSet && pattern.cells[index] !== EMPTY_CELL) {
+      bits[index >> 3] |= 1 << (index & 7);
+      stitchedCount += 1;
+    }
+  }
+  return { ...fresh, bits, stitchedCount };
+}

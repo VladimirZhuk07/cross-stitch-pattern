@@ -31,7 +31,7 @@
   - `isSavedProgressOf` true only for the same fingerprint and size.
 
   Verify they fail.
-- [ ] 2.4 Implement both; verify 2.3 passes
+- [x] 2.4 Implement both; verify 2.3 passes
 - [ ] 2.5 Add failing tests for the texts, then implement them; verify `npm run test:unit` passes. Cover:
   - `formatReplaceWarning('cat.png', 12, 6700)` → `Start a new progress? This browser keeps one progress: the saved one for cat.png (12 of 6,700 stitches) will be replaced.`;
   - `RESTORED_NOTE` → `Restored your saved progress.`;
