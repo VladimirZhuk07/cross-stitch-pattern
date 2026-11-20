@@ -136,7 +136,7 @@ describe('fitText', () => {
   it('keeps surrogate pairs whole', () => {
     const fitted = fitText('😀'.repeat(50), FONT_REGULAR, 10, 50);
     assert.ok(fitted.endsWith('…'));
-    assert.ok(!/[�-�]…$/.test(fitted), 'no lone high surrogate');
+    assert.ok(fitted.isWellFormed(), 'no lone surrogate');
   });
 
   it('returns an empty text when not even the ellipsis fits', () => {
