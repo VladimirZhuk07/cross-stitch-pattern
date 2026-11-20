@@ -60,13 +60,12 @@ from the saved record. Saved progress of another fingerprint SHALL be left untou
 When the browser holds saved progress with at least one stitch of a pattern with another
 fingerprint, the first mark on the current pattern SHALL open the warning dialog with the text
 `Start a new progress? This browser keeps one progress: the saved one for NAME (S of T stitches) will be replaced.`
-and the buttons `Keep my progress` (focused first) and `Start new progress`. Only
-`Start new progress` SHALL mark the stitch, and later marks SHALL not ask again. Keeping SHALL
-mark nothing and keep the saved progress.
+and the buttons `Keep my progress` and `Start new progress`. Only `Start new progress` SHALL
+mark the stitch; later marks SHALL not ask again.
 
 #### Scenario: Another photo after a reload
 - **WHEN** `cat.png` has 12 saved stitches, the page is reloaded, `dog.png` is loaded, and the user taps a stitch on Progress
-- **THEN** the dialog asks with `… the saved one for cat.png (12 of 6,700 stitches) will be replaced.`; `Keep my progress` marks nothing; tapping again and choosing `Start new progress` marks the stitch, and its save replaces `cat.png`'s progress
+- **THEN** the dialog asks with `… the saved one for cat.png (12 of 6,700 stitches) will be replaced.` with `Keep my progress` focused; `Keep my progress` marks nothing and keeps the saved progress; tapping again and choosing `Start new progress` marks the stitch, and its save replaces `cat.png`'s progress
 
 #### Scenario: Nothing saved
 - **WHEN** no progress is saved, or the saved one has no stitch

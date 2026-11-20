@@ -90,7 +90,8 @@ a blocked case, by stubbing `indexedDB.open` in DevTools.
 
 ### D4. Saving, restoring, asking (ui, `src/ui/progress-persistence.js`)
 
-`setupProgressPersistence(root, store, storePromise)` keeps:
+`setupProgressPersistence(root, store, storePromise, warning)` (the dialog of
+`createProgressWarning`, for the replace question) keeps:
 - `saved`: what is in storage (from the first `load`, then after every save or clear);
 - `isUnavailable`.
 
