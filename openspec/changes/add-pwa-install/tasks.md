@@ -37,7 +37,7 @@
 
 ## 2. Icon files
 
-- [ ] 2.1 Write `scripts/make-icons.js` (design D3). Run it and verify that it writes the six
+- [x] 2.1 Write `scripts/make-icons.js` (design D3). Run it and verify that it writes the six
   files of the spec into `icons/`. Look at `icon-512.png`, `icon-maskable-512.png` and
   `favicon.svg` in an image viewer, and commit the script together with the generated icons.
 - [ ] 2.2 Add `tests/helpers/png-pixels.js` (inflate, filter-0 rows to RGB) and
