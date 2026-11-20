@@ -71,7 +71,7 @@
   - the output is ASCII only.
 
   Verify they fail.
-- [ ] 3.10 Implement `src/core/pdf-content.js`; verify 3.9 passes
+- [x] 3.10 Implement `src/core/pdf-content.js`; verify 3.9 passes
 
 ## 4. Page plan and dialog texts (core)
 

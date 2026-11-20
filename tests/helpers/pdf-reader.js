@@ -5,7 +5,9 @@
 import { inflateSync } from 'node:zlib';
 
 const LATIN1 = new TextDecoder('latin1');
-const WINDOWS_1252 = new TextDecoder('windows-1252');
+// Node decodes 'windows-1252' as Latin-1, so the characters of 0x80–0x9F are listed here
+// (unused codes stay as their control character).
+const WINDOWS_1252_HIGH = '€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008DŽ\u008F\u0090‘’“”•–—˜™š›œ\u009DžŸ';
 const XREF_LINE_LENGTH = 20;
 
 /**
@@ -255,5 +257,13 @@ function readLiteral(content, start) {
     bytes.push(content.charCodeAt(index));
     index += 1;
   }
-  return { value: WINDOWS_1252.decode(Uint8Array.from(bytes)), end: index + 1 };
+  return { value: decodeWindows1252(bytes), end: index + 1 };
+}
+
+function decodeWindows1252(bytes) {
+  let text = '';
+  for (const byte of bytes) {
+    text += byte >= 0x80 && byte <= 0x9f ? WINDOWS_1252_HIGH[byte - 0x80] : String.fromCharCode(byte);
+  }
+  return text;
 }
