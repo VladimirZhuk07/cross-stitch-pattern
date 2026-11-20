@@ -15,7 +15,7 @@
 
 ## 2. The .stitch codec (core, TDD)
 
-- [ ] 2.1 Write failing tests in `tests/unit/core/progress-file.test.js` for `encodeProgressFile` (design D1, D2) and verify they fail. Cover:
+- [x] 2.1 Write failing tests in `tests/unit/core/progress-file.test.js` for `encodeProgressFile` (design D1, D2) and verify they fail. Cover:
   - the 3 × 2 fixture pattern with cells 0 and 4 stitched → bytes 0–15 are `53 54 49 54 43 48 01 00 03 00 00 00 02 00 00 00`, bytes 16–29 are the ASCII fingerprint, and `decompressBytes` of the rest (`compression.js`, format `'deflate'`) gives `[0x11]`;
   - a 1000 × 1000 progress with 100 marks encodes to fewer than 5,000 bytes;
   - it accepts a SavedProgress from `toSavedProgress`;
