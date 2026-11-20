@@ -58,3 +58,6 @@ export const SPREADSHEETML_NAMESPACE = 'http://schemas.openxmlformats.org/spread
 
 /** Namespace of r:id attributes that point to package relationships. */
 export const RELATIONSHIPS_NAMESPACE = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+/** Excel's default page margins in inches; every worksheet writes them after its sheetData. */
+export const WORKSHEET_PAGE_MARGINS = '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>';

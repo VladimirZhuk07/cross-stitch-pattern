@@ -63,7 +63,7 @@ first, keep the existing files: they must already be identical.
   - joining the chunks of `chartSheetXml(3 × 2 pattern, styles)` gives `dimension ref="A1:C2"`, `tabSelected="1"`, one `<col min="1" max="3" width="3.42578125" customWidth="1"/>`, rows with `ht="18" customHeight="1"`, cells `A1`=2, `B1`=1, `C1`=1, `A2` with a style and no `<v>`, `B2`=1, `C2`=2, each with its `chartCellStyle` index;
   - element order dimension → sheetViews → sheetFormatPr → cols → sheetData → pageMargins;
   - a 1000-row pattern yields more than one chunk, and every chunk ends on a row boundary.
-- [ ] 5.2 Implement `src/core/xlsx-chart-sheet.js` (design D6); verify 5.1 passes
+- [x] 5.2 Implement `src/core/xlsx-chart-sheet.js` (design D6); verify 5.1 passes
 - [ ] 5.3 Write failing tests for `fitInside` and `stitchBlockSize` in `tests/unit/core/picture-size.test.js`, then verify they fail. Cover:
   - 1600 × 1072 in 1024 → 1024 × 686;
   - 300 × 200 in 1024 → 300 × 200;
