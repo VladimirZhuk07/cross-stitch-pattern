@@ -140,7 +140,7 @@
   - the map note `The page map is on the next 2 pages.` (1000 × 1000) and `…next page.` (751 × 80).
 
   Verify they fail.
-- [ ] 5.10 Implement `src/core/pdf-info-page.js` (design D4, D6); verify 5.9 passes
+- [x] 5.10 Implement `src/core/pdf-info-page.js` (design D4, D6); verify 5.9 passes
 
 ## 6. Document assembly (core) and the export format
 
