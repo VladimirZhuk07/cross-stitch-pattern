@@ -34,6 +34,8 @@ import { setupPdfExport } from './ui/pdf-export.js';
 import { createPdfWorkerClient } from './io/pdf-worker-client.js';
 import { encodePdfPictures } from './io/pdf-picture-encoder.js';
 import { downloadBlob } from './io/download.js';
+import { registerServiceWorker } from './io/service-worker-registration.js';
+import { setupInstallOffer, INSTALL_OFFER_STORAGE_KEY } from './ui/install-offer.js';
 
 const store = createStore(createInitialState());
 
@@ -100,4 +102,11 @@ setupPdfExport(document, store, {
   client: createPdfWorkerClient(createPdfWorker),
   encodePictures: encodePdfPictures,
   download: downloadBlob,
+});
+
+// Offline use and the install offer.
+registerServiceWorker();
+setupInstallOffer(document, window, {
+  read: () => readPreference(INSTALL_OFFER_STORAGE_KEY),
+  write: (text) => writePreference(INSTALL_OFFER_STORAGE_KEY, text),
 });

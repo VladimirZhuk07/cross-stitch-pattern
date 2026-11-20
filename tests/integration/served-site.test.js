@@ -18,9 +18,14 @@ const EXPECTED_CONTENT_TYPES = {
   '.svg': 'image/svg+xml',
 };
 
-// Files the install support needs: the manifest and every icon (app-install spec).
+// Files the install support needs: the manifest, every icon and the service worker with its
+// imports (app-install spec).
 const INSTALL_FILES = [
   'manifest.webmanifest',
+  'service-worker.js',
+  'src/workers/service-worker-handler.js',
+  'src/core/app-files.js',
+  'src/core/offline-cache.js',
   'icons/favicon-32.png',
   'icons/favicon.svg',
   'icons/apple-touch-icon.png',
@@ -99,7 +104,7 @@ describe('served site under a GitHub Pages-like sub-path', () => {
     assert.deepEqual(failed.map((resource) => `${resource.status} ${resource.url}`), []);
   });
 
-  it('reaches the manifest and every icon file', () => {
+  it('reaches the manifest, every icon file and the service worker with its imports', () => {
     const reached = new Set(site.resources.map((resource) => resource.url));
     const missing = INSTALL_FILES.filter((file) => !reached.has(new URL(file, server.url).href));
     assert.deepEqual(missing, []);

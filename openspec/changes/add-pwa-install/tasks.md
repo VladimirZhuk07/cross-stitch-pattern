@@ -164,7 +164,7 @@
 
   Add the markup and the CSS (design D10), and verify that the check and
   `tests/integration/layout-css.test.js` pass.
-- [ ] 8.2 Append the group `// Offline use and the install offer.` at the end of `src/main.js`.
+- [x] 8.2 Append the group `// Offline use and the install offer.` at the end of `src/main.js`.
   It calls `registerServiceWorker()` and
   `setupInstallOffer(document, window, { read, write })` with `INSTALL_OFFER_STORAGE_KEY`.
   Verify that `served-site.test.js` now reaches `service-worker.js` and its imports, and that
