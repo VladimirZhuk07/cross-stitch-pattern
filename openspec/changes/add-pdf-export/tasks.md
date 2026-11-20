@@ -215,7 +215,7 @@
 
 - [x] 10.1 Run `npm run test:unit`; all tests pass
 - [x] 10.2 Run `npm run test:integration`; all tests pass
-- [ ] 10.3 Browser smoke check with `node scripts/serve.js`:
+- [x] 10.3 Browser smoke check with `node scripts/serve.js`:
   - Before any pattern, `Export` → `PDF chart` is disabled. Load a photo (default width 100): it becomes enabled. Click it: the menu closes, a short progress dialog shows `Creating the PDF: … pages`, and `<name>.pdf` downloads. DevTools Network shows no request.
   - Open the PDF in the browser viewer and in one other viewer (Acrobat Reader, macOS Preview or Firefox). Check that:
     - page 1 has the title, the file name, both pictures side by side (DMC picture sharp), the four summary lines with the finished size, and the page map with ranges;
