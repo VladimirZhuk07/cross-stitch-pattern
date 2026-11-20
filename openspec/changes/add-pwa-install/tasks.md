@@ -128,7 +128,7 @@
 
 ## 7. Install offer (core, ui)
 
-- [ ] 7.1 Write failing `tests/unit/core/install-offer.test.js` and verify that it fails. Cover:
+- [x] 7.1 Write failing `tests/unit/core/install-offer.test.js` and verify that it fails. Cover:
   - `isIosSafari` with the spec's iPhone Safari, iPad-as-Mac (`MacIntel`, 5 touch points), Mac
     Safari (0 touch points) and `CriOS` user agents, plus `FxiOS` and an in-app web view
     without `Version/`;
