@@ -107,7 +107,7 @@ first, keep the existing files: they must already be identical.
   - returns `Map<name, Uint8Array>` plus each entry's method.
 
   Also add `tests/helpers/xml-check.js`, a well-formedness check that returns the element names in order (design D12). Verify both with a quick self-test inside 6.2.
-- [ ] 6.2 Write `tests/integration/excel-workbook.test.js`, which builds workbooks with `workbookFiles` + `buildZip` and the real shared compression. Cover:
+- [x] 6.2 Write `tests/integration/excel-workbook.test.js`, which builds workbooks with `workbookFiles` + `buildZip` and the real shared compression. Cover:
   - the 13 parts, all XML well-formed and UTF-8;
   - content types and relationships resolve;
   - Chart values, fills, fonts and borders of the 3 × 2 pattern resolved through `styles.xml`;
