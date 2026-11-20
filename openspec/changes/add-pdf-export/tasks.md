@@ -154,7 +154,7 @@
 
   Verify they fail.
 - [x] 6.2 Implement `src/core/pdf-document.js` (design D2, D8); verify 6.1 passes
-- [ ] 6.3 Write `tests/integration/pdf-export-format.test.js`, which builds the 120 × 90 PDF with the default `isCompressed` (`canCompress()` is true in Node 22, so content goes through the shared `compressBytes(…, 'deflate')`, design D8) and checks:
+- [x] 6.3 Write `tests/integration/pdf-export-format.test.js`, which builds the 120 × 90 PDF with the default `isCompressed` (`canCompress()` is true in Node 22, so content goes through the shared `compressBytes(…, 'deflate')`, design D8) and checks:
   - `%PDF-1.4` … `%%EOF`;
   - `startxref` points at `xref`, and every offset at `n 0 obj`;
   - `/Size` is the object count + 1;
