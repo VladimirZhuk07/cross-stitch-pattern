@@ -62,3 +62,43 @@ export function chartPageArea(plan, pattern, pageNumber) {
     rowEnd: Math.min(pattern.height, rowStart + CHART_PAGE_ROWS),
   };
 }
+
+// The UI is in English; a fixed locale keeps the texts the same in every browser.
+const COUNT_FORMAT = new Intl.NumberFormat('en-US');
+
+/** True when a PdfPagePlan has more than CONFIRM_PDF_PAGES pages, so the export asks first. */
+export function needsPdfConfirmation(plan) {
+  return plan.totalPages > CONFIRM_PDF_PAGES;
+}
+
+/** True when a PdfPagePlan has more than MAX_PDF_PAGES pages, so no PDF is made. */
+export function isPdfTooLarge(plan) {
+  return plan.totalPages > MAX_PDF_PAGES;
+}
+
+/** The dialog text while the PDF of a PdfPagePlan is created. */
+export function formatPdfRunning(plan) {
+  return `Creating the PDF: ${describePageCounts(plan)}…`;
+}
+
+/** The dialog question before a PDF of more than CONFIRM_PDF_PAGES pages is created. */
+export function formatPdfConfirm(plan) {
+  return `This PDF will have ${describePageCounts(plan)}. Large PDFs take a while to create and print. Create it?`;
+}
+
+/** The dialog text for a PdfPagePlan above MAX_PDF_PAGES pages. */
+export function formatPdfTooLarge(plan) {
+  return `This pattern needs ${COUNT_FORMAT.format(plan.totalPages)} PDF pages, ` +
+    `but a PDF can have at most ${COUNT_FORMAT.format(MAX_PDF_PAGES)}. Choose a smaller width to export a PDF.`;
+}
+
+/** The dialog text when creating the PDF failed; reason is the error message. */
+export function formatPdfError(reason) {
+  return `Could not create the PDF: ${reason}`;
+}
+
+// '92 pages (90 chart pages)'; one chart page in the singular.
+function describePageCounts(plan) {
+  const chart = plan.chartPages === 1 ? '1 chart page' : `${COUNT_FORMAT.format(plan.chartPages)} chart pages`;
+  return `${COUNT_FORMAT.format(plan.totalPages)} pages (${chart})`;
+}

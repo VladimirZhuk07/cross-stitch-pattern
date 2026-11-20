@@ -93,7 +93,7 @@
   Also cover `chartPageArea` for pages 1, 3, 4 and 6 of 120 × 90, and invalid page numbers (`RangeError`). Use small synthetic `{ width, height, legend }` objects for the plan. Verify they fail.
 - [x] 4.2 Implement `planPdfPages`, `chartPageArea` and the constants in `src/core/pdf-page-plan.js` (design D5); verify 4.1 passes
 - [x] 4.3 Add failing tests for `needsPdfConfirmation` (100 → false, 102 → true), `isPdfTooLarge` (1000 → false, 1001 → true), and the four texts, word for word as in the spec (92, 102, 1,007, 25,114 pages; the error text). Verify they fail.
-- [ ] 4.4 Implement them; verify 4.3 passes
+- [x] 4.4 Implement them; verify 4.3 passes
 
 ## 5. Page content (core)
 
