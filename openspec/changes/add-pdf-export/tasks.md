@@ -166,7 +166,7 @@
 
 ## 7. Worker and client
 
-- [ ] 7.1 Write failing `tests/integration/pdf-worker.test.js` for `createPdfWorkerHandler({ postProgress })`:
+- [x] 7.1 Write failing `tests/integration/pdf-worker.test.js` for `createPdfWorkerHandler({ postProgress })`:
   - an `export-pdf` request → `{ type: 'pdf', id }` with bytes that `readPdf` reads as 8 pages, and `transfer` equal to `[bytes.buffer]`;
   - progress messages carry the id, grow strictly in percent and number at most 101;
   - a 2000 × 2000 request → an error response with a message naming 1,007 pages;
