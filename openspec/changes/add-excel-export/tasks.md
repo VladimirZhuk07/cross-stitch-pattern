@@ -6,7 +6,7 @@ first, keep the existing files: they must already be identical.
 
 ## 1. Shared pieces (core, io)
 
-- [ ] 1.1 Add `tests/unit/core/file-names.test.js` verbatim (section 4) and see it fail; add `src/core/file-names.js` verbatim; verify `node --test tests/unit/core/file-names.test.js` passes
+- [x] 1.1 Add `tests/unit/core/file-names.test.js` verbatim (section 4) and see it fail; add `src/core/file-names.js` verbatim; verify `node --test tests/unit/core/file-names.test.js` passes
 - [ ] 1.2 Add `tests/unit/core/pattern-summary.test.js` verbatim (section 5) and see it fail; add `src/core/pattern-summary.js` verbatim; verify the test passes
 - [ ] 1.3 Add `src/io/download.js` verbatim (section 3); verify it is identical to the conventions text (compare with a copy of the section's code block, e.g. `git diff --no-index`, which shows no difference) and that `served-site.test.js` still passes once it is imported (task 8.4)
 - [ ] 1.4 Add `tests/unit/core/compression.test.js` verbatim (section 7) and see it fail (module missing); add `src/core/compression.js` verbatim; verify `node --test tests/unit/core/compression.test.js` passes
