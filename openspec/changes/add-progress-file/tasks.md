@@ -97,7 +97,7 @@
 
 - [x] 7.1 Run `npm run test:unit`; all tests pass
 - [x] 7.2 Run `npm run test:integration`; all tests pass
-- [ ] 7.3 Browser smoke check with `node scripts/serve.js` (desktop width and a 360 px phone viewport in DevTools):
+- [x] 7.3 Browser smoke check with `node scripts/serve.js` (desktop width and a 360 px phone viewport in DevTools):
   - Before an image: `Export` opens with both progress items disabled.
   - Load `cat.png`. Load is enabled, Save disabled. Mark 12 stitches: Save is enabled. Save downloads `cat.stitch` and the menu closes. No network request appears in DevTools → Network.
   - Unmark all and reload, then load `cat.png` again. Use Load progress → `cat.stitch`: the 12 marks come back, the view is Progress, the note reads `Loaded your progress from cat.stitch.`, and IndexedDB holds the record at once.
