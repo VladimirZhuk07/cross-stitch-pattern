@@ -18,7 +18,7 @@
   - `readPngHeader` reads the IHDR back and throws for a wrong signature or a first chunk other
     than IHDR;
   - `encodePng` rejects with a `RangeError` when `rgb.length` ≠ width × height × 3.
-- [ ] 1.6 Implement `src/core/png.js` using `crc32` from `src/core/crc32.js` and
+- [x] 1.6 Implement `src/core/png.js` using `crc32` from `src/core/crc32.js` and
   `compressBytes(raw, 'deflate')` from `src/core/compression.js` (design D2). It has no CRC or
   compressor of its own. Verify that 1.5 passes.
 - [ ] 1.7 Write failing `tests/unit/core/app-icon.test.js` and verify that it fails. Cover:
