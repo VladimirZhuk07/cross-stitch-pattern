@@ -102,7 +102,7 @@
 
 ## 6. Service worker (workers, io)
 
-- [ ] 6.1 Write failing `tests/integration/service-worker.test.js` and verify that it fails. Use
+- [x] 6.1 Write failing `tests/integration/service-worker.test.js` and verify that it fails. Use
   `scripts/serve.js` on port 0 under `/cross-stitch-pattern/`, the real `fetch`, and an
   in-memory fake `caches` with `open`, `keys`, `delete`, `put` and `match`. Cover:
   - `install()` caches `…/`, `src/main.js`, `src/workers/pattern.worker.js` and its imports,
