@@ -4,7 +4,7 @@
 
 - [x] 1.1 Add `tests/unit/core/file-names.test.js` exactly as in the shared conventions (section 4); verify it fails (module missing). Then add `src/core/file-names.js` exactly as written there; verify `node --test tests/unit/core/file-names.test.js` passes
 - [x] 1.2 Add `tests/unit/core/compression.test.js` exactly as in the shared conventions (section 7); verify it fails (module missing). Then add `src/core/compression.js` exactly as written there; verify `node --test tests/unit/core/compression.test.js` passes
-- [ ] 1.3 Add `src/io/download.js` exactly as in the shared conventions (section 3); verify `npm run test:integration` still passes (it is imported in task 6.5, when served-site checks it)
+- [x] 1.3 Add `src/io/download.js` exactly as in the shared conventions (section 3); verify `npm run test:integration` still passes (it is imported in task 6.5, when served-site checks it)
 - [ ] 1.4 Add a failing check to `tests/integration/progress-markup.test.js`. Then add the Export menu to `index.html` and verify the check passes. The check covers:
   - a `<details class="export-menu" data-role="export-menu">` right after the `<h1>` and before the `file-picker` label;
   - only the `export-progress` button (disabled, text `Save progress (.stitch)`);
